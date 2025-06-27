@@ -120,4 +120,46 @@ class TextStyles {
     fontWeight: FontWeight.w600,
     fontFamily: 'Montserrat',
   );
+
+  static const TextStyle textStyle1 = TextStyle(
+    fontSize: 12,
+    color: ColorCodes.colorBlack1,
+    fontWeight: FontWeight.w500,
+    fontFamily: 'Figtree',
+  );
+
+  static const TextStyle textStyle2 = TextStyle(
+    fontSize: 16,
+    color: ColorCodes.colorBlack1,
+    fontWeight: FontWeight.w800,
+    fontFamily: 'Figtree',
+  );
+
+  static const TextStyle textStyle3 = TextStyle(
+    fontSize: 16,
+    color: ColorCodes.colorBlack1,
+    fontWeight: FontWeight.w700,
+    fontFamily: 'Figtree',
+  );
+
+  static const TextStyle textStyle4 = TextStyle(
+    fontSize: 12,
+    color: ColorCodes.colorBlue1,
+    fontWeight: FontWeight.w700,
+    fontFamily: 'Figtree',
+  );
+
+  static const TextStyle textStyle4_1 = TextStyle(
+    fontSize: 8,
+    color: ColorCodes.colorBlue1,
+    fontWeight: FontWeight.w700,
+    fontFamily: 'Figtree',
+  );
+
+  static const TextStyle textStyle5 = TextStyle(
+    fontSize: 10,
+    color: ColorCodes.colorGrey1,
+    fontWeight: FontWeight.w500,
+    fontFamily: 'Figtree',
+  );
 }

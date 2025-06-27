@@ -1,4 +1,5 @@
 import 'package:Doctor/screens/AuthScreen.dart';
+import 'package:Doctor/screens/MainScreen.dart';
 import 'package:Doctor/zegocloud/common.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,7 +12,10 @@ final currentUser = ZegoUIKitUser(id: '', name: '');
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-  final Widget initialScreen = await getInitialScreen();
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  final Widget initialScreen = await getInitialScreen(prefs);
 
   ZegoUIKitPrebuiltCallInvitationService().setNavigatorKey(navigatorKey);
 
@@ -42,7 +46,7 @@ void main() async {
   );
 }
 
-Future<Widget> getInitialScreen() async {
+Future<Widget> getInitialScreen(SharedPreferences prefs) async {
 /*  final SharedPreferences prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('shopify_access_token');
   final expiryString = prefs.getString('token_expiry');
@@ -58,7 +62,20 @@ Future<Widget> getInitialScreen() async {
     }
   }*/
 
-  return AuthScreen(); // ❌ No valid token, go to auth screen
+  final token = prefs.getString('access_token');
+  print('Token: $token');
+
+  if (token != null && token.isNotEmpty) {
+    // You can also set currentUser ID and name here if needed
+    // currentUser.id = prefs.getString('user_id') ?? '';
+    // currentUser.name = prefs.getString('user_name') ?? 'Doctor';
+
+    return MainScreen(); // Token exists → Go to MainScreen
+  } else {
+    return AuthScreen(); // No token → Go to AuthScreen
+  }
+
+  // return AuthScreen(); // ❌ No valid token, go to auth screen
 }
 
 void onUserLogin() {
