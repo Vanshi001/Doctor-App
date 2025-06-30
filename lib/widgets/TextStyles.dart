@@ -135,6 +135,20 @@ class TextStyles {
     fontFamily: 'Figtree',
   );
 
+  static const TextStyle textStyle2_1 = TextStyle(
+    fontSize: 16,
+    color: ColorCodes.colorBlack1,
+    fontWeight: FontWeight.w700,
+    fontFamily: 'Figtree',
+  );
+
+  static const TextStyle textStyle2_2 = TextStyle(
+    fontSize: 18,
+    color: ColorCodes.colorBlack1,
+    fontWeight: FontWeight.w700,
+    fontFamily: 'Figtree',
+  );
+
   static const TextStyle textStyle3 = TextStyle(
     fontSize: 16,
     color: ColorCodes.colorBlack1,
@@ -156,10 +170,59 @@ class TextStyles {
     fontFamily: 'Figtree',
   );
 
+  static const TextStyle textStyle4_2 = TextStyle(
+    fontSize: 14,
+    color: ColorCodes.colorBlue1,
+    fontWeight: FontWeight.w700,
+    fontFamily: 'Figtree',
+  );
+
+  static const TextStyle textStyle4_3 = TextStyle(
+    fontSize: 14,
+    color: ColorCodes.colorBlack1,
+    fontWeight: FontWeight.w700,
+    fontFamily: 'Figtree',
+  );
+
   static const TextStyle textStyle5 = TextStyle(
     fontSize: 10,
     color: ColorCodes.colorGrey1,
     fontWeight: FontWeight.w500,
+    fontFamily: 'Figtree',
+  );
+
+  static const TextStyle textStyle5_1 = TextStyle(
+    fontSize: 12,
+    color: ColorCodes.colorGrey1,
+    fontWeight: FontWeight.w400,
+    fontFamily: 'Figtree',
+  );
+
+  static const TextStyle textStyle5_2 = TextStyle(
+    fontSize: 10,
+    color: ColorCodes.white,
+    fontWeight: FontWeight.w500,
+    fontFamily: 'Figtree',
+  );
+
+  static const TextStyle textStyle6 = TextStyle(
+    fontSize: 14,
+    color: ColorCodes.colorGrey1,
+    fontWeight: FontWeight.w500,
+    fontFamily: 'Figtree',
+  );
+
+  static const TextStyle textStyle6_1 = TextStyle(
+    fontSize: 14,
+    color: ColorCodes.white,
+    fontWeight: FontWeight.w700,
+    fontFamily: 'Figtree',
+  );
+
+  static const TextStyle textStyle6_2 = TextStyle(
+    fontSize: 16,
+    color: ColorCodes.colorGrey1,
+    fontWeight: FontWeight.w400,
     fontFamily: 'Figtree',
   );
 }

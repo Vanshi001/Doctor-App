@@ -43,6 +43,8 @@ dependencies:
   zego_uikit_signaling_plugin: ^2.8.7
   zego_uikit_prebuilt_call: ^4.17.0-beta.1
   dotted_line: ^3.2.3
+  dotted_border: ^3.1.0
+  carousel_slider: ^5.1.1
 #  card_slider: ^1.0.5
 
 dev_dependencies:

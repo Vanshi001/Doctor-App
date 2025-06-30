@@ -24,7 +24,7 @@ class CardSlider extends StatefulWidget {
         this.cardWidthOffset = .1,
         this.cardHeightOffset = .01,
         this.containerWidth = double.infinity,
-        this.containerHeight = 500,
+        this.containerHeight = 200, //500
         this.containerColor = Colors.transparent,
         this.itemDotOffset = 0,
         this.itemDot})

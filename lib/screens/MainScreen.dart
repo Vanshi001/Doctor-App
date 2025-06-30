@@ -1,12 +1,17 @@
 import 'package:Doctor/screens/DoctorDetailsScreen.dart';
+import 'package:Doctor/screens/UpcomingSchedulesScreen.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../controllers/main/MainController.dart';
+import '../model/appointment_item.dart';
 import '../widgets/ColorCodes.dart';
 import '../widgets/Slider.dart';
 import '../widgets/TextStyles.dart';
+import 'AppointmentsScreen.dart';
 import 'EditProfileScreen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -38,15 +43,13 @@ class _MainScreenState extends State<MainScreen> {
   _checkDrag(Offset position, bool up) {
     if (!up) {
       // find your widget
-      RenderBox box =
-      _pointerKey.currentContext!.findRenderObject() as RenderBox;
+      RenderBox box = _pointerKey.currentContext!.findRenderObject() as RenderBox;
 
       //get offset
       Offset boxOffset = box.localToGlobal(Offset.zero);
 
       // check if your pointerdown event is inside the widget (you could do the same for the width, in this case I just used the height)
-      if (position.dy > boxOffset.dy &&
-          position.dy < boxOffset.dy + box.size.height) {
+      if (position.dy > boxOffset.dy && position.dy < boxOffset.dy + box.size.height) {
         setState(() {
           _dragOverMap = true;
         });
@@ -61,252 +64,456 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
+    var height = MediaQuery.of(context).size.height;
 
-    List<Color> valuesDataColors = [
-      Colors.purple,
-      Colors.yellow,
-      Colors.green,
-      Colors.red,
-      Colors.grey,
-      Colors.blue,
-    ];
+    List<Color> valuesDataColors = [Colors.purple, Colors.yellow, Colors.green, Colors.red, Colors.grey, Colors.blue];
 
     List<Widget> valuesWidget = [];
     for (int i = 0; i < valuesDataColors.length; i++) {
-      valuesWidget.add(Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12.0),
-            color: valuesDataColors[i],
-          ),
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(
-              i.toString(),
-              style: const TextStyle(
-                fontSize: 28,
-              ),
-            ),
-          )));
+      valuesWidget.add(
+        Container(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12.0), color: valuesDataColors[i]),
+          child: Align(alignment: Alignment.center, child: Text(i.toString(), style: const TextStyle(fontSize: 28))),
+        ),
+      );
     }
 
-    return SafeArea(
-      child: Scaffold(
-        key: _scaffoldKey,
-        extendBody: true,
-        extendBodyBehindAppBar: false,
-        backgroundColor: ColorCodes.white,
-        appBar: AppBar(
-          title: Text("Doctor's App", style: TextStyles.buttonNameStyle),
-          backgroundColor: ColorCodes.darkPurple,
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.menu_open, color: ColorCodes.white),
-            onPressed: () {
-              _scaffoldKey.currentState?.openDrawer(); // Open drawer
-            },
-          ),
-        ),
-        drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
+    final List<String> imageUrls = ['assets/ic_profile.png', 'assets/ic_profile.png', 'assets/ic_profile.png'];
+
+    final List<Map<String, String>> sliderData = [
+      {
+        'image': 'https://via.placeholder.com/150',
+        'title': 'Dermatics India',
+        'subtitle': 'Under Eye, Pigmentation',
+        'date': '22 May 2025',
+        'time': '12:30 - 13:00 pm',
+      },
+      {
+        'image': 'https://via.placeholder.com/150/0000FF',
+        'title': 'Glow Clinic',
+        'subtitle': 'Acne Treatment',
+        'date': '23 May 2025',
+        'time': '14:00 - 14:30 pm',
+      },
+      {
+        'image': 'https://via.placeholder.com/150/FF0000',
+        'title': 'SkinCare Hub',
+        'subtitle': 'Laser Therapy',
+        'date': '25 May 2025',
+        'time': '10:00 - 10:30 am',
+      },
+    ];
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(statusBarColor: Colors.white, statusBarIconBrightness: Brightness.dark),
+      child: SafeArea(
+        child: Scaffold(
+          key: _scaffoldKey,
+          backgroundColor: ColorCodes.white,
+          /*drawer: Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
+                  decoration: BoxDecoration(color: ColorCodes.darkPurple),
+                  child: Text('Welcome, Doctor', style: TextStyles.buttonNameStyle.copyWith(color: Colors.white)),
+                ),
+                ListTile(
+                  leading: Icon(Icons.home),
+                  title: Text('Home'),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.person),
+                  title: Text("Doctor's Detail"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.to(() => DoctorDetailsScreen());
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.edit_note),
+                  title: Text("Edit Profile"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.to(() => EditProfileScreen());
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.logout),
+                  title: Text('Logout'),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+          ),*/
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              DrawerHeader(
-                decoration: BoxDecoration(color: ColorCodes.darkPurple),
-                child: Text('Welcome, Doctor', style: TextStyles.buttonNameStyle.copyWith(color: Colors.white)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10.0, 20, 10, 10),
+                child: Row(
+                  children: [
+                    Image.asset("assets/ic_profile.png", height: 45, width: 45),
+                    SizedBox(width: 5),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Hello', style: TextStyles.textStyle1),
+                          Text('Dr. Dermatics', style: TextStyles.textStyle2, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              ListTile(
-                leading: Icon(Icons.home),
-                title: Text('Home'),
-                onTap: () {
-                  Navigator.pop(context);
-                },
+              GestureDetector(
+                onTap:
+                    () => {
+                      // Get.to(() => ShowShopByCategoryScreen(title: 'Products', data: 'search'))
+                    },
+                child: Container(
+                  height: 50,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white,
+                    border: Border.all(color: ColorCodes.colorGrey4, width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      Image.asset('assets/ic_search.png', height: 20, width: 20),
+                      SizedBox(width: 10),
+                      Expanded(child: Text("Search", style: TextStyles.textStyle5_1)),
+                      // Image.asset('assets/ic_vertical_line.png', height: 20, width: 20),
+                      // Image.asset('assets/ic_microphone.png', height: 20, width: 20),
+                    ],
+                  ),
+                ),
               ),
-              ListTile(
-                leading: Icon(Icons.person),
-                title: Text("Doctor's Detail"),
-                onTap: () {
-                  Navigator.pop(context);
-                  Get.to(() => DoctorDetailsScreen());
-                },
+              SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Today's Schedule (6)", style: TextStyles.textStyle3),
+                    GestureDetector(
+                      child: Row(
+                        children: [
+                          Text('See all', style: TextStyles.textStyle4),
+                          SizedBox(width: 4),
+                          Image.asset("assets/ic_arrow_right.png", height: 12, width: 12),
+                        ],
+                      ),
+                      onTap: () {
+                        print("See all");
+                        Get.to(() => UpcomingSchedulesScreen());
+                      },
+                    ),
+                  ],
+                ),
               ),
-              ListTile(
-                leading: Icon(Icons.edit_note),
-                title: Text("Edit Profile"),
-                onTap: () {
-                  Navigator.pop(context);
-                  Get.to(() => EditProfileScreen());
-                },
+              Container(
+                padding: EdgeInsets.only(top: 10, bottom: 10),
+                height: height / 5,
+                child: CarouselSlider(
+                  items:
+                      imageUrls.map((url) {
+                        return Container(
+                          height: height / 5,
+                          decoration: BoxDecoration(color: ColorCodes.colorBlue1, borderRadius: BorderRadius.circular(20)),
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8.0, top: 10, right: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(50),
+                                      child: Image.asset(url, height: 50, width: 50, fit: BoxFit.cover),
+                                    ),
+                                    SizedBox(width: 5),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text("Dermatics India", style: TextStyles.textStyle6_1),
+                                          SizedBox(height: 2),
+                                          SizedBox(
+                                            width: width / 3,
+                                            child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey4),
+                                          ),
+                                          SizedBox(height: 2),
+                                          Text("Under Eye, Pigmentation", style: TextStyles.textStyle5_2, overflow: TextOverflow.ellipsis),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.fromLTRB(0, 0, 5, 10),
+                                      child: Image.asset('assets/ic_video_call2.png', height: 40, width: 40),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(100),
+                                  border: Border.all(color: Colors.grey.shade300),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.asset('assets/ic_calendar.png', width: 12, height: 12),
+                                    SizedBox(width: 2),
+                                    Text('22 May 2025', style: TextStyles.textStyle4),
+                                    Image.asset('assets/ic_vertical_line.png', height: 20, width: 20),
+                                    Image.asset('assets/ic_clock.png', width: 12, height: 12),
+                                    SizedBox(width: 2),
+                                    Text('12:30 - 13:00 pm', style: TextStyles.textStyle4),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          // child: Column(
+                          //   children: [
+                          //     Container(
+                          //       width: width,
+                          //       height: height,
+                          //       decoration: BoxDecoration(
+                          //         color: Color(0xFF0066CC),
+                          //         borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                          //       ),
+                          //       /*child: Row(
+                          //     children: [
+                          //       ClipRRect(
+                          //         borderRadius: BorderRadius.circular(50),
+                          //         child: Image.network(url, height: 50, width: 50, fit: BoxFit.cover),
+                          //       ),
+                          //       const SizedBox(width: 10),
+                          //       Expanded(
+                          //         child: Column(
+                          //           crossAxisAlignment: CrossAxisAlignment.start,
+                          //           children: [
+                          //             Text("Dermatics India", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                          //             Text("Under Eye, Pigmentation...", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          //           ],
+                          //         ),
+                          //       ),
+                          //       Container(
+                          //         padding: const EdgeInsets.all(6),
+                          //         decoration: BoxDecoration(
+                          //           color: Colors.white,
+                          //           shape: BoxShape.circle,
+                          //         ),
+                          //         child: Icon(Icons.videocam, color: Color(0xFF0066CC), size: 20),
+                          //       )
+                          //     ],
+                          //   ),*/
+                          //     ),
+                          //     /*Container(
+                          //   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                          //   padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                          //   decoration: BoxDecoration(
+                          //     color: Colors.white,
+                          //     borderRadius: BorderRadius.circular(100),
+                          //     border: Border.all(color: Colors.grey.shade300),
+                          //   ),
+                          //   child: Row(
+                          //     mainAxisAlignment: MainAxisAlignment.center,
+                          //     children: [
+                          //       Icon(Icons.calendar_today, size: 14, color: Colors.black54),
+                          //       const SizedBox(width: 6),
+                          //       Text("22 May 2025", style: TextStyle(fontSize: 13)),
+                          //       const SizedBox(width: 20),
+                          //       Container(width: 1, height: 20, color: Colors.grey.shade300),
+                          //       const SizedBox(width: 20),
+                          //       Icon(Icons.access_time, size: 14, color: Colors.black54),
+                          //       const SizedBox(width: 6),
+                          //       Text("12:30 - 13:00 pm", style: TextStyle(fontSize: 13)),
+                          //     ],
+                          //   ),
+                          // ),*/
+                          //   ],
+                          // ),
+                        );
+                      }).toList(),
+                  options: CarouselOptions(autoPlay: true, aspectRatio: 2.8, height: 150, enlargeCenterPage: true, viewportFraction: 0.75),
+                ),
               ),
-              ListTile(
-                leading: Icon(Icons.logout),
-                title: Text('Logout'),
-                onTap: () {
-                  Navigator.pop(context);
-                },
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Appointments", style: TextStyles.textStyle3),
+                    GestureDetector(
+                      child: Row(
+                        children: [
+                          Text('See all', style: TextStyles.textStyle4),
+                          SizedBox(width: 4),
+                          Image.asset("assets/ic_arrow_right.png", height: 12, width: 12),
+                        ],
+                      ),
+                      onTap: () {
+                        print("See all");
+                        Get.to(() => AppointmentsScreen());
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Obx(() {
+                  return mainController.isLoading.value
+                      ? Center(child: CircularProgressIndicator(color: ColorCodes.colorBlack1))
+                      : ListView.builder(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        shrinkWrap: true,
+                        itemCount: 5,
+                        // itemCount: mainController.appointmentList.length,
+                        itemBuilder: (context, index) {
+                          return Card(
+                            color: ColorCodes.white,
+                            margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                            child: Container(
+                              padding: EdgeInsets.all(10),
+                              child: Row(
+                                children: [
+                                  Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Image.asset('assets/ic_profile.png', height: 65, width: 65),
+                                      Positioned(
+                                        top: 0,
+                                        right: 4,
+                                        child: Container(
+                                          height: 12,
+                                          width: 12,
+                                          decoration: BoxDecoration(
+                                            color: Colors.red, // dot color
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: Colors.white, width: 1.5),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(width: 5),
+                                  Expanded(
+                                    child: Container(
+                                      padding: EdgeInsets.only(left: 5, right: 5),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text("Dermatics India", style: TextStyles.textStyle3),
+                                          SizedBox(height: 2),
+                                          SizedBox(
+                                            width: width / 3,
+                                            child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1),
+                                          ),
+                                          SizedBox(height: 2),
+                                          Text("Under Eye, Pigmentation", style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis),
+                                          SizedBox(height: 5),
+                                          Row(
+                                            children: [
+                                              Image.asset('assets/ic_calendar.png', width: 12, height: 12),
+                                              SizedBox(width: 3),
+                                              Text('22 May 2025', style: TextStyles.textStyle4_1),
+                                              SizedBox(width: 8),
+                                              Image.asset('assets/ic_clock.png', width: 12, height: 12),
+                                              SizedBox(width: 3),
+                                              Text('12:30 - 13:00 pm', style: TextStyles.textStyle4_1),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 40, height: 40, child: Image.asset('assets/ic_document.png')),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                }),
               ),
             ],
           ),
         ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Row(
-                children: [
-                  Image.asset("assets/ic_profile.png", height: 45, width: 45),
-                  SizedBox(width: 5),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Hello', style: TextStyles.textStyle1),
-                        Text('Dr. Dermatics', style: TextStyles.textStyle2, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Today's Schedule (6)", style: TextStyles.textStyle3),
-                  GestureDetector(
-                    child: Row(
-                      children: [
-                        Text('See all', style: TextStyles.textStyle4),
-                        SizedBox(width: 4),
-                        Image.asset("assets/ic_arrow_right.png", height: 12, width: 12),
-                      ],
-                    ),
-                    onTap: () {
-                      print("See all");
-                    },
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Container(
-                key: _pointerKey,
-                padding: EdgeInsets.symmetric(horizontal: 10),
-                child: CardSlider(
-                  cards: valuesWidget,
-                  bottomOffset: 0.005,
-                  cardHeight: 0.5,
-                  containerHeight: 220, // or MediaQuery.of(context).size.height * 0.3
-                  itemDotOffset: 0.45,
+      ),
+    );
+  }
+
+  Widget buildAppointmentCard(AppointmentItem item) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: ColorCodes.colorBlue1,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.grey.shade300, offset: Offset(0, 6), blurRadius: 8)],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              ClipRRect(borderRadius: BorderRadius.circular(50), child: Image.network(item.image, height: 50, width: 50, fit: BoxFit.cover)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Dermatics India", style: TextStyles.textStyle3.copyWith(color: Colors.white)),
+                    const SizedBox(height: 2),
+                    Text("Under Eye, Pigmentation...", style: TextStyles.textStyle5.copyWith(color: Colors.white)),
+                  ],
                 ),
               ),
-            ),
-            /*CardSlider(
-              cards: valuesWidget,
-              bottomOffset: .0003,
-              cardHeight: 0.75,
-            ),*/
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Appointments", style: TextStyles.textStyle3),
-                  GestureDetector(
-                    child: Row(
-                      children: [
-                        Text('See all', style: TextStyles.textStyle4),
-                        SizedBox(width: 4),
-                        Image.asset("assets/ic_arrow_right.png", height: 12, width: 12),
-                      ],
-                    ),
-                    onTap: () {
-                      print("See all");
-                    },
-                  ),
-                ],
+              Container(
+                height: 36,
+                width: 36,
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                child: Image.asset('assets/ic_video_call.png', color: ColorCodes.colorBlue1),
               ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(100)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/ic_calendar.png', width: 16),
+                const SizedBox(width: 4),
+                Text(item.date, style: TextStyles.textStyle4),
+                const SizedBox(width: 20),
+                Container(width: 1, height: 30, color: Colors.grey.shade300),
+                const SizedBox(width: 20),
+                Image.asset('assets/ic_clock.png', width: 16),
+                const SizedBox(width: 4),
+                Text(item.time, style: TextStyles.textStyle4),
+              ],
             ),
-            Expanded(
-              child: Obx(() {
-                return mainController.isLoading.value
-                    ? Center(child: CircularProgressIndicator(color: ColorCodes.colorBlack1))
-                    : ListView.builder(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      shrinkWrap: true,
-                      itemCount: 5,
-                      // itemCount: mainController.appointmentList.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          color: ColorCodes.white,
-                          margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                          child: Container(
-                            padding: EdgeInsets.all(10),
-                            child: Row(
-                              children: [
-                                // Image.asset('assets/ic_profile.png', height: 65, width: 65),
-                                Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Image.asset('assets/ic_profile.png', height: 65, width: 65),
-                                    Positioned(
-                                      top: 0,
-                                      right: 4,
-                                      child: Container(
-                                        height: 12,
-                                        width: 12,
-                                        decoration: BoxDecoration(
-                                          color: Colors.red, // dot color
-                                          shape: BoxShape.circle,
-                                          border: Border.all(color: Colors.white, width: 1.5),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(width: 5),
-                                Expanded(
-                                  child: Container(
-                                    padding: EdgeInsets.only(left: 5, right: 5),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text("Dermatics India", style: TextStyles.textStyle3),
-                                        SizedBox(height: 2),
-                                        Container(
-                                          width: width / 3,
-                                          child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1),
-                                        ),
-                                        SizedBox(height: 2),
-                                        Text("Under Eye, Pigmentation", style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis),
-                                        SizedBox(height: 5),
-                                        Row(
-                                          children: [
-                                            Image.asset('assets/ic_calendar.png', width: 12, height: 12),
-                                            SizedBox(width: 3),
-                                            Text('22 May 2025', style: TextStyles.textStyle4_1),
-                                            SizedBox(width: 8),
-                                            Image.asset('assets/ic_clock.png', width: 12, height: 12),
-                                            SizedBox(width: 3),
-                                            Text('12:30 - 13:00 pm', style: TextStyles.textStyle4_1),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 40, height: 40, child: Image.asset('assets/ic_document.png')),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-              }),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

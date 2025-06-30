@@ -20,6 +20,8 @@ class LoginController extends GetxController {
   final EditProfileController editProfileController = Get.put(EditProfileController());
 
   Future<void> loginApi() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
     isLoading.value = true;
     final url = Uri.parse('http://192.168.1.10:5000/api/doctors/login');
 
@@ -51,6 +53,7 @@ class LoginController extends GetxController {
         // Debug print:
         print('Logged in doctor name: ${loginResponse.value?.doctor.name}');
         print('Token: ${loginResponse.value?.token}');
+        prefs.setString('access_token', loginResponse.value!.token.toString());
 
         Doctor model = Doctor.fromJson(responseData['data']);
         editProfileController.setDoctor(model);

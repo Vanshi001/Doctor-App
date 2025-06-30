@@ -2,6 +2,7 @@ import 'package:Doctor/screens/AuthScreen.dart';
 import 'package:Doctor/screens/MainScreen.dart';
 import 'package:Doctor/zegocloud/common.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zego_uikit/zego_uikit.dart';
@@ -13,6 +14,12 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.white, // Status bar background color
+    statusBarIconBrightness: Brightness.dark, // Android dark icons
+    statusBarBrightness: Brightness.light, // iOS dark icons
+  ));
 
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final Widget initialScreen = await getInitialScreen(prefs);
