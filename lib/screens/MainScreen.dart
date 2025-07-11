@@ -1,3 +1,4 @@
+import 'package:Doctor/screens/AuthScreen.dart';
 import 'package:Doctor/screens/DoctorDetailsScreen.dart';
 import 'package:Doctor/screens/UpcomingSchedulesScreen.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -5,10 +6,12 @@ import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../controllers/main/MainController.dart';
 import '../model/appointment_item.dart';
 import '../widgets/ColorCodes.dart';
+import '../widgets/Constants.dart';
 import '../widgets/Slider.dart';
 import '../widgets/TextStyles.dart';
 import 'AppointmentsScreen.dart';
@@ -59,6 +62,22 @@ class _MainScreenState extends State<MainScreen> {
         _dragOverMap = false;
       });
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getDoctorDetails();
+    mainController.fetchAppointmentsApi();
+    mainController.fetchTodayAppointmentsApi(mainController.currentDate.value);
+  }
+
+  String? doctorName;
+
+  void getDoctorDetails() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    doctorName = prefs.getString('doctor_name');
+    print('currentDate -- ${mainController.currentDate.value}');
   }
 
   @override
@@ -165,10 +184,50 @@ class _MainScreenState extends State<MainScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Hello', style: TextStyles.textStyle1),
-                          Text('Dr. Dermatics', style: TextStyles.textStyle2, maxLines: 1, overflow: TextOverflow.ellipsis),
+                          Text(
+                            (doctorName != null && doctorName!.isNotEmpty) ? doctorName! : 'Dr. Dermatics',
+                            style: TextStyles.textStyle2,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ],
                       ),
                     ),
+                    GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder:
+                              (context) => AlertDialog(
+                                backgroundColor: ColorCodes.white,
+                                title: Column(
+                                  children: [
+                                    Align(alignment: Alignment.topLeft, child: Text('Logout', style: TextStyles.textStyle2)),
+                                    SizedBox(height: 10),
+                                    Divider(height: 2, thickness: 1, color: ColorCodes.colorGrey4),
+                                  ],
+                                ),
+                                content: Text('Are you sure you want to logout?', style: TextStyles.textStyle1),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context), // dismiss dialog
+                                    child: Text('Cancel', style: TextStyles.textStyle4_3),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      logout();
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text('Logout', style: TextStyles.textStyle4_3),
+                                  ),
+                                ],
+                              ),
+                        );
+                      },
+                      child: Image.asset('assets/ic_arrow_right.png', height: 24, width: 24),
+                    ),
+                    SizedBox(width: 15),
                   ],
                 ),
               ),
@@ -180,7 +239,7 @@ class _MainScreenState extends State<MainScreen> {
                 child: Container(
                   height: 50,
                   padding: const EdgeInsets.symmetric(horizontal: 10),
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     color: Colors.white,
@@ -197,9 +256,8 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+                padding: const EdgeInsets.fromLTRB(12, 15, 12, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -288,67 +346,6 @@ class _MainScreenState extends State<MainScreen> {
                               ),
                             ],
                           ),
-                          // child: Column(
-                          //   children: [
-                          //     Container(
-                          //       width: width,
-                          //       height: height,
-                          //       decoration: BoxDecoration(
-                          //         color: Color(0xFF0066CC),
-                          //         borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                          //       ),
-                          //       /*child: Row(
-                          //     children: [
-                          //       ClipRRect(
-                          //         borderRadius: BorderRadius.circular(50),
-                          //         child: Image.network(url, height: 50, width: 50, fit: BoxFit.cover),
-                          //       ),
-                          //       const SizedBox(width: 10),
-                          //       Expanded(
-                          //         child: Column(
-                          //           crossAxisAlignment: CrossAxisAlignment.start,
-                          //           children: [
-                          //             Text("Dermatics India", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                          //             Text("Under Eye, Pigmentation...", style: TextStyle(color: Colors.white70, fontSize: 12)),
-                          //           ],
-                          //         ),
-                          //       ),
-                          //       Container(
-                          //         padding: const EdgeInsets.all(6),
-                          //         decoration: BoxDecoration(
-                          //           color: Colors.white,
-                          //           shape: BoxShape.circle,
-                          //         ),
-                          //         child: Icon(Icons.videocam, color: Color(0xFF0066CC), size: 20),
-                          //       )
-                          //     ],
-                          //   ),*/
-                          //     ),
-                          //     /*Container(
-                          //   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                          //   padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                          //   decoration: BoxDecoration(
-                          //     color: Colors.white,
-                          //     borderRadius: BorderRadius.circular(100),
-                          //     border: Border.all(color: Colors.grey.shade300),
-                          //   ),
-                          //   child: Row(
-                          //     mainAxisAlignment: MainAxisAlignment.center,
-                          //     children: [
-                          //       Icon(Icons.calendar_today, size: 14, color: Colors.black54),
-                          //       const SizedBox(width: 6),
-                          //       Text("22 May 2025", style: TextStyle(fontSize: 13)),
-                          //       const SizedBox(width: 20),
-                          //       Container(width: 1, height: 20, color: Colors.grey.shade300),
-                          //       const SizedBox(width: 20),
-                          //       Icon(Icons.access_time, size: 14, color: Colors.black54),
-                          //       const SizedBox(width: 6),
-                          //       Text("12:30 - 13:00 pm", style: TextStyle(fontSize: 13)),
-                          //     ],
-                          //   ),
-                          // ),*/
-                          //   ],
-                          // ),
                         );
                       }).toList(),
                   options: CarouselOptions(autoPlay: true, aspectRatio: 2.8, height: 150, enlargeCenterPage: true, viewportFraction: 0.75),
@@ -458,6 +455,13 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     );
+  }
+
+  void logout() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("access_token", '');
+    Constants.showSuccess('Logout Successfully!');
+    Get.offAll(() => AuthScreen());
   }
 
   Widget buildAppointmentCard(AppointmentItem item) {

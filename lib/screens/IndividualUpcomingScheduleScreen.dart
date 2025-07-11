@@ -285,6 +285,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                 const SizedBox(height: 12),
                 TextField(
                   controller: controller.medicineNameController,
+                  cursorColor: ColorCodes.colorBlack1,
                   decoration: InputDecoration(
                     hintText: 'Enter medicine name',
                     hintStyle: TextStyles.textStyle5_1,
@@ -318,6 +319,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                         child: TextField(
                           controller: controller.descriptionController,
                           maxLines: null,
+                          cursorColor: ColorCodes.colorBlack1,
                           keyboardType: TextInputType.multiline,
                           textAlign: TextAlign.start,
                           textAlignVertical: TextAlignVertical.top,
@@ -390,6 +392,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                         child: TextField(
                           controller: descriptionController,
                           maxLines: null,
+                          cursorColor: ColorCodes.colorBlack1,
                           keyboardType: TextInputType.multiline,
                           textAlign: TextAlign.start,
                           textAlignVertical: TextAlignVertical.top,

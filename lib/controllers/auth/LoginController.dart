@@ -54,6 +54,7 @@ class LoginController extends GetxController {
         print('Logged in doctor name: ${loginResponse.value?.doctor.name}');
         print('Token: ${loginResponse.value?.token}');
         prefs.setString('access_token', loginResponse.value!.token.toString());
+        prefs.setString('doctor_name', loginResponse.value!.doctor.name);
 
         Doctor model = Doctor.fromJson(responseData['data']);
         editProfileController.setDoctor(model);

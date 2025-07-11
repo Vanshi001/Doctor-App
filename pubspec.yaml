@@ -45,6 +45,7 @@ dependencies:
   dotted_line: ^3.2.3
   dotted_border: ^3.1.0
   carousel_slider: ^5.1.1
+  intl: ^0.20.2
 #  card_slider: ^1.0.5
 
 dev_dependencies:

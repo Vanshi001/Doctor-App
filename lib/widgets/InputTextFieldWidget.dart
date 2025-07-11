@@ -29,19 +29,20 @@ class InputTextFieldWidget extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: ColorCodes.darkPurple),
+        border: Border.all(color: ColorCodes.colorGrey4),
       ),
       child: TextField(
         controller: textEditingController,
+        cursorColor: ColorCodes.colorBlack1,
         textInputAction: inputAction,
-        style: TextStyles.descriptionTextStyle,
+        style: TextStyles.textStyle1,
         onSubmitted: onSubmitted,
         keyboardType: keyboardType,
         decoration: InputDecoration(
           alignLabelWithHint: true,
           border: InputBorder.none,
           labelText: hintText,
-          labelStyle: TextStyles.smallTextStyle,
+          labelStyle: TextStyles.textStyle1,
         ),
         inputFormatters: inputFormatters ?? [],
       ),

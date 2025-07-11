@@ -16,6 +16,7 @@ class ColorCodes {
   static const Color cyan = Color(0xFF019688);
 
   static const Color colorBlack1 = Color(0xFF111111);
+  static const Color colorBlack2 = Color(0x10000000);
   static const Color colorBlue1 = Color(0xFF0057A5);
   static const Color colorGrey1 = Color(0xFF8B8B8B);
   static const Color colorGrey2 = Color(0x25000000);

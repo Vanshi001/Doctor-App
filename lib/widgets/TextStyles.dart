@@ -149,6 +149,13 @@ class TextStyles {
     fontFamily: 'Figtree',
   );
 
+  static const TextStyle textStyle2_3 = TextStyle(
+    fontSize: 24,
+    color: ColorCodes.colorBlack1,
+    fontWeight: FontWeight.w700,
+    fontFamily: 'Figtree',
+  );
+
   static const TextStyle textStyle3 = TextStyle(
     fontSize: 16,
     color: ColorCodes.colorBlack1,

@@ -1,5 +1,5 @@
 class Texts {
-  static const String welcome = 'WELCOME';
+  static const String welcome = 'Welcome';
   static const String register = 'Register';
   static const String login = 'Login';
   static const String myOrder = 'My Order';

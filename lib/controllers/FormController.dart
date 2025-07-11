@@ -1,5 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../widgets/Constants.dart';
 
 class FormController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -19,6 +25,13 @@ class FormController extends GetxController {
   var addressError = ''.obs;
   var emailError = ''.obs;
   var phoneError = ''.obs;
+
+  final List<String> checkboxLabels = [
+    'Online consults',
+    'Product distribution at clinic/ hospital pharmacy',
+    'Social media marketing',
+    'Product-related',
+  ];
 
   bool validateName() {
     if (nameController.text.trim().isEmpty) {
@@ -42,6 +55,9 @@ class FormController extends GetxController {
     if (emailController.text.trim().isEmpty) {
       emailError.value = 'Enter a value for this field.';
       return false;
+    } else if (!GetUtils.isEmail(emailController.text.trim())) {
+      emailError.value = "Enter a valid email";
+      return false;
     }
     emailError.value = '';
     return true;
@@ -50,6 +66,9 @@ class FormController extends GetxController {
   bool validatePhone() {
     if (phoneController.text.trim().isEmpty) {
       phoneError.value = 'Enter a value for this field.';
+      return false;
+    } else if (phoneController.text.trim().length < 10) {
+      phoneError.value = 'Enter a 10 digits for this field.';
       return false;
     }
     phoneError.value = '';
@@ -80,6 +99,16 @@ class FormController extends GetxController {
     return anySelected;
   }
 
+  List<String> get selectedConcerns {
+    final selected = <String>[];
+    for (int i = 0; i < checkboxes.length; i++) {
+      if (checkboxes[i].value) {
+        selected.add(checkboxLabels[i]);
+      }
+    }
+    return selected;
+  }
+
   void submitForm() {
     final isNameValid = validateName();
     final isBrandNameValid = validateBrandName();
@@ -94,9 +123,61 @@ class FormController extends GetxController {
 
       Future.delayed(Duration(seconds: 2), () {
         isLoading.value = false;
-        Get.snackbar("Submitted", "Form submitted successfully!");
+        doctorRequestApi();
       });
     }
+  }
+
+  Future<void> doctorRequestApi() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    isLoading.value = true;
+    final url = Uri.parse('http://192.168.1.10:5000/api/doctors/request');
+
+    final data = {
+      "name": nameController.text.trim().toString(),
+      "email": emailController.text.trim().toString(),
+      "contactNumber": phoneController.text.trim().toString(),
+      "address": addressController.text.trim().toString(),
+      "brandNames": brandNamesController.text.trim().toString(),
+      "partnerPreferences": selectedConcerns,
+    };
+
+    print(data);
+
+    try {
+      final response = await http.post(url, headers: {'Content-Type': 'application/json', 'accept': 'application/json'}, body: jsonEncode(data));
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+
+        final message = responseData['message'] ?? 'Success';
+        Constants.showSuccess(message);
+        nameController.clear();
+        emailController.clear();
+        phoneController.clear();
+        addressController.clear();
+        brandNamesController.clear();
+        clearAllCheckboxes();
+        // Get.snackbar("Submitted", "Form submitted successfully!");
+      } else {
+        final errorData = jsonDecode(response.body);
+        final errorMessage = errorData['message'] ?? "Login failed";
+        Constants.showError(errorMessage);
+      }
+    } catch (e) {
+      print('Error: $e');
+      Constants.showError("Error -- $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void clearAllCheckboxes() {
+    for (var cb in checkboxes) {
+      cb.value = false;
+    }
+    checkboxError.value = false; // if you have error flag, reset that too
   }
 
   @override
