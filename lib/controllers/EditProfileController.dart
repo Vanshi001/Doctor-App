@@ -27,7 +27,8 @@ class EditProfileController extends GetxController {
   Future<void> updateDoctor(String id, String name, String email,
       String contact, String address,) async {
     isLoading.value = true;
-    final url = Uri.parse('http://192.168.1.10:5000/api/doctors/profile/$id');
+    // final url = Uri.parse('http://192.168.1.10:5000/api/doctors/profile/$id');
+    final url = Uri.parse('${Constants.baseUrl}doctors/profile/$id');
 
     final data = {
       "_id": id.trim(),

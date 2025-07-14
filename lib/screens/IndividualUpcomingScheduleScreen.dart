@@ -1,14 +1,18 @@
+import 'package:Doctor/model/appointment_model.dart';
 import 'package:Doctor/model/schedule_item.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
 import '../controllers/IndividualUpcomingScheduleController.dart';
 import '../widgets/ColorCodes.dart';
+import '../widgets/Constants.dart';
 import '../widgets/TextStyles.dart';
 
 class IndividualUpcomingScheduleScreen extends StatefulWidget {
-  final ScheduleItem item;
+  final Appointment item;
 
   const IndividualUpcomingScheduleScreen({super.key, required this.item});
 
@@ -22,6 +26,11 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
+
+    final parsedDate = DateTime.parse(widget.item.appointmentDate.toString());
+    final formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
+
+    Constants.currentUser = ZegoUIKitUser(id: widget.item.bookingId.toString(), name: widget.item.patientFullName.toString());
 
     return SafeArea(
       child: Scaffold(
@@ -55,7 +64,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                         // Profile Image
                         ClipRRect(
                           borderRadius: BorderRadius.circular(50),
-                          child: Image.network(widget.item.image, height: 50, width: 50, fit: BoxFit.cover),
+                          child: Image.network('https://randomuser.me/api/portraits/women/1.jpg', height: 50, width: 50, fit: BoxFit.cover),
                         ),
                         const SizedBox(width: 5),
                         Expanded(
@@ -64,11 +73,16 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("Dermatics India", style: TextStyles.textStyle3),
+                                Text(widget.item.patientFullName.toString(), style: TextStyles.textStyle3),
                                 SizedBox(height: 2),
                                 SizedBox(width: width / 3, child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1)),
                                 SizedBox(height: 2),
-                                Text("Under Eye, Pigmentation", style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis, maxLines: 2),
+                                Text(
+                                  widget.item.concerns?.join(", ") ?? '',
+                                  style: TextStyles.textStyle5,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                ),
                                 SizedBox(height: 5),
                               ],
                             ),
@@ -79,27 +93,47 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                     SizedBox(height: 12),
                     Container(
                       padding: EdgeInsets.all(5),
-                      decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(100)), border: Border.all(color: ColorCodes.colorGrey4)),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(100)),
+                        border: Border.all(color: ColorCodes.colorGrey4),
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Image.asset('assets/ic_calendar.png', width: 16, height: 16),
                           SizedBox(width: 5),
-                          Text('22 May 2025', style: TextStyles.textStyle4),
+                          Text(formattedDate, style: TextStyles.textStyle4),
                           SizedBox(width: 20),
                           Image.asset('assets/ic_vertical_line.png', height: 30, width: 1),
                           SizedBox(width: 20),
                           Image.asset('assets/ic_clock.png', width: 16, height: 16),
                           SizedBox(width: 5),
-                          Text('12:30 - 13:00 pm', style: TextStyles.textStyle4),
+                          Text(
+                            '${Constants.formatTimeToAmPm(widget.item.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(widget.item.timeSlot?.endTime ?? '')}',
+                            style: TextStyles.textStyle4,
+                          ),
                         ],
                       ),
                     ),
                     Container(
-                      margin: EdgeInsets.only(top: 10, bottom: 10),
+                      width: width,
                       height: 40,
-                      decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)), color: ColorCodes.colorBlue1),
-                      child: Center(child: Text('Call', style: TextStyles.textStyle6_1)),
+                      margin: EdgeInsets.only(top: 10, bottom: 10),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          print('widget.item.userId.toString() ---- ${widget.item.userId.toString()}');
+                          sendCallButton(
+                            isVideoCall: true,
+                            inviteeUsersIDTextCtrl: widget.item.userId.toString(),
+                            onCallFinished: onSendCallInvitationFinished,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ColorCodes.colorBlue1,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+                        ),
+                        child: Text('Call', style: TextStyles.textStyle6_1),
+                      ),
                     ),
                   ],
                 ),
@@ -144,11 +178,11 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                         itemCount: controller.medicines.length,
                         itemBuilder: (context, index) {
                           final item = controller.medicines[index];
-          
+
                           if (controller.itemKeys.length <= index) {
                             controller.itemKeys.add(GlobalKey());
                           }
-          
+
                           return Row(
                             children: [
                               Flexible(
@@ -221,13 +255,8 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                   return Container(
                     margin: EdgeInsets.only(left: 15, top: 10, right: 15, bottom: 10),
                     height: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(6)),
-                      color: ColorCodes.colorBlue1,
-                    ),
-                    child: Center(
-                      child: Text('Save', style: TextStyles.textStyle6_1),
-                    ),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(6)), color: ColorCodes.colorBlue1),
+                    child: Center(child: Text('Save', style: TextStyles.textStyle6_1)),
                   );
                 } else {
                   return SizedBox.shrink(); // returns an empty widget
@@ -431,5 +460,83 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
         );
       },
     );
+  }
+
+  Widget sendCallButton({
+    required bool isVideoCall,
+    required String inviteeUsersIDTextCtrl,
+    void Function(String code, String message, List<String>)? onCallFinished,
+  }) {
+    /*return ValueListenableBuilder<String>(
+      valueListenable: inviteeUsersIDTextCtrl,
+      builder: (context, inviteeUserID, _) {
+        final invitees = getInvitesFromTextCtrl(inviteeUserID.trim());
+
+        return ZegoSendCallInvitationButton(
+          isVideoCall: isVideoCall,
+          invitees: invitees,
+          resourceID: 'zego_data',
+          iconSize: const Size(40, 40),
+          buttonSize: const Size(50, 50),
+          onPressed: onCallFinished,
+        );
+      },
+    );*/
+    final invitees = getInvitesFromTextCtrl(inviteeUsersIDTextCtrl.trim());
+
+    return ZegoSendCallInvitationButton(
+      isVideoCall: isVideoCall,
+      invitees: invitees,
+      resourceID: 'zego_data',
+      iconSize: const Size(40, 40),
+      buttonSize: const Size(50, 50),
+      onPressed: onCallFinished,
+    );
+  }
+
+  void onSendCallInvitationFinished(String code, String message, List<String> errorInvitees) {
+    if (errorInvitees.isNotEmpty) {
+      var userIDs = '';
+      for (var index = 0; index < errorInvitees.length; index++) {
+        if (index >= 5) {
+          userIDs += '... ';
+          break;
+        }
+
+        final userID = errorInvitees.elementAt(index);
+        userIDs += '$userID ';
+      }
+      if (userIDs.isNotEmpty) {
+        userIDs = userIDs.substring(0, userIDs.length - 1);
+        print('userIDs: $userIDs');
+      }
+
+      var message = "User doesn't exist or is offline: $userIDs";
+      if (code.isNotEmpty) {
+        message += ', code: $code, message:$message';
+      }
+      print('message:$message');
+      Constants.showSuccess(message);
+    } else if (code.isNotEmpty) {
+      Constants.showError('code: $code, message:$message');
+      print('code: $code, message:$message');
+    }
+  }
+
+  List<ZegoUIKitUser> getInvitesFromTextCtrl(String textCtrlText) {
+    final invitees = <ZegoUIKitUser>[];
+
+    final inviteeIDs = textCtrlText.trim().replaceAll('，', '');
+    inviteeIDs.split(',').forEach((inviteeUserID) {
+      if (inviteeUserID.isEmpty) {
+        print('inviteeUserID: $inviteeUserID');
+        return;
+      }
+
+      print('inviteeUserID NOT EMPTY: $inviteeUserID');
+      invitees.add(ZegoUIKitUser(id: inviteeUserID, name: 'user_$inviteeUserID'));
+    });
+
+    return invitees;
   }
 }

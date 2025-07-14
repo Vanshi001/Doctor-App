@@ -6,6 +6,7 @@ import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../controllers/main/MainController.dart';
@@ -16,6 +17,7 @@ import '../widgets/Slider.dart';
 import '../widgets/TextStyles.dart';
 import 'AppointmentsScreen.dart';
 import 'EditProfileScreen.dart';
+import 'IndividualUpcomingScheduleScreen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -261,7 +263,7 @@ class _MainScreenState extends State<MainScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Today's Schedule (6)", style: TextStyles.textStyle3),
+                    Text("Today's Schedule (${mainController.todayAppointmentResponse.value?.data.length})", style: TextStyles.textStyle3),
                     GestureDetector(
                       child: Row(
                         children: [
@@ -281,75 +283,120 @@ class _MainScreenState extends State<MainScreen> {
               Container(
                 padding: EdgeInsets.only(top: 10, bottom: 10),
                 height: height / 5,
-                child: CarouselSlider(
-                  items:
-                      imageUrls.map((url) {
-                        return Container(
-                          height: height / 5,
-                          decoration: BoxDecoration(color: ColorCodes.colorBlue1, borderRadius: BorderRadius.circular(20)),
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(left: 8.0, top: 10, right: 8),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(50),
-                                      child: Image.asset(url, height: 50, width: 50, fit: BoxFit.cover),
-                                    ),
-                                    SizedBox(width: 5),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text("Dermatics India", style: TextStyles.textStyle6_1),
-                                          SizedBox(height: 2),
-                                          SizedBox(
-                                            width: width / 3,
-                                            child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey4),
+                child: Obx(() {
+                  final todayAppointments =
+                      mainController.todayAppointmentResponse.value?.data?.where((appointment) {
+                        final appointmentDate = DateTime.parse(appointment.appointmentDate.toString());
+                        final now = DateTime.now();
+                        return appointmentDate.year == now.year && appointmentDate.month == now.month && appointmentDate.day == now.day;
+                      }).toList() ??
+                      [];
+
+                  if (todayAppointments.isEmpty) {
+                    return Center(child: Text('No appointments for today', style: TextStyles.textStyle3));
+                  }
+
+                  final isMultiple = todayAppointments.length > 1;
+
+                  return CarouselSlider(
+                    items:
+                        todayAppointments.map((appointment) {
+                          final patientName = appointment.patientFullName ?? 'N/A';
+                          final concerns = appointment.concerns?.join(", ");
+                          final date = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
+                          final startTime = appointment.timeSlot?.startTime;
+                          final endTime = appointment.timeSlot?.endTime;
+
+                          return GestureDetector(
+                            onTap: () {
+                              final id = appointment.id;
+                              print('Tapped appointment ID: $id');
+                              Get.to(() => IndividualUpcomingScheduleScreen(item: appointment));
+                            },
+                            child: Container(
+                              height: height / 5,
+                              decoration: BoxDecoration(color: ColorCodes.colorBlue1, borderRadius: BorderRadius.circular(20)),
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8.0, top: 10, right: 8),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(50),
+                                          child: Image.network(
+                                            'https://randomuser.me/api/portraits/women/1.jpg',
+                                            height: 50,
+                                            width: 50,
+                                            fit: BoxFit.cover,
                                           ),
-                                          SizedBox(height: 2),
-                                          Text("Under Eye, Pigmentation", style: TextStyles.textStyle5_2, overflow: TextOverflow.ellipsis),
-                                        ],
-                                      ),
+                                          // Image.asset(url, height: 50, width: 50, fit: BoxFit.cover),
+                                        ),
+                                        SizedBox(width: 5),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(patientName, style: TextStyles.textStyle6_1),
+                                              SizedBox(height: 2),
+                                              SizedBox(
+                                                width: width / 3,
+                                                child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey4),
+                                              ),
+                                              SizedBox(height: 2),
+                                              Text(concerns.toString(), style: TextStyles.textStyle5_2, overflow: TextOverflow.ellipsis),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.fromLTRB(0, 0, 5, 10),
+                                          child: Image.asset('assets/ic_video_call2.png', height: 40, width: 40),
+                                        ),
+                                      ],
                                     ),
-                                    Container(
-                                      padding: const EdgeInsets.fromLTRB(0, 0, 5, 10),
-                                      child: Image.asset('assets/ic_video_call2.png', height: 40, width: 40),
+                                  ),
+                                  SizedBox(height: 5),
+                                  Container(
+                                    margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(100),
+                                      border: Border.all(color: Colors.grey.shade300),
                                     ),
-                                  ],
-                                ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset('assets/ic_calendar.png', width: 12, height: 12),
+                                        SizedBox(width: 2),
+                                        Text(date, style: TextStyles.textStyle4),
+                                        Image.asset('assets/ic_vertical_line.png', height: 20, width: 20),
+                                        Image.asset('assets/ic_clock.png', width: 12, height: 12),
+                                        SizedBox(width: 2),
+                                        Text(
+                                          '${Constants.formatTimeToAmPm(startTime.toString())} - ${Constants.formatTimeToAmPm(endTime.toString())}',
+                                          style: TextStyles.textStyle4,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                              SizedBox(height: 5),
-                              Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(100),
-                                  border: Border.all(color: Colors.grey.shade300),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Image.asset('assets/ic_calendar.png', width: 12, height: 12),
-                                    SizedBox(width: 2),
-                                    Text('22 May 2025', style: TextStyles.textStyle4),
-                                    Image.asset('assets/ic_vertical_line.png', height: 20, width: 20),
-                                    Image.asset('assets/ic_clock.png', width: 12, height: 12),
-                                    SizedBox(width: 2),
-                                    Text('12:30 - 13:00 pm', style: TextStyles.textStyle4),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                  options: CarouselOptions(autoPlay: true, aspectRatio: 2.8, height: 150, enlargeCenterPage: true, viewportFraction: 0.75),
-                ),
+                            ),
+                          );
+                        }).toList(),
+                    options: CarouselOptions(
+                      autoPlay: isMultiple,
+                      aspectRatio: 2.8,
+                      height: 150,
+                      enableInfiniteScroll: isMultiple,
+                      enlargeCenterPage: isMultiple,
+                      viewportFraction: isMultiple ? 0.75 : 0.90,
+                    ),
+                  );
+                }),
               ),
               Padding(
                 padding: const EdgeInsets.all(12.0),
@@ -375,14 +422,35 @@ class _MainScreenState extends State<MainScreen> {
               ),
               Expanded(
                 child: Obx(() {
-                  return mainController.isLoading.value
+                  final appointments = mainController.appointmentResponse.value?.data;
+
+                  if (mainController.isLoading.value) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  if (appointments == null || appointments.isEmpty) {
+                    return const Center(
+                      child: Text("No appointments found", style: TextStyles.textStyle3,),
+                    );
+                  }
+
+                  return /*mainController.isLoading.value
                       ? Center(child: CircularProgressIndicator(color: ColorCodes.colorBlack1))
-                      : ListView.builder(
+                      : */ListView.builder(
                         padding: EdgeInsets.symmetric(vertical: 10),
                         shrinkWrap: true,
-                        itemCount: 5,
+                        itemCount: appointments.length > 5 ? 5 : appointments.length,
                         // itemCount: mainController.appointmentList.length,
                         itemBuilder: (context, index) {
+                          final appointment = appointments[index];
+                          final patientName = appointment.patientFullName ?? '';
+                          final concerns = appointment.concerns?.join(", ") ?? '';
+                          final appointmentDate = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
+                          final startTime = Constants.formatTimeToAmPm(appointment.timeSlot!.startTime);
+                          final endTime = Constants.formatTimeToAmPm(appointment.timeSlot!.endTime);
+
                           return Card(
                             color: ColorCodes.white,
                             margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
@@ -417,24 +485,24 @@ class _MainScreenState extends State<MainScreen> {
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text("Dermatics India", style: TextStyles.textStyle3),
+                                          Text(patientName, style: TextStyles.textStyle3),
                                           SizedBox(height: 2),
                                           SizedBox(
                                             width: width / 3,
                                             child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1),
                                           ),
                                           SizedBox(height: 2),
-                                          Text("Under Eye, Pigmentation", style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis),
+                                          Text(concerns, style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis),
                                           SizedBox(height: 5),
                                           Row(
                                             children: [
                                               Image.asset('assets/ic_calendar.png', width: 12, height: 12),
                                               SizedBox(width: 3),
-                                              Text('22 May 2025', style: TextStyles.textStyle4_1),
+                                              Text(appointmentDate, style: TextStyles.textStyle4_1),
                                               SizedBox(width: 8),
                                               Image.asset('assets/ic_clock.png', width: 12, height: 12),
                                               SizedBox(width: 3),
-                                              Text('12:30 - 13:00 pm', style: TextStyles.textStyle4_1),
+                                              Text('$startTime - $endTime', style: TextStyles.textStyle4_1),
                                             ],
                                           ),
                                         ],

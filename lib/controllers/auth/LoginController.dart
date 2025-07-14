@@ -23,7 +23,8 @@ class LoginController extends GetxController {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     isLoading.value = true;
-    final url = Uri.parse('http://192.168.1.10:5000/api/doctors/login');
+    // final url = Uri.parse('http://192.168.1.10:5000/api/doctors/login');
+    final url = Uri.parse('${Constants.baseUrl}doctors/login');
 
     final data = {
       "email": emailController.text.trim().toString(),
@@ -55,6 +56,7 @@ class LoginController extends GetxController {
         print('Token: ${loginResponse.value?.token}');
         prefs.setString('access_token', loginResponse.value!.token.toString());
         prefs.setString('doctor_name', loginResponse.value!.doctor.name);
+        prefs.setString('doctor_id', loginResponse.value!.doctor.id);
 
         Doctor model = Doctor.fromJson(responseData['data']);
         editProfileController.setDoctor(model);

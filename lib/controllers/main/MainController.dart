@@ -27,7 +27,8 @@ class MainController extends GetxController {
     final token = prefs.getString('access_token') ?? '';
 
     isLoading.value = true;
-    final url = Uri.parse('http://192.168.1.10:5000/api/appointments');
+    // final url = Uri.parse('http://192.168.1.10:5000/api/appointments');
+    final url = Uri.parse('${Constants.baseUrl}appointments');
 
     try {
       final response = await http.get(
@@ -66,7 +67,8 @@ class MainController extends GetxController {
     final token = prefs.getString('access_token') ?? '';
 
     isLoading.value = true;
-    final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
+    // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
+    final url = Uri.parse('${Constants.baseUrl}appointments?status=today&date=$currentDate');
 
     try {
       final response = await http.get(

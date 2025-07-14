@@ -132,7 +132,8 @@ class FormController extends GetxController {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     isLoading.value = true;
-    final url = Uri.parse('http://192.168.1.10:5000/api/doctors/request');
+    // final url = Uri.parse('http://192.168.1.10:5000/api/doctors/request');
+    final url = Uri.parse('${Constants.baseUrl}doctors/request');
 
     final data = {
       "name": nameController.text.trim().toString(),

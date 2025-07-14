@@ -45,13 +45,8 @@ class AppointmentDetailsDialog extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Dermatics India", style: TextStyles.textStyle3),
-                      Text(
-                        "Under Eye, Pigmentation, Damaged & Sensitive Skin",
-                        style: TextStyles.textStyle5,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                      ),
+                      Text(title, style: TextStyles.textStyle3),
+                      Text(concern, style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis, maxLines: 2),
                     ],
                   ),
                 ),

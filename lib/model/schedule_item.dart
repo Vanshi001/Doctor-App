@@ -1,4 +1,5 @@
 class ScheduleItem {
+  final String id;
   final String image;
   final String clinic;
   final String concern;
@@ -6,6 +7,7 @@ class ScheduleItem {
   final String time;
 
   ScheduleItem({
+    required this.id,
     required this.image,
     required this.clinic,
     required this.concern,
