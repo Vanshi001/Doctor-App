@@ -21,6 +21,7 @@ class MainController extends GetxController {
   Rxn<AppointmentResponse> appointmentResponse = Rxn<AppointmentResponse>();
 
   Rxn<AppointmentResponse> todayAppointmentResponse = Rxn<AppointmentResponse>();
+  RxList<Appointment> allList = <Appointment>[].obs;
 
   Future<void> fetchAppointmentsApi() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -69,6 +70,7 @@ class MainController extends GetxController {
     isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
     final url = Uri.parse('${Constants.baseUrl}appointments?status=today&date=$currentDate');
+    print('fetchTodayAppointmentsApi url -- $url');
 
     try {
       final response = await http.get(
@@ -86,6 +88,10 @@ class MainController extends GetxController {
         print("Today's Appointments: $responseData");
 
         todayAppointmentResponse.value = AppointmentResponse.fromJson(responseData);
+        final appointments = todayAppointmentResponse.value!.data;
+
+        print("Today's ALL Appointments: $appointments");
+        allList.assignAll(appointments);
         // final message = responseData['message'] ?? 'Success';
         // Constants.showSuccess(message);
 

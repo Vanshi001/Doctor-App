@@ -70,7 +70,7 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     getDoctorDetails();
-    mainController.fetchAppointmentsApi();
+    // mainController.fetchAppointmentsApi();
     mainController.fetchTodayAppointmentsApi(mainController.currentDate.value);
   }
 
@@ -263,7 +263,7 @@ class _MainScreenState extends State<MainScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Today's Schedule (${mainController.todayAppointmentResponse.value?.data.length})", style: TextStyles.textStyle3),
+                    Text("Today's Schedule (${mainController.allList.length})", style: TextStyles.textStyle3),
                     GestureDetector(
                       child: Row(
                         children: [
@@ -284,13 +284,13 @@ class _MainScreenState extends State<MainScreen> {
                 padding: EdgeInsets.only(top: 10, bottom: 10),
                 height: height / 5,
                 child: Obx(() {
-                  final todayAppointments =
-                      mainController.todayAppointmentResponse.value?.data?.where((appointment) {
+                  final todayAppointments = mainController.allList;
+                  /*    mainController.todayAppointmentResponse.value?.data.where((appointment) {
                         final appointmentDate = DateTime.parse(appointment.appointmentDate.toString());
                         final now = DateTime.now();
                         return appointmentDate.year == now.year && appointmentDate.month == now.month && appointmentDate.day == now.day;
                       }).toList() ??
-                      [];
+                      [];*/
 
                   if (todayAppointments.isEmpty) {
                     return Center(child: Text('No appointments for today', style: TextStyles.textStyle3));
@@ -420,104 +420,105 @@ class _MainScreenState extends State<MainScreen> {
                   ],
                 ),
               ),
-              Expanded(
-                child: Obx(() {
-                  final appointments = mainController.appointmentResponse.value?.data;
-
-                  if (mainController.isLoading.value) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-
-                  if (appointments == null || appointments.isEmpty) {
-                    return const Center(
-                      child: Text("No appointments found", style: TextStyles.textStyle3,),
-                    );
-                  }
-
-                  return /*mainController.isLoading.value
-                      ? Center(child: CircularProgressIndicator(color: ColorCodes.colorBlack1))
-                      : */ListView.builder(
-                        padding: EdgeInsets.symmetric(vertical: 10),
-                        shrinkWrap: true,
-                        itemCount: appointments.length > 5 ? 5 : appointments.length,
-                        // itemCount: mainController.appointmentList.length,
-                        itemBuilder: (context, index) {
-                          final appointment = appointments[index];
-                          final patientName = appointment.patientFullName ?? '';
-                          final concerns = appointment.concerns?.join(", ") ?? '';
-                          final appointmentDate = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
-                          final startTime = Constants.formatTimeToAmPm(appointment.timeSlot!.startTime);
-                          final endTime = Constants.formatTimeToAmPm(appointment.timeSlot!.endTime);
-
-                          return Card(
-                            color: ColorCodes.white,
-                            margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                            child: Container(
-                              padding: EdgeInsets.all(10),
-                              child: Row(
-                                children: [
-                                  Stack(
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      Image.asset('assets/ic_profile.png', height: 65, width: 65),
-                                      Positioned(
-                                        top: 0,
-                                        right: 4,
-                                        child: Container(
-                                          height: 12,
-                                          width: 12,
-                                          decoration: BoxDecoration(
-                                            color: Colors.red, // dot color
-                                            shape: BoxShape.circle,
-                                            border: Border.all(color: Colors.white, width: 1.5),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(width: 5),
-                                  Expanded(
-                                    child: Container(
-                                      padding: EdgeInsets.only(left: 5, right: 5),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(patientName, style: TextStyles.textStyle3),
-                                          SizedBox(height: 2),
-                                          SizedBox(
-                                            width: width / 3,
-                                            child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1),
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(concerns, style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis),
-                                          SizedBox(height: 5),
-                                          Row(
-                                            children: [
-                                              Image.asset('assets/ic_calendar.png', width: 12, height: 12),
-                                              SizedBox(width: 3),
-                                              Text(appointmentDate, style: TextStyles.textStyle4_1),
-                                              SizedBox(width: 8),
-                                              Image.asset('assets/ic_clock.png', width: 12, height: 12),
-                                              SizedBox(width: 3),
-                                              Text('$startTime - $endTime', style: TextStyles.textStyle4_1),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 40, height: 40, child: Image.asset('assets/ic_document.png')),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                }),
-              ),
+              // Expanded(
+              //   child: Obx(() {
+              //     final appointments = mainController.appointmentResponse.value?.data;
+              //
+              //     print("appointments ----------- ==== $appointments");
+              //     if (mainController.isLoading.value) {
+              //       return const Center(
+              //         child: CircularProgressIndicator(),
+              //       );
+              //     }
+              //
+              //     if (appointments == null || appointments.isEmpty) {
+              //       return const Center(
+              //         child: Text("No appointments found", style: TextStyles.textStyle3,),
+              //       );
+              //     }
+              //
+              //     return /*mainController.isLoading.value
+              //         ? Center(child: CircularProgressIndicator(color: ColorCodes.colorBlack1))
+              //         : */ListView.builder(
+              //           padding: EdgeInsets.symmetric(vertical: 10),
+              //           shrinkWrap: true,
+              //           itemCount: appointments.length > 5 ? 5 : appointments.length,
+              //           // itemCount: mainController.appointmentList.length,
+              //           itemBuilder: (context, index) {
+              //             final appointment = appointments[index];
+              //             final patientName = appointment.patientFullName ?? '';
+              //             final concerns = appointment.concerns?.join(", ") ?? '';
+              //             final appointmentDate = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
+              //             final startTime = Constants.formatTimeToAmPm(appointment.timeSlot!.startTime);
+              //             final endTime = Constants.formatTimeToAmPm(appointment.timeSlot!.endTime);
+              //
+              //             return Card(
+              //               color: ColorCodes.white,
+              //               margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+              //               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+              //               child: Container(
+              //                 padding: EdgeInsets.all(10),
+              //                 child: Row(
+              //                   children: [
+              //                     Stack(
+              //                       clipBehavior: Clip.none,
+              //                       children: [
+              //                         Image.asset('assets/ic_profile.png', height: 65, width: 65),
+              //                         Positioned(
+              //                           top: 0,
+              //                           right: 4,
+              //                           child: Container(
+              //                             height: 12,
+              //                             width: 12,
+              //                             decoration: BoxDecoration(
+              //                               color: Colors.red, // dot color
+              //                               shape: BoxShape.circle,
+              //                               border: Border.all(color: Colors.white, width: 1.5),
+              //                             ),
+              //                           ),
+              //                         ),
+              //                       ],
+              //                     ),
+              //                     SizedBox(width: 5),
+              //                     Expanded(
+              //                       child: Container(
+              //                         padding: EdgeInsets.only(left: 5, right: 5),
+              //                         child: Column(
+              //                           crossAxisAlignment: CrossAxisAlignment.start,
+              //                           children: [
+              //                             Text(patientName, style: TextStyles.textStyle3),
+              //                             SizedBox(height: 2),
+              //                             SizedBox(
+              //                               width: width / 3,
+              //                               child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1),
+              //                             ),
+              //                             SizedBox(height: 2),
+              //                             Text(concerns, style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis),
+              //                             SizedBox(height: 5),
+              //                             Row(
+              //                               children: [
+              //                                 Image.asset('assets/ic_calendar.png', width: 12, height: 12),
+              //                                 SizedBox(width: 3),
+              //                                 Text(appointmentDate, style: TextStyles.textStyle4_1),
+              //                                 SizedBox(width: 8),
+              //                                 Image.asset('assets/ic_clock.png', width: 12, height: 12),
+              //                                 SizedBox(width: 3),
+              //                                 Text('$startTime - $endTime', style: TextStyles.textStyle4_1),
+              //                               ],
+              //                             ),
+              //                           ],
+              //                         ),
+              //                       ),
+              //                     ),
+              //                     SizedBox(width: 40, height: 40, child: Image.asset('assets/ic_document.png')),
+              //                   ],
+              //                 ),
+              //               ),
+              //             );
+              //           },
+              //         );
+              //   }),
+              // ),
             ],
           ),
         ),

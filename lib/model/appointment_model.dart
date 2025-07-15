@@ -5,7 +5,10 @@ class AppointmentResponse {
   AppointmentResponse({required this.success, required this.data});
 
   factory AppointmentResponse.fromJson(Map<String, dynamic> json) {
-    return AppointmentResponse(success: json['success'] ?? false, data: (json['data'] as List).map((e) => Appointment.fromJson(e)).toList());
+    final rawData = json['data'];
+    final list = rawData == null ? [] : rawData as List;
+
+    return AppointmentResponse(success: json['success'] ?? false, data: list.map((e) => Appointment.fromJson(e)).toList());
   }
 }
 
@@ -47,6 +50,9 @@ class Appointment {
   });
 
   factory Appointment.fromJson(Map<String, dynamic> json) {
+    final rawPrescription = json['prescription'];
+    final prescriptionList = rawPrescription == null ? [] : rawPrescription as List;
+
     return Appointment(
       id: json['_id'] ?? '',
       patientEmail: json['patientEmail'] ?? '',
@@ -60,7 +66,7 @@ class Appointment {
       userId: json['userId'] ?? '',
       status: json['status'] ?? '',
       callHistory: CallHistory.fromJson(json['callHistory'] ?? {}),
-      prescription: (json['prescription'] as List).map((e) => Prescription.fromJson(e)).toList(),
+      prescription: prescriptionList.map((e) => Prescription.fromJson(e)).toList(),
       notes: json['notes'] ?? '',
       createdAt: json['createdAt'] ?? '',
       updatedAt: json['updatedAt'] ?? '',
@@ -101,10 +107,13 @@ class Prescription {
   Prescription({required this.medicineName, required this.dosageDays, required this.dosageTimes, required this.totalDosage, required this.notes});
 
   factory Prescription.fromJson(Map<String, dynamic> json) {
+    final rawDosageTimes = json['dosageTimes'];
+    final dosageTimesList = rawDosageTimes == null ? [] : rawDosageTimes as List;
+
     return Prescription(
       medicineName: json['medicineName'] ?? '',
       dosageDays: List<String>.from(json['dosageDays'] ?? []),
-      dosageTimes: (json['dosageTimes'] as List).map((e) => DosageTime.fromJson(e)).toList(),
+      dosageTimes: dosageTimesList.map((e) => DosageTime.fromJson(e)).toList(),
       totalDosage: json['totalDosage'] ?? 0,
       notes: json['notes'] ?? '',
     );

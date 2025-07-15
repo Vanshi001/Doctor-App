@@ -122,11 +122,12 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                       child: ElevatedButton(
                         onPressed: () async {
                           print('widget.item.userId.toString() ---- ${widget.item.userId.toString()}');
-                          sendCallButton(
+                          /*           sendCallButton(
                             isVideoCall: true,
                             inviteeUsersIDTextCtrl: widget.item.userId.toString(),
                             onCallFinished: onSendCallInvitationFinished,
-                          );
+                          );*/
+                          Get.to(() => CallPage(callId: widget.item.userId.toString()));
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: ColorCodes.colorBlue1,
@@ -538,5 +539,25 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
     });
 
     return invitees;
+  }
+}
+
+class CallPage extends StatelessWidget {
+  final String callId;
+
+  const CallPage({super.key, required this.callId});
+
+  @override
+  Widget build(BuildContext context) {
+    print('callId ---- $callId');
+
+    return ZegoUIKitPrebuiltCall(
+      appID: 260617754,
+      appSign: "0b18f31ba87471a155cfea2833abf4c8168690730f6d565f985115620ca14e28",
+      userID: Constants.currentUser.id,
+      userName: Constants.currentUser.name,
+      callID: callId,
+      config: ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall(),
+    );
   }
 }
