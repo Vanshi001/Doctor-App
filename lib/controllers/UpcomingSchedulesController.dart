@@ -201,10 +201,12 @@ class UpcomingSchedulesController extends GetxController {
   Future<void> fetchAllUpComingAppointmentsApi() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
+    final doctorId = prefs.getString('doctor_id') ?? '';
+    print('doctorId -- $doctorId');
 
     isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
-    final url = Uri.parse('${Constants.baseUrl}appointments?status=all');
+    final url = Uri.parse('${Constants.baseUrl}appointments?status=all&doctorId=$doctorId');
 
     try {
       final response = await http.get(
@@ -257,10 +259,12 @@ class UpcomingSchedulesController extends GetxController {
   Future<void> fetchTodayUpComingAppointmentsApi(String date) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
+    final doctorId = prefs.getString('doctor_id') ?? '';
+    print('doctorId -- $doctorId');
 
     isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
-    final url = Uri.parse('${Constants.baseUrl}appointments?status=today&date=$date');
+    final url = Uri.parse('${Constants.baseUrl}appointments?status=today&date=$date&doctorId=$doctorId');
 
     try {
       final response = await http.get(
@@ -313,10 +317,12 @@ class UpcomingSchedulesController extends GetxController {
   Future<void> fetchTomorrowUpComingAppointmentsApi(String date) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
+    final doctorId = prefs.getString('doctor_id') ?? '';
+    print('doctorId -- $doctorId');
 
     isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
-    final url = Uri.parse('${Constants.baseUrl}appointments?status=tomorrow&date=$date');
+    final url = Uri.parse('${Constants.baseUrl}appointments?status=tomorrow&date=$date&doctorId=$doctorId');
 
     try {
       final response = await http.get(
@@ -369,10 +375,12 @@ class UpcomingSchedulesController extends GetxController {
   Future<void> fetchCustomUpComingAppointmentsApi(String date) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
+    final doctorId = prefs.getString('doctor_id') ?? '';
+    print('doctorId -- $doctorId');
 
     isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
-    final url = Uri.parse('${Constants.baseUrl}appointments?status=custom&date=$date');
+    final url = Uri.parse('${Constants.baseUrl}appointments?status=custom&date=$date&doctorId=$doctorId');
 
     try {
       final response = await http.get(

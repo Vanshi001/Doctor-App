@@ -259,11 +259,11 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 15, 12, 0),
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Today's Schedule (${mainController.allList.length})", style: TextStyles.textStyle3),
+                    Obx(() => Text("Today's Schedule (${mainController.allList.length})", style: TextStyles.textStyle3)),
                     GestureDetector(
                       child: Row(
                         children: [
@@ -397,6 +397,28 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   );
                 }),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Pending Appointments", style: TextStyles.textStyle3),
+                    GestureDetector(
+                      child: Row(
+                        children: [
+                          Text('See all', style: TextStyles.textStyle4),
+                          SizedBox(width: 4),
+                          Image.asset("assets/ic_arrow_right.png", height: 12, width: 12),
+                        ],
+                      ),
+                      onTap: () {
+                        print("See all");
+                        // Get.to(() => AppointmentsScreen());
+                      },
+                    ),
+                  ],
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(12.0),

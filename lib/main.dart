@@ -32,7 +32,7 @@ void main() async {
     ZegoUIKitPrebuiltCallInvitationService().useSystemCallingUI([ZegoUIKitSignalingPlugin()]);
   });
 
-  onUserLogin();
+  // onUserLogin();
 
   runApp(
     GetMaterialApp(
@@ -64,6 +64,8 @@ Future<Widget> getInitialScreen(SharedPreferences prefs) async {
 
   final token = prefs.getString('access_token');
   print('Token: $token');
+  final doctorId = prefs.getString('doctor_id');
+  print('doctorId: $doctorId');
 
   if (token != null && token.isNotEmpty) {
     // You can also set currentUser ID and name here if needed

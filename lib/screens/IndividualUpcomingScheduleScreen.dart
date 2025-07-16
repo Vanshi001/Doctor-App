@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
 import '../controllers/IndividualUpcomingScheduleController.dart';
+import '../model/PrescriptionRequestModel.dart';
 import '../widgets/ColorCodes.dart';
 import '../widgets/Constants.dart';
 import '../widgets/TextStyles.dart';
@@ -31,6 +32,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
     final formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
 
     Constants.currentUser = ZegoUIKitUser(id: widget.item.bookingId.toString(), name: widget.item.patientFullName.toString());
+    print('widget.item.id.toString() ---- ${widget.item.id.toString()}');
 
     return SafeArea(
       child: Scaffold(
@@ -203,9 +205,9 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             const SizedBox(height: 2),
-                                            Text(item["name"] ?? '', style: TextStyles.textStyle4_3),
+                                            Text(item["medicineName"] ?? '', style: TextStyles.textStyle4_3),
                                             Text(
-                                              item["description"] ?? '',
+                                              item["notes"] ?? '',
                                               overflow: TextOverflow.ellipsis,
                                               maxLines: 1,
                                               style: TextStyles.textStyle5_1,
@@ -253,14 +255,43 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
               ),
               Obx(() {
                 if (controller.medicines.isNotEmpty) {
-                  return Container(
-                    margin: EdgeInsets.only(left: 15, top: 10, right: 15, bottom: 10),
-                    height: 40,
-                    decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(6)), color: ColorCodes.colorBlue1),
-                    child: Center(child: Text('Save', style: TextStyles.textStyle6_1)),
+                  return GestureDetector(
+                    onTap: () {
+                      final prescriptions =
+                          controller.medicines
+                              .map((medicine) {
+                                final name = medicine['medicineName']?.trim();
+                                final notes = medicine['notes']?.trim();
+                                return PrescriptionItem(medicineName: name ?? '', notes: notes ?? '');
+                              })
+                              .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
+                              .toList();
+
+                      print("prescriptions ---- $prescriptions");
+                      controller.addMedicineApi(id: widget.item.id.toString(), prescriptions: prescriptions);
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(left: 15, top: 10, right: 15, bottom: 10),
+                      height: 40,
+                      decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(6)), color: ColorCodes.colorBlue1),
+                      child: Center(
+                        child:
+                            controller.isLoading.value
+                                ? SizedBox(
+                                  height: 23,
+                                  width: 23,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    backgroundColor: ColorCodes.darkPurple1,
+                                    valueColor: AlwaysStoppedAnimation<Color>(ColorCodes.white),
+                                  ),
+                                )
+                                : Text('Save', style: TextStyles.textStyle6_1),
+                      ),
+                    ),
                   );
                 } else {
-                  return SizedBox.shrink(); // returns an empty widget
+                  return SizedBox.shrink();
                 }
               }),
             ],
