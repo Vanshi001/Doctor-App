@@ -1,3 +1,6 @@
+import 'package:Doctor/controllers/auth/LoginController.dart';
+import 'package:Doctor/main.dart';
+import 'package:Doctor/model/DoctorProfileResponse.dart';
 import 'package:Doctor/screens/AuthScreen.dart';
 import 'package:Doctor/screens/DoctorDetailsScreen.dart';
 import 'package:Doctor/screens/UpcomingSchedulesScreen.dart';
@@ -69,18 +72,16 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    getDoctorDetails();
+    // getDoctorDetails();
     // mainController.fetchAppointmentsApi();
-    mainController.fetchTodayAppointmentsApi(mainController.currentDate.value);
-  }
-
-  String? doctorName;
-
-  void getDoctorDetails() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    doctorName = prefs.getString('doctor_name');
+    mainController.fetchDoctorDetailsApi();
     print('currentDate -- ${mainController.currentDate.value}');
   }
+
+  /* void getDoctorDetails() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    doctorName = prefs.getString('doctor_name');
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -172,376 +173,491 @@ class _MainScreenState extends State<MainScreen> {
               ],
             ),
           ),*/
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10.0, 20, 10, 10),
-                child: Row(
-                  children: [
-                    Image.asset("assets/ic_profile.png", height: 45, width: 45),
-                    SizedBox(width: 5),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Hello', style: TextStyles.textStyle1),
-                          Text(
-                            (doctorName != null && doctorName!.isNotEmpty) ? doctorName! : 'Dr. Dermatics',
-                            style: TextStyles.textStyle2,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder:
-                              (context) => AlertDialog(
-                                backgroundColor: ColorCodes.white,
-                                title: Column(
-                                  children: [
-                                    Align(alignment: Alignment.topLeft, child: Text('Logout', style: TextStyles.textStyle2)),
-                                    SizedBox(height: 10),
-                                    Divider(height: 2, thickness: 1, color: ColorCodes.colorGrey4),
-                                  ],
-                                ),
-                                content: Text('Are you sure you want to logout?', style: TextStyles.textStyle1),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context), // dismiss dialog
-                                    child: Text('Cancel', style: TextStyles.textStyle4_3),
-                                  ),
-                                  TextButton(
-                                    onPressed: () async {
-                                      logout();
-                                      Navigator.pop(context);
-                                    },
-                                    child: Text('Logout', style: TextStyles.textStyle4_3),
-                                  ),
-                                ],
+          body: RefreshIndicator(
+            onRefresh: () async {
+              try {
+                mainController.isLoading.value = true;
+                await mainController.fetchTodayAppointmentsApi(mainController.currentDate.value, mainController.doctorId);
+              } finally {
+                mainController.isLoading.value = false;
+              }
+            },
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(10.0, 20, 10, 10),
+                    child: Row(
+                      children: [
+                        Image.asset("assets/ic_profile.png", height: 45, width: 45),
+                        SizedBox(width: 5),
+                        Expanded(
+                          child: Obx(() => Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Hello', style: TextStyles.textStyle1),
+                              Text(
+                                mainController.doctorName.value.isNotEmpty
+                                    ? mainController.doctorName.value
+                                    : 'Dr. Dermatics',
+                                style: TextStyles.textStyle2,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                        );
-                      },
-                      child: Image.asset('assets/ic_arrow_right.png', height: 24, width: 24),
+                            ],
+                          )),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder:
+                                  (context) => AlertDialog(
+                                    backgroundColor: ColorCodes.white,
+                                    title: Column(
+                                      children: [
+                                        Align(alignment: Alignment.topLeft, child: Text('Logout', style: TextStyles.textStyle2)),
+                                        SizedBox(height: 10),
+                                        Divider(height: 2, thickness: 1, color: ColorCodes.colorGrey4),
+                                      ],
+                                    ),
+                                    content: Text('Are you sure you want to logout?', style: TextStyles.textStyle1),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context), // dismiss dialog
+                                        child: Text('Cancel', style: TextStyles.textStyle4_3),
+                                      ),
+                                      TextButton(
+                                        onPressed: () async {
+                                          logout();
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text('Logout', style: TextStyles.textStyle4_3),
+                                      ),
+                                    ],
+                                  ),
+                            );
+                          },
+                          child: Image.asset('assets/ic_arrow_right.png', height: 24, width: 24),
+                        ),
+                        SizedBox(width: 15),
+                      ],
                     ),
-                    SizedBox(width: 15),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap:
-                    () => {
-                      // Get.to(() => ShowShopByCategoryScreen(title: 'Products', data: 'search'))
-                    },
-                child: Container(
-                  height: 50,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.white,
-                    border: Border.all(color: ColorCodes.colorGrey4, width: 1),
                   ),
-                  child: Row(
-                    children: [
-                      Image.asset('assets/ic_search.png', height: 20, width: 20),
-                      SizedBox(width: 10),
-                      Expanded(child: Text("Search", style: TextStyles.textStyle5_1)),
-                      // Image.asset('assets/ic_vertical_line.png', height: 20, width: 20),
-                      // Image.asset('assets/ic_microphone.png', height: 20, width: 20),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Obx(() => Text("Today's Schedule (${mainController.allList.length})", style: TextStyles.textStyle3)),
-                    GestureDetector(
+                  GestureDetector(
+                    onTap:
+                        () => {
+                          // Get.to(() => ShowShopByCategoryScreen(title: 'Products', data: 'search'))
+                        },
+                    child: Container(
+                      height: 50,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white,
+                        border: Border.all(color: ColorCodes.colorGrey4, width: 1),
+                      ),
                       child: Row(
                         children: [
-                          Text('See all', style: TextStyles.textStyle4),
-                          SizedBox(width: 4),
-                          Image.asset("assets/ic_arrow_right.png", height: 12, width: 12),
+                          Image.asset('assets/ic_search.png', height: 20, width: 20),
+                          SizedBox(width: 10),
+                          Expanded(child: Text("Search", style: TextStyles.textStyle5_1)),
+                          // Image.asset('assets/ic_vertical_line.png', height: 20, width: 20),
+                          // Image.asset('assets/ic_microphone.png', height: 20, width: 20),
                         ],
                       ),
-                      onTap: () {
-                        print("See all");
-                        Get.to(() => UpcomingSchedulesScreen());
-                      },
                     ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.only(top: 10, bottom: 10),
-                height: height / 5,
-                child: Obx(() {
-                  final todayAppointments = mainController.allList;
-                  /*    mainController.todayAppointmentResponse.value?.data.where((appointment) {
-                        final appointmentDate = DateTime.parse(appointment.appointmentDate.toString());
-                        final now = DateTime.now();
-                        return appointmentDate.year == now.year && appointmentDate.month == now.month && appointmentDate.day == now.day;
-                      }).toList() ??
-                      [];*/
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Obx(() => Text("Today's Schedule (${mainController.allList.length})", style: TextStyles.textStyle3)),
+                        GestureDetector(
+                          child: Row(
+                            children: [
+                              Text('See all', style: TextStyles.textStyle4),
+                              SizedBox(width: 4),
+                              Image.asset("assets/ic_arrow_right.png", height: 12, width: 12),
+                            ],
+                          ),
+                          onTap: () {
+                            print("See all");
+                            Get.to(() => UpcomingSchedulesScreen());
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(top: 10, bottom: 10),
+                    height: height / 5,
+                    child: Obx(() {
+                      final todayAppointments = mainController.allList;
+                      /*    mainController.todayAppointmentResponse.value?.data.where((appointment) {
+                            final appointmentDate = DateTime.parse(appointment.appointmentDate.toString());
+                            final now = DateTime.now();
+                            return appointmentDate.year == now.year && appointmentDate.month == now.month && appointmentDate.day == now.day;
+                          }).toList() ??
+                          [];*/
 
-                  if (todayAppointments.isEmpty) {
-                    return Center(child: Text('No appointments for today', style: TextStyles.textStyle3));
-                  }
+                      if (todayAppointments.isEmpty) {
+                        return Center(child: Text('No appointments for today', style: TextStyles.textStyle3));
+                      }
 
-                  final isMultiple = todayAppointments.length > 1;
+                      final isMultiple = todayAppointments.length > 1;
 
-                  return CarouselSlider(
-                    items:
-                        todayAppointments.map((appointment) {
-                          final patientName = appointment.patientFullName ?? 'N/A';
-                          final concerns = appointment.concerns?.join(", ");
-                          final date = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
-                          final startTime = appointment.timeSlot?.startTime;
-                          final endTime = appointment.timeSlot?.endTime;
+                      return CarouselSlider(
+                        items:
+                            todayAppointments.map((appointment) {
+                              final patientName = appointment.patientFullName ?? 'N/A';
+                              final concerns = appointment.concerns?.join(", ");
+                              final date = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
+                              final startTime = appointment.timeSlot?.startTime;
+                              final endTime = appointment.timeSlot?.endTime;
 
-                          return GestureDetector(
-                            onTap: () {
-                              final id = appointment.id;
-                              print('Tapped appointment ID: $id');
-                              Get.to(() => IndividualUpcomingScheduleScreen(item: appointment));
-                            },
-                            child: Container(
-                              height: height / 5,
-                              decoration: BoxDecoration(color: ColorCodes.colorBlue1, borderRadius: BorderRadius.circular(20)),
-                              child: Column(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 8.0, top: 10, right: 8),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(50),
-                                          child: Image.network(
-                                            'https://randomuser.me/api/portraits/women/1.jpg',
-                                            height: 50,
-                                            width: 50,
-                                            fit: BoxFit.cover,
-                                          ),
-                                          // Image.asset(url, height: 50, width: 50, fit: BoxFit.cover),
+                              return GestureDetector(
+                                onTap: () {
+                                  final id = appointment.id;
+                                  print('Tapped appointment ID: $id');
+                                  Get.to(() => IndividualUpcomingScheduleScreen(item: appointment));
+                                },
+                                child: Container(
+                                  height: height / 5,
+                                  decoration: BoxDecoration(color: ColorCodes.colorBlue1, borderRadius: BorderRadius.circular(20)),
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 8.0, top: 10, right: 8),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(50),
+                                              child: Image.network(
+                                                'https://randomuser.me/api/portraits/women/1.jpg',
+                                                height: 50,
+                                                width: 50,
+                                                fit: BoxFit.cover,
+                                              ),
+                                              // Image.asset(url, height: 50, width: 50, fit: BoxFit.cover),
+                                            ),
+                                            SizedBox(width: 5),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(patientName, style: TextStyles.textStyle6_1),
+                                                  SizedBox(height: 2),
+                                                  SizedBox(
+                                                    width: width / 3,
+                                                    child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey4),
+                                                  ),
+                                                  SizedBox(height: 2),
+                                                  Text(concerns.toString(), style: TextStyles.textStyle5_2, overflow: TextOverflow.ellipsis),
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.fromLTRB(0, 0, 5, 10),
+                                              child: Image.asset('assets/ic_video_call2.png', height: 40, width: 40),
+                                            ),
+                                          ],
                                         ),
-                                        SizedBox(width: 5),
-                                        Expanded(
+                                      ),
+                                      SizedBox(height: 5),
+                                      Container(
+                                        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(100),
+                                          border: Border.all(color: Colors.grey.shade300),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Image.asset('assets/ic_calendar.png', width: 12, height: 12),
+                                            SizedBox(width: 2),
+                                            Text(date, style: TextStyles.textStyle4),
+                                            Image.asset('assets/ic_vertical_line.png', height: 20, width: 20),
+                                            Image.asset('assets/ic_clock.png', width: 12, height: 12),
+                                            SizedBox(width: 2),
+                                            Text(
+                                              '${Constants.formatTimeToAmPm(startTime.toString())} - ${Constants.formatTimeToAmPm(endTime.toString())}',
+                                              style: TextStyles.textStyle4,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                        options: CarouselOptions(
+                          autoPlay: isMultiple,
+                          aspectRatio: 2.8,
+                          height: 150,
+                          enableInfiniteScroll: isMultiple,
+                          enlargeCenterPage: isMultiple,
+                          viewportFraction: isMultiple ? 0.75 : 0.90,
+                        ),
+                      );
+                    }),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Pending Appointments", style: TextStyles.textStyle3),
+                        GestureDetector(
+                          child: Row(
+                            children: [
+                              Text('See all', style: TextStyles.textStyle4),
+                              SizedBox(width: 4),
+                              Image.asset("assets/ic_arrow_right.png", height: 12, width: 12),
+                            ],
+                          ),
+                          onTap: () {
+                            print("See all");
+                            // Get.to(() => AppointmentsScreen());
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 200,
+                    child: Obx(() {
+                      final appointments = mainController.withoutDescriptionAppointmentResponse.value?.data;
+
+                      print("Pending appointments ----------- ==== $appointments");
+                      if (mainController.isLoadingAppointmentWithoutDescription.value) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+
+                      if (appointments == null || appointments.isEmpty) {
+                        return const Center(
+                          child: Text("No Pending appointments found", style: TextStyles.textStyle3,),
+                        );
+                      }
+
+                      return /*mainController.isLoading.value
+                          ? Center(child: CircularProgressIndicator(color: ColorCodes.colorBlack1))
+                          : */ListView.builder(
+                            padding: EdgeInsets.symmetric(vertical: 10),
+                            shrinkWrap: true,
+                            itemCount: appointments.length > 2 ? 2 : appointments.length,
+                            // itemCount: mainController.appointmentList.length,
+                            itemBuilder: (context, index) {
+                              final appointment = appointments[index];
+                              final patientName = appointment.patientFullName ?? '';
+                              final concerns = appointment.concerns?.join(", ") ?? '';
+                              final appointmentDate = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
+                              final startTime = Constants.formatTimeToAmPm(appointment.timeSlot!.startTime);
+                              final endTime = Constants.formatTimeToAmPm(appointment.timeSlot!.endTime);
+
+                              return Card(
+                                color: ColorCodes.white,
+                                margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                                child: Container(
+                                  padding: EdgeInsets.all(10),
+                                  child: Row(
+                                    children: [
+                                      Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          Image.asset('assets/ic_profile.png', height: 65, width: 65),
+                                          Positioned(
+                                            top: 0,
+                                            right: 4,
+                                            child: Container(
+                                              height: 12,
+                                              width: 12,
+                                              decoration: BoxDecoration(
+                                                color: Colors.red, // dot color
+                                                shape: BoxShape.circle,
+                                                border: Border.all(color: Colors.white, width: 1.5),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(width: 5),
+                                      Expanded(
+                                        child: Container(
+                                          padding: EdgeInsets.only(left: 5, right: 5),
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              Text(patientName, style: TextStyles.textStyle6_1),
+                                              Text(patientName, style: TextStyles.textStyle3),
                                               SizedBox(height: 2),
                                               SizedBox(
                                                 width: width / 3,
-                                                child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey4),
+                                                child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1),
                                               ),
                                               SizedBox(height: 2),
-                                              Text(concerns.toString(), style: TextStyles.textStyle5_2, overflow: TextOverflow.ellipsis),
+                                              Text(concerns, style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis),
+                                              SizedBox(height: 5),
+                                              Row(
+                                                children: [
+                                                  Image.asset('assets/ic_calendar.png', width: 12, height: 12),
+                                                  SizedBox(width: 3),
+                                                  Text(appointmentDate, style: TextStyles.textStyle4_1),
+                                                  SizedBox(width: 8),
+                                                  Image.asset('assets/ic_clock.png', width: 12, height: 12),
+                                                  SizedBox(width: 3),
+                                                  Text('$startTime - $endTime', style: TextStyles.textStyle4_1),
+                                                ],
+                                              ),
                                             ],
                                           ),
                                         ),
-                                        Container(
-                                          padding: const EdgeInsets.fromLTRB(0, 0, 5, 10),
-                                          child: Image.asset('assets/ic_video_call2.png', height: 40, width: 40),
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                      SizedBox(width: 40, height: 40, child: Image.asset('assets/ic_document.png')),
+                                    ],
                                   ),
-                                  SizedBox(height: 5),
-                                  Container(
-                                    margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(100),
-                                      border: Border.all(color: Colors.grey.shade300),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Image.asset('assets/ic_calendar.png', width: 12, height: 12),
-                                        SizedBox(width: 2),
-                                        Text(date, style: TextStyles.textStyle4),
-                                        Image.asset('assets/ic_vertical_line.png', height: 20, width: 20),
-                                        Image.asset('assets/ic_clock.png', width: 12, height: 12),
-                                        SizedBox(width: 2),
-                                        Text(
-                                          '${Constants.formatTimeToAmPm(startTime.toString())} - ${Constants.formatTimeToAmPm(endTime.toString())}',
-                                          style: TextStyles.textStyle4,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                                ),
+                              );
+                            },
                           );
-                        }).toList(),
-                    options: CarouselOptions(
-                      autoPlay: isMultiple,
-                      aspectRatio: 2.8,
-                      height: 150,
-                      enableInfiniteScroll: isMultiple,
-                      enlargeCenterPage: isMultiple,
-                      viewportFraction: isMultiple ? 0.75 : 0.90,
+                    }),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Appointments", style: TextStyles.textStyle3),
+                        GestureDetector(
+                          child: Row(
+                            children: [
+                              Text('See all', style: TextStyles.textStyle4),
+                              SizedBox(width: 4),
+                              Image.asset("assets/ic_arrow_right.png", height: 12, width: 12),
+                            ],
+                          ),
+                          onTap: () {
+                            print("See all");
+                            Get.to(() => AppointmentsScreen());
+                          },
+                        ),
+                      ],
                     ),
-                  );
-                }),
+                  ),
+                  // Expanded(
+                  //   child: Obx(() {
+                  //     final appointments = mainController.appointmentResponse.value?.data;
+                  //
+                  //     print("appointments ----------- ==== $appointments");
+                  //     if (mainController.isLoading.value) {
+                  //       return const Center(
+                  //         child: CircularProgressIndicator(),
+                  //       );
+                  //     }
+                  //
+                  //     if (appointments == null || appointments.isEmpty) {
+                  //       return const Center(
+                  //         child: Text("No appointments found", style: TextStyles.textStyle3,),
+                  //       );
+                  //     }
+                  //
+                  //     return /*mainController.isLoading.value
+                  //         ? Center(child: CircularProgressIndicator(color: ColorCodes.colorBlack1))
+                  //         : */ListView.builder(
+                  //           padding: EdgeInsets.symmetric(vertical: 10),
+                  //           shrinkWrap: true,
+                  //           itemCount: appointments.length > 5 ? 5 : appointments.length,
+                  //           // itemCount: mainController.appointmentList.length,
+                  //           itemBuilder: (context, index) {
+                  //             final appointment = appointments[index];
+                  //             final patientName = appointment.patientFullName ?? '';
+                  //             final concerns = appointment.concerns?.join(", ") ?? '';
+                  //             final appointmentDate = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
+                  //             final startTime = Constants.formatTimeToAmPm(appointment.timeSlot!.startTime);
+                  //             final endTime = Constants.formatTimeToAmPm(appointment.timeSlot!.endTime);
+                  //
+                  //             return Card(
+                  //               color: ColorCodes.white,
+                  //               margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+                  //               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                  //               child: Container(
+                  //                 padding: EdgeInsets.all(10),
+                  //                 child: Row(
+                  //                   children: [
+                  //                     Stack(
+                  //                       clipBehavior: Clip.none,
+                  //                       children: [
+                  //                         Image.asset('assets/ic_profile.png', height: 65, width: 65),
+                  //                         Positioned(
+                  //                           top: 0,
+                  //                           right: 4,
+                  //                           child: Container(
+                  //                             height: 12,
+                  //                             width: 12,
+                  //                             decoration: BoxDecoration(
+                  //                               color: Colors.red, // dot color
+                  //                               shape: BoxShape.circle,
+                  //                               border: Border.all(color: Colors.white, width: 1.5),
+                  //                             ),
+                  //                           ),
+                  //                         ),
+                  //                       ],
+                  //                     ),
+                  //                     SizedBox(width: 5),
+                  //                     Expanded(
+                  //                       child: Container(
+                  //                         padding: EdgeInsets.only(left: 5, right: 5),
+                  //                         child: Column(
+                  //                           crossAxisAlignment: CrossAxisAlignment.start,
+                  //                           children: [
+                  //                             Text(patientName, style: TextStyles.textStyle3),
+                  //                             SizedBox(height: 2),
+                  //                             SizedBox(
+                  //                               width: width / 3,
+                  //                               child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1),
+                  //                             ),
+                  //                             SizedBox(height: 2),
+                  //                             Text(concerns, style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis),
+                  //                             SizedBox(height: 5),
+                  //                             Row(
+                  //                               children: [
+                  //                                 Image.asset('assets/ic_calendar.png', width: 12, height: 12),
+                  //                                 SizedBox(width: 3),
+                  //                                 Text(appointmentDate, style: TextStyles.textStyle4_1),
+                  //                                 SizedBox(width: 8),
+                  //                                 Image.asset('assets/ic_clock.png', width: 12, height: 12),
+                  //                                 SizedBox(width: 3),
+                  //                                 Text('$startTime - $endTime', style: TextStyles.textStyle4_1),
+                  //                               ],
+                  //                             ),
+                  //                           ],
+                  //                         ),
+                  //                       ),
+                  //                     ),
+                  //                     SizedBox(width: 40, height: 40, child: Image.asset('assets/ic_document.png')),
+                  //                   ],
+                  //                 ),
+                  //               ),
+                  //             );
+                  //           },
+                  //         );
+                  //   }),
+                  // ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Pending Appointments", style: TextStyles.textStyle3),
-                    GestureDetector(
-                      child: Row(
-                        children: [
-                          Text('See all', style: TextStyles.textStyle4),
-                          SizedBox(width: 4),
-                          Image.asset("assets/ic_arrow_right.png", height: 12, width: 12),
-                        ],
-                      ),
-                      onTap: () {
-                        print("See all");
-                        // Get.to(() => AppointmentsScreen());
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Appointments", style: TextStyles.textStyle3),
-                    GestureDetector(
-                      child: Row(
-                        children: [
-                          Text('See all', style: TextStyles.textStyle4),
-                          SizedBox(width: 4),
-                          Image.asset("assets/ic_arrow_right.png", height: 12, width: 12),
-                        ],
-                      ),
-                      onTap: () {
-                        print("See all");
-                        Get.to(() => AppointmentsScreen());
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              // Expanded(
-              //   child: Obx(() {
-              //     final appointments = mainController.appointmentResponse.value?.data;
-              //
-              //     print("appointments ----------- ==== $appointments");
-              //     if (mainController.isLoading.value) {
-              //       return const Center(
-              //         child: CircularProgressIndicator(),
-              //       );
-              //     }
-              //
-              //     if (appointments == null || appointments.isEmpty) {
-              //       return const Center(
-              //         child: Text("No appointments found", style: TextStyles.textStyle3,),
-              //       );
-              //     }
-              //
-              //     return /*mainController.isLoading.value
-              //         ? Center(child: CircularProgressIndicator(color: ColorCodes.colorBlack1))
-              //         : */ListView.builder(
-              //           padding: EdgeInsets.symmetric(vertical: 10),
-              //           shrinkWrap: true,
-              //           itemCount: appointments.length > 5 ? 5 : appointments.length,
-              //           // itemCount: mainController.appointmentList.length,
-              //           itemBuilder: (context, index) {
-              //             final appointment = appointments[index];
-              //             final patientName = appointment.patientFullName ?? '';
-              //             final concerns = appointment.concerns?.join(", ") ?? '';
-              //             final appointmentDate = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
-              //             final startTime = Constants.formatTimeToAmPm(appointment.timeSlot!.startTime);
-              //             final endTime = Constants.formatTimeToAmPm(appointment.timeSlot!.endTime);
-              //
-              //             return Card(
-              //               color: ColorCodes.white,
-              //               margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
-              //               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-              //               child: Container(
-              //                 padding: EdgeInsets.all(10),
-              //                 child: Row(
-              //                   children: [
-              //                     Stack(
-              //                       clipBehavior: Clip.none,
-              //                       children: [
-              //                         Image.asset('assets/ic_profile.png', height: 65, width: 65),
-              //                         Positioned(
-              //                           top: 0,
-              //                           right: 4,
-              //                           child: Container(
-              //                             height: 12,
-              //                             width: 12,
-              //                             decoration: BoxDecoration(
-              //                               color: Colors.red, // dot color
-              //                               shape: BoxShape.circle,
-              //                               border: Border.all(color: Colors.white, width: 1.5),
-              //                             ),
-              //                           ),
-              //                         ),
-              //                       ],
-              //                     ),
-              //                     SizedBox(width: 5),
-              //                     Expanded(
-              //                       child: Container(
-              //                         padding: EdgeInsets.only(left: 5, right: 5),
-              //                         child: Column(
-              //                           crossAxisAlignment: CrossAxisAlignment.start,
-              //                           children: [
-              //                             Text(patientName, style: TextStyles.textStyle3),
-              //                             SizedBox(height: 2),
-              //                             SizedBox(
-              //                               width: width / 3,
-              //                               child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1),
-              //                             ),
-              //                             SizedBox(height: 2),
-              //                             Text(concerns, style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis),
-              //                             SizedBox(height: 5),
-              //                             Row(
-              //                               children: [
-              //                                 Image.asset('assets/ic_calendar.png', width: 12, height: 12),
-              //                                 SizedBox(width: 3),
-              //                                 Text(appointmentDate, style: TextStyles.textStyle4_1),
-              //                                 SizedBox(width: 8),
-              //                                 Image.asset('assets/ic_clock.png', width: 12, height: 12),
-              //                                 SizedBox(width: 3),
-              //                                 Text('$startTime - $endTime', style: TextStyles.textStyle4_1),
-              //                               ],
-              //                             ),
-              //                           ],
-              //                         ),
-              //                       ),
-              //                     ),
-              //                     SizedBox(width: 40, height: 40, child: Image.asset('assets/ic_document.png')),
-              //                   ],
-              //                 ),
-              //               ),
-              //             );
-              //           },
-              //         );
-              //   }),
-              // ),
-            ],
+            ),
           ),
         ),
       ),

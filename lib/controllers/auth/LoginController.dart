@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../model/DoctorProfileResponse.dart';
 import '../../model/login_model.dart';
 import '../../screens/MainScreen.dart';
 import '../EditProfileController.dart';
@@ -60,7 +61,7 @@ class LoginController extends GetxController {
 
         Doctor model = Doctor.fromJson(responseData['data']);
         editProfileController.setDoctor(model);
-
+        fetchDoctorDetailsApi(loginResponse.value!.doctor.id);
         Get.offAll(() => MainScreen());
       } else {
         final errorData = jsonDecode(response.body);
@@ -72,6 +73,41 @@ class LoginController extends GetxController {
       Constants.showError("Error -- $e");
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Rxn<DoctorProfileResponse> doctorDetail = Rxn<DoctorProfileResponse>();
+  Future<void> fetchDoctorDetailsApi(String doctorId) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? '';
+
+    // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
+    // final doctorId = prefs.getString('doctor_id') ?? '';
+    print('doctorId -- $doctorId');
+    final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
+    print('fetchDoctorDetailsApi url -- $url');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        print("doctorDetail: $responseData");
+
+        doctorDetail.value = DoctorProfileResponse.fromJson(responseData);
+      } else {
+        final errorData = jsonDecode(response.body);
+        final errorMessage = errorData['message'] ?? "Failed to get doctor profile";
+        print('errorMessage fetchDoctorDetailsApi -- $errorMessage');
+        Constants.showError(errorMessage);
+      }
+    } catch (e) {
+      print('Error:- $e');
+      Constants.showError("Error -- $e");
     }
   }
 
