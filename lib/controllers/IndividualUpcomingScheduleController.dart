@@ -62,4 +62,116 @@ class IndividualUpcomingScheduleController extends GetxController {
       isLoading.value = false;
     }
   }
+
+  final List<Map<String, dynamic>> shopByCategoryList = [];
+  Future<void> fetchShopifyProducts() async {
+    final url = Uri.parse('https://dermatics-in.myshopify.com/api/2025-04/graphql.json');
+
+    const String query = '''
+query GetProductsByCategory {
+  products(first: 20, reverse: true, query: "status:'active'") {
+    edges {
+      node {
+        title
+        productType
+        createdAt
+        id
+        images(first: 10) {
+          edges {
+            node {
+              src
+            }
+          }
+        }
+        description
+        featuredImage {
+          src
+        }
+        variants(first: 10) {
+          edges {
+            node {
+              id
+              availableForSale
+              price {
+                amount
+                currencyCode
+              }
+              compareAtPrice {
+                amount
+                currencyCode
+              }
+            }
+          }
+        }
+      }
+    }
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+    }
+  }
+}
+''';
+
+    final response = await http.post(
+      url,
+      headers: {
+        'X-Shopify-Storefront-Access-Token': '1e5f786dc58ad552b19a218ac59889d5',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: json.encode({'query': query}),
+    );
+
+    // print("Token: [${Constants.shopify_access_token.trim()}]");
+    // print("Url: $url");
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+
+      // ✅ Check for GraphQL errors
+      if (jsonData["errors"] != null) {
+        print("❌ GraphQL Errors: ${jsonData["errors"]}");
+        return;
+      }
+
+      // ✅ Check if 'data' and 'products' exist
+      if (jsonData["data"] == null || jsonData["data"]["products"] == null) {
+        print("❌ No data/products found. Full response:\n${json.encode(jsonData)}");
+        return;
+      }
+
+      final products = jsonData["data"]["products"]["edges"] as List;
+      // prettyPrintJson(jsonData);
+
+      shopByCategoryList.clear();
+      for (var edge in products) {
+        final node = edge["node"];
+        final image = node["images"]["edges"].isNotEmpty ? node["images"]["edges"][0]["node"]["src"] : "";
+        final variant = node["variants"]["edges"].isNotEmpty ? node["variants"]["edges"][0]["node"] : null;
+
+        final variantId = variant?["id"];
+        final price = variant?["price"]?["amount"];
+        final compareAt = variant?["compareAtPrice"]?["amount"];
+
+        final double parsedPrice = price != null ? double.tryParse(price) ?? 0.0 : 0.0;
+        final double parsedCompareAt = compareAt != null ? double.tryParse(compareAt) ?? 0.0 : 0.0;
+
+        // print('availableForSale ------------------------- ${variant?['availableForSale']} - ${node["title"]}');
+
+        shopByCategoryList.add({
+          "id": node["id"],
+          "image": image ?? '',
+          "title": node["title"],
+          "price": parsedPrice,
+          "compareAtPrice": parsedCompareAt,
+          "availableForSale": variant?['availableForSale'],
+          "variantId": variantId,
+        });
+      }
+    } else {
+      print("❌ Failed to fetch products: ${response.statusCode} ${response.body}");
+    }
+  }
+
 }
