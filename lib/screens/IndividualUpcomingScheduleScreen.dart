@@ -8,6 +8,8 @@ import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
 import '../controllers/IndividualUpcomingScheduleController.dart';
 import '../model/PrescriptionRequestModel.dart';
+import '../model/ProductModel.dart';
+import '../model/ShopifyService.dart';
 import '../widgets/ColorCodes.dart';
 import '../widgets/Constants.dart';
 import '../widgets/TextStyles.dart';
@@ -23,6 +25,7 @@ class IndividualUpcomingScheduleScreen extends StatefulWidget {
 
 class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingScheduleScreen> {
   final controller = Get.put(IndividualUpcomingScheduleController());
+  final ShopifyService _shopifyService = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -206,12 +209,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                                           children: [
                                             const SizedBox(height: 2),
                                             Text(item["medicineName"] ?? '', style: TextStyles.textStyle4_3),
-                                            Text(
-                                              item["notes"] ?? '',
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 1,
-                                              style: TextStyles.textStyle5_1,
-                                            ),
+                                            Text(item["notes"] ?? '', overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyles.textStyle5_1),
                                             const SizedBox(height: 2),
                                           ],
                                         ),
@@ -268,7 +266,9 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                               .toList();
 
                       print("prescriptions ---- $prescriptions");
-                      controller.addMedicineApi(id: widget.item.id.toString(), prescriptions: prescriptions);
+                      _shopifyService.selectedCustomerId.value = 'gid://shopify/Customer/8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
+
+                      // controller.addMedicineApi(id: widget.item.id.toString(), prescriptions: prescriptions);
                     },
                     child: Container(
                       margin: EdgeInsets.only(left: 15, top: 10, right: 15, bottom: 10),
@@ -294,6 +294,31 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                   return SizedBox.shrink();
                 }
               }),
+              if (controller.selectedItems.isNotEmpty) ...[
+                SizedBox(height: 20),
+                Text('Selected Items:', style: TextStyle(fontWeight: FontWeight.bold)),
+                ...controller.selectedItems.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  return Text('item -- $item');
+                  /*final product = controller.products.firstWhere(
+                        (p) => (p['variants'] as List).any(
+                          (v) => v['id'].toString() == item['variant_id'],
+                    ),
+                    orElse: () => {'title': 'Unknown', 'variants': []},
+                  );
+
+                  final variant = (product['variants'] as List).firstWhere(
+                        (v) => v['id'].toString() == item['variant_id'],
+                    orElse: () => {'title': 'Unknown', 'price': '0'},
+                  );
+
+                  return ListTile(
+                    title: Text('${product['title']} - ${variant['title']}'),
+                    subtitle: Text('Qty: ${item['quantity']} × \$${variant['price']}'),
+                  );*/
+                }).toList(),
+              ],
             ],
           ),
         ),
@@ -301,7 +326,11 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
     );
   }
 
+  final ScrollController _sheetScrollController = ScrollController();
+
   void _showAddMedicineSheet(BuildContext context) {
+    controller.loadProducts();
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -313,12 +342,18 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
         vsync: Navigator.of(context), // Requires TickerProvider
       ),
       builder: (context) {
-        return AnimatedPadding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
+        return ConstrainedBox /*AnimatedPadding*/ (
+          // padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          // duration: Duration(milliseconds: 300),
+          // curve: Curves.easeOut,
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+          child: SingleChildScrollView(
+            controller: _sheetScrollController,
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 16, right: 16, top: 16,
+            ),
+            // padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -344,26 +379,117 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                   ],
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: controller.medicineNameController,
-                  cursorColor: ColorCodes.colorBlack1,
-                  decoration: InputDecoration(
-                    hintText: 'Enter medicine name',
-                    hintStyle: TextStyles.textStyle5_1,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                // TextField(
+                //   controller: controller.medicineNameController,
+                //   cursorColor: ColorCodes.colorBlack1,
+                //   decoration: InputDecoration(
+                //     hintText: 'Enter medicine name',
+                //     hintStyle: TextStyles.textStyle5_1,
+                //     border: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(16),
+                //       borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                //     ),
+                //     enabledBorder: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(16),
+                //       borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                //     ),
+                //     focusedBorder: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(16),
+                //       borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                //     ),
+                //   ),
+                // ),
+                Obx(() {
+                  final _ = controller.searchQuery.value; // 👈 forces read!
+                  final __ = controller.shopifyProducts.length;
+                  return Autocomplete<ProductModel>(
+                    optionsBuilder: (textEditingValue) {
+                      controller.searchQuery.value = textEditingValue.text;
+                      if (controller.searchQuery.isEmpty) {
+                        return const Iterable<ProductModel>.empty();
+                      }
+                      // if (textEditingValue.text.isEmpty) {
+                      //   return const Iterable<ProductModel>.empty();
+                      // }
+                      // return controller.shopifyProducts.where((product) => product.title.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+                      return controller.shopifyProducts.where(
+                        (product) => product.title.toLowerCase().contains(controller.searchQuery.value.toLowerCase()),
+                      );
+                    },
+                    displayStringForOption: (option) => option.title,
+                    onSelected: controller.selectProduct,
+                    optionsViewBuilder: (context, onSelected, options) {
+                      return Material(
+                        elevation: 4,
+                        child: ListView.separated(
+                          padding: EdgeInsets.zero,
+                          itemCount: options.length,
+                          separatorBuilder: (_, __) => Divider(height: 1),
+                          itemBuilder: (context, index) {
+                            final option = options.elementAt(index);
+                            return ListTile(
+                              leading: option.image != null ? Image.network(option.image!, width: 40) : Icon(Icons.image),
+                              title: Text(option.title, style: TextStyles.textStyle1,),
+                              subtitle: Text('\Rs.${option.price.toStringAsFixed(2)}'),
+                              onTap: () => onSelected(option),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    fieldViewBuilder: (context, controller, focusNode, onSubmitted) {
+                      return TextField(
+                        controller: controller,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(
+                          hintText: 'Search products...',
+                          prefixIcon: Icon(Icons.search),
+                          // border: OutlineInputBorder(
+                          //   borderRadius: BorderRadius.circular(12),
+                            /*contentPadding: EdgeInsets.symmetric(vertical: 12)*/
+                          // ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }),
+                const SizedBox(height: 16),
+
+                // Selected Product Preview
+                /*Obx(() {
+                  if (controller.selectedProduct.value == null) {
+                    return const SizedBox();
+                  }
+                  final product = controller.selectedProduct.value!;
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (product.image != null) Image.network(product.image!, height: 100),
+                          const SizedBox(height: 8),
+                          Text(product.title, style: TextStyle(fontWeight: FontWeight.bold)),
+                          if (product.sku != null) Text('SKU: ${product.sku}'),
+                          Text('\$${product.price.toStringAsFixed(2)}', style: TextStyle(color: Colors.green)),
+                        ],
+                      ),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
-                    ),
-                  ),
-                ),
+                  );
+                }),*/
+
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.only(left: 10, right: 10),

@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
 import '../controllers/main/MainController.dart';
 import '../model/appointment_item.dart';
@@ -177,7 +178,8 @@ class _MainScreenState extends State<MainScreen> {
             onRefresh: () async {
               try {
                 mainController.isLoading.value = true;
-                await mainController.fetchTodayAppointmentsApi(mainController.currentDate.value, mainController.doctorId);
+                mainController.fetchDoctorDetailsApi();
+                // await mainController.fetchTodayAppointmentsApi(mainController.currentDate.value, mainController.doctorId);
               } finally {
                 mainController.isLoading.value = false;
               }
@@ -386,7 +388,7 @@ class _MainScreenState extends State<MainScreen> {
                                             Image.asset('assets/ic_calendar.png', width: 12, height: 12),
                                             SizedBox(width: 2),
                                             Text(date, style: TextStyles.textStyle4),
-                                            Image.asset('assets/ic_vertical_line.png', height: 20, width: 20),
+                                            Image.asset('assets/ic_vertical_line.png', height: 20, width: 10),
                                             Image.asset('assets/ic_clock.png', width: 12, height: 12),
                                             SizedBox(width: 2),
                                             Text(

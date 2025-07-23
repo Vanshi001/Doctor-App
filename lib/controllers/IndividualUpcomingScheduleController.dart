@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
+import '../model/ProductModel.dart';
+
 class IndividualUpcomingScheduleController extends GetxController {
   final medicineNameController = TextEditingController();
   final descriptionController = TextEditingController();
@@ -51,6 +53,7 @@ class IndividualUpcomingScheduleController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         print('Add Medicine responseData: $responseData');
+        Get.back();
       } else {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'];
@@ -63,17 +66,24 @@ class IndividualUpcomingScheduleController extends GetxController {
     }
   }
 
-  final List<Map<String, dynamic>> shopByCategoryList = [];
-  Future<void> fetchShopifyProducts() async {
-    final url = Uri.parse('https://dermatics-in.myshopify.com/api/2025-04/graphql.json');
+  final shopifyProducts = <ProductModel>[].obs;
+  final selectedProduct = Rx<ProductModel?>(null);
+  var searchQuery = ''.obs;
 
-    const String query = '''
-query GetProductsByCategory {
-  products(first: 20, reverse: true, query: "status:'active'") {
+  // final shopByCategoryList = <Map<String, dynamic>>[].obs;
+  Future<void> fetchShopifyProducts() async {
+    String? cursor;
+    final allProducts = <ProductModel>[];
+
+    final url = Uri.parse('https://dermatics-in.myshopify.com/api/2025-04/graphql.json');
+    do {
+      const String query = '''
+query GetProducts(\$cursor: String) {
+  products(first: 250, after: \$cursor, query: "status:'active'") {
     edges {
+      cursor
       node {
         title
-        productType
         createdAt
         id
         images(first: 10) {
@@ -113,65 +123,138 @@ query GetProductsByCategory {
 }
 ''';
 
-    final response = await http.post(
-      url,
-      headers: {
-        'X-Shopify-Storefront-Access-Token': '1e5f786dc58ad552b19a218ac59889d5',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: json.encode({'query': query}),
-    );
+      final response = await http.post(
+        url,
+        headers: {
+          'X-Shopify-Storefront-Access-Token': '1e5f786dc58ad552b19a218ac59889d5',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode({
+          'query': query,
+          'variables': {'cursor': cursor},
+        }),
+      );
 
-    // print("Token: [${Constants.shopify_access_token.trim()}]");
-    // print("Url: $url");
+      // print("Token: [${Constants.shopify_access_token.trim()}]");
+      // print("Url: $url");
 
-    if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
 
-      // ✅ Check for GraphQL errors
-      if (jsonData["errors"] != null) {
-        print("❌ GraphQL Errors: ${jsonData["errors"]}");
-        return;
+        // ✅ Check for GraphQL errors
+        if (jsonData["errors"] != null) {
+          print("❌ GraphQL Errors: ${jsonData["errors"]}");
+          return;
+        }
+
+        // ✅ Check if 'data' and 'products' exist
+        if (jsonData["data"] == null || jsonData["data"]["products"] == null) {
+          print("❌ No data/products found. Full response:\n${json.encode(jsonData)}");
+          return;
+        }
+
+        final edges = jsonData['data']['products']['edges'] as List;
+        if (edges.isEmpty) break;
+
+        allProducts.addAll(edges.map((e) => ProductModel.fromShopifyJson(e['node'])).toList());
+
+        cursor = edges.last['cursor'];
+        final hasNextPage = jsonData['data']['products']['pageInfo']['hasNextPage'];
+
+        if (!hasNextPage) break;
+
+        /*final products = (jsonData['data']['products']['edges'] as List)
+            .map((e) => ProductModel.fromShopifyJson(e['node']))
+            .toList();
+
+        shopifyProducts.assignAll(products);*/
+      } else {
+        print("❌ Failed to fetch products: ${response.statusCode} ${response.body}");
+        break;
       }
+    } while (true);
+    shopifyProducts.assignAll(allProducts);
+  }
 
-      // ✅ Check if 'data' and 'products' exist
-      if (jsonData["data"] == null || jsonData["data"]["products"] == null) {
-        print("❌ No data/products found. Full response:\n${json.encode(jsonData)}");
-        return;
-      }
+  void selectProduct(ProductModel product) {
+    selectedProduct.value = product;
+    medicineNameController.text = product.title;
+  }
 
-      final products = jsonData["data"]["products"]["edges"] as List;
-      // prettyPrintJson(jsonData);
-
-      shopByCategoryList.clear();
-      for (var edge in products) {
-        final node = edge["node"];
-        final image = node["images"]["edges"].isNotEmpty ? node["images"]["edges"][0]["node"]["src"] : "";
-        final variant = node["variants"]["edges"].isNotEmpty ? node["variants"]["edges"][0]["node"] : null;
-
-        final variantId = variant?["id"];
-        final price = variant?["price"]?["amount"];
-        final compareAt = variant?["compareAtPrice"]?["amount"];
-
-        final double parsedPrice = price != null ? double.tryParse(price) ?? 0.0 : 0.0;
-        final double parsedCompareAt = compareAt != null ? double.tryParse(compareAt) ?? 0.0 : 0.0;
-
-        // print('availableForSale ------------------------- ${variant?['availableForSale']} - ${node["title"]}');
-
-        shopByCategoryList.add({
-          "id": node["id"],
-          "image": image ?? '',
-          "title": node["title"],
-          "price": parsedPrice,
-          "compareAtPrice": parsedCompareAt,
-          "availableForSale": variant?['availableForSale'],
-          "variantId": variantId,
-        });
-      }
-    } else {
-      print("❌ Failed to fetch products: ${response.statusCode} ${response.body}");
+  Future<void> loadProducts() async {
+    isLoading(true);
+    try {
+      await fetchShopifyProducts();
+    } catch (e) {
+      print('Error loading products: $e');
+    } finally {
+      isLoading(false);
     }
   }
 
+  final selectedItems = <Map<String, dynamic>>[].obs;
+  void addProductToDraft({
+    required String variantId,
+    required int quantity,
+    required double price,
+  }) {
+    selectedItems.add({
+      'variant_id': variantId,
+      'quantity': quantity,
+      'price': price,
+    });
+  }
+}
+
+class LineItem {
+  final String variantId;
+  final int quantity;
+  final double price;
+
+  LineItem({
+    required this.variantId,
+    required this.quantity,
+    required this.price,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'variant_id': variantId,
+      'quantity': quantity,
+      'price': price,
+    };
+  }
+}
+
+class ShopifyProduct {
+  final String id;
+  final String title;
+  final String image;
+  final double price;
+  final double compareAtPrice;
+  final bool availableForSale;
+  final String variantId;
+
+  ShopifyProduct({
+    required this.id,
+    required this.title,
+    required this.image,
+    required this.price,
+    required this.compareAtPrice,
+    required this.availableForSale,
+    required this.variantId,
+  });
+
+  factory ShopifyProduct.fromJson(Map<String, dynamic> json) {
+    return ShopifyProduct(
+      id: json['id'] ?? '',
+      title: json['title'] ?? '',
+      image: json['image'] ?? '',
+      price: json['price'] ?? 0.0,
+      compareAtPrice: json['compareAtPrice'] ?? 0.0,
+      availableForSale: json['availableForSale'] ?? false,
+      variantId: json['variantId'] ?? '',
+    );
+  }
 }
