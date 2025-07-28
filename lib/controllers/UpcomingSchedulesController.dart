@@ -143,7 +143,7 @@ class UpcomingSchedulesController extends GetxController {
       final DateTime? picked = await showDatePicker(
         context: Get.context!,
         initialDate: DateTime.now(),
-        firstDate: DateTime(2020),
+        firstDate: DateTime.now(),
         lastDate: DateTime(2100),
         helpText: 'Select Custom Date',
         cancelText: 'Cancel',

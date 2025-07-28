@@ -12,64 +12,109 @@ class ShopifyService extends GetxService {
       'X-Shopify-Access-Token': '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',
       'Content-Type': 'application/json',
     };
+    _dio.interceptors.add(LogInterceptor(
+      requestBody: true,
+      responseBody: true,
+      requestHeader: true,
+      responseHeader: true,
+      error: true,
+    ));
     super.onInit();
   }
 
   Future<Map<String, dynamic>?> createDraftOrder({
     required String customerId,
     required List<Map<String, dynamic>> lineItems,
-    String? note,
+    // String? note,
   }) async {
     try {
+      print('customerId --==-=-= $customerId');
+      print('lineItems --==-=-= $lineItems');
+      print('dio --==-=-= $_dio');
+      // print('lineItems --==-=-= $lineItems');
+
+      if (lineItems.isEmpty) {
+        print('ERROR: Line items is empty');
+        Get.snackbar('Error', 'No items to add to draft order');
+        return null;
+      }
+
+      for (int i = 0; i < lineItems.length; i++) {
+        final item = lineItems[i];
+        print('Line item $i: $item');
+
+        if (!item.containsKey('title') || item['title'] == null || item['title'].toString().isEmpty) {
+          print('ERROR: Line item $i missing title');
+          Get.snackbar('Error', 'Invalid line item: missing title');
+          return null;
+        }
+      }
+
+      final requestData = {
+        'draft_order': {
+          'customer': {'id': customerId},
+          'line_items': lineItems,
+          // 'note': note,
+        }
+      };
+
+      print('=== REQUEST DATA ===');
+      print('Full request: $requestData');
+
+      print('=== MAKING API CALL ===');
       final response = await _dio.post(
         '/draft_orders.json',
-        data: {
-          'draft_order': {
-            'customer': {'id': customerId},
-            'line_items': lineItems,
-            'note': note,
-          }
-        },
+        data: requestData,
       );
-      return response.data['draft_order'];
-    } catch (e) {
+
+      print('=== RESPONSE RECEIVED ===');
+      print('Status Code: ${response.statusCode}');
+      print('Status Message: ${response.statusMessage}');
+      print('Response Headers: ${response.headers}');
+      print('Response Data Type: ${response.data.runtimeType}');
+      print('Response Data: ${response.data}');
+
+      if (response.data != null && response.data is Map) {
+        // print('Draft Order Data: ${response.data['draft_order']}');
+        return response.data['draft_order'];
+      } else {
+        print('ERROR: Unexpected response format');
+        print('Response: ${response.data}');
+        return null;
+      }
+
+      // print('response ---- $response');
+      // print('response.data[draft_order] -- ${response.data['draft_order']}');
+      // return response.data['draft_order'];
+    } on DioException catch (dioError) {
+      print('=== DIO EXCEPTION ===');
+      print('Error Type: ${dioError.type}');
+      print('Error Message: ${dioError.message}');
+      print('Status Code: ${dioError.response?.statusCode}');
+      print('Response Data: ${dioError.response?.data}');
+      print('Request Options: ${dioError.requestOptions}');
+
+      // Handle specific error cases
+      if (dioError.response?.statusCode == 401) {
+        Get.snackbar('Error', 'Authentication failed - check access token');
+      } else if (dioError.response?.statusCode == 422) {
+        print('Validation Error: ${dioError.response?.data}');
+        Get.snackbar('Error', 'Invalid data format');
+      } else {
+        Get.snackbar('Error', 'Failed to create draft order: ${dioError.message}');
+      }
+      return null;
+
+    } catch (e, stackTrace) {
+      print('=== GENERAL EXCEPTION ===');
+      print('Error: $e');
+      print('Stack Trace: $stackTrace');
       Get.snackbar('Error', 'Failed to create draft order');
       return null;
     }
   }
 
-  final selectedCustomerId = RxString('');
-  final selectedItems = <Map<String, dynamic>>[].obs;
-  final isLoading = false.obs;
-  final ShopifyService _shopifyService = Get.find();
 
-  Future<void> submitDraftOrder({String? note}) async {
-    if (selectedCustomerId.isEmpty) {
-      Get.snackbar('Error', 'Please select a customer');
-      return;
-    }
-
-    if (selectedItems.isEmpty) {
-      Get.snackbar('Error', 'Please add at least one product');
-      return;
-    }
-
-    isLoading(true);
-    try {
-      final result = await _shopifyService.createDraftOrder(
-        customerId: selectedCustomerId.value,
-        lineItems: selectedItems.toList(),
-        note: note,
-      );
-
-      if (result != null) {
-        Get.snackbar('Success', 'Draft order created successfully!');
-        // clearForm();
-      }
-    } finally {
-      isLoading(false);
-    }
-  }
 
 
   Future<List<Map<String, dynamic>>> getCustomers() async {

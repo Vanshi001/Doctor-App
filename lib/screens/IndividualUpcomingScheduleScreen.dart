@@ -25,7 +25,7 @@ class IndividualUpcomingScheduleScreen extends StatefulWidget {
 
 class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingScheduleScreen> {
   final controller = Get.put(IndividualUpcomingScheduleController());
-  final ShopifyService _shopifyService = Get.find();
+  // final ShopifyService _shopifyService = Get.find<ShopifyService>();
 
   @override
   Widget build(BuildContext context) {
@@ -260,15 +260,16 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                               .map((medicine) {
                                 final name = medicine['medicineName']?.trim();
                                 final notes = medicine['notes']?.trim();
-                                return PrescriptionItem(medicineName: name ?? '', notes: notes ?? '');
+                                final variantId = medicine['variantId']?.trim()/*.split('/').last*/;
+                                print("prescriptions name ---- $name, notes - $notes, variantId - $variantId");
+
+                                return PrescriptionItem(medicineName: name ?? '', notes: notes ?? '', variantId: variantId ?? '');
                               })
                               .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
                               .toList();
 
-                      print("prescriptions ---- $prescriptions");
-                      _shopifyService.selectedCustomerId.value = 'gid://shopify/Customer/8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
-
-                      // controller.addMedicineApi(id: widget.item.id.toString(), prescriptions: prescriptions);
+                      controller.selectedCustomerId.value = '8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
+                      controller.addMedicineApi(id: widget.item.id.toString(), prescriptions: prescriptions);
                     },
                     child: Container(
                       margin: EdgeInsets.only(left: 15, top: 10, right: 15, bottom: 10),
@@ -324,6 +325,13 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
         ),
       ),
     );
+  }
+
+  String extractCustomerId(String gidOrId) {
+    if (gidOrId.startsWith('gid://shopify/Customer/')) {
+      return gidOrId.split('/').last;
+    }
+    return gidOrId;
   }
 
   final ScrollController _sheetScrollController = ScrollController();
@@ -541,8 +549,8 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
   }
 
   void showEditMedicinePopup(BuildContext context, int index, IndividualUpcomingScheduleController controller) {
-    final nameController = TextEditingController(text: controller.medicines[index]["name"]);
-    final descriptionController = TextEditingController(text: controller.medicines[index]["description"]);
+    final nameController = TextEditingController(text: controller.medicines[index]["medicineName"]);
+    final descriptionController = TextEditingController(text: controller.medicines[index]["notes"]);
 
     showDialog(
       context: context,
@@ -561,7 +569,8 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(nameController.text, style: TextStyles.textStyle2_2),
+                      Flexible(child: Text(nameController.text, style: TextStyles.textStyle2_2, overflow: TextOverflow.ellipsis, maxLines: 2,)),
+                      SizedBox(width: 2,),
                       GestureDetector(onTap: () => Get.back(), child: Image.asset('assets/ic_close.png', width: 24, height: 24)),
                     ],
                   ),
@@ -601,7 +610,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      controller.medicines[index]["description"] = descriptionController.text;
+                      controller.medicines[index]["notes"] = descriptionController.text;
                       controller.medicines.refresh();
                       Navigator.pop(context);
                     },
