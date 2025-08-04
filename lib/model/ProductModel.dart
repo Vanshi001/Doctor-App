@@ -4,6 +4,8 @@ class ProductModel {
   final String? sku;
   final String? image;
   final String? variantId;
+  final String productId;
+  final String compareAtPrice;
   final double price;
   final bool available;
 
@@ -13,6 +15,8 @@ class ProductModel {
     this.sku,
     this.image,
     this.variantId,
+    required this.productId,
+    required this.compareAtPrice,
     required this.price,
     required this.available,
   });
@@ -24,6 +28,10 @@ class ProductModel {
 
     final variantId = variant?["id"];
 
+    final price = double.tryParse(variant?['price']['amount'] ?? '0') ?? 0.0;
+    final compareAtPrice = variant?['compareAtPrice']?['amount']?.toString() ?? price.toString();
+    final productId = json['id'];
+
     return ProductModel(
       id: json['id'],
       title: json['title'],
@@ -32,7 +40,9 @@ class ProductModel {
           ? json['images']['edges'][0]['node']['src']
           : null,
       variantId: variantId,
-      price: double.tryParse(variant?['price']['amount'] ?? '0') ?? 0.0,
+      productId: productId,
+      compareAtPrice: compareAtPrice,
+      price: price,
       available: variant?['availableForSale'] ?? false,
     );
   }

@@ -25,6 +25,7 @@ class IndividualUpcomingScheduleScreen extends StatefulWidget {
 
 class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingScheduleScreen> {
   final controller = Get.put(IndividualUpcomingScheduleController());
+
   // final ShopifyService _shopifyService = Get.find<ShopifyService>();
 
   @override
@@ -260,10 +261,30 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                               .map((medicine) {
                                 final name = medicine['medicineName']?.trim();
                                 final notes = medicine['notes']?.trim();
-                                final variantId = medicine['variantId']?.trim()/*.split('/').last*/;
-                                print("prescriptions name ---- $name, notes - $notes, variantId - $variantId");
+                                final variantId = medicine['variantId']?.trim() /*.split('/').last*/;
+                                final productId = medicine['productId']?.trim() /*.split('/').last*/;
+                                final price = medicine['price']?.trim() /*.split('/').last*/;
+                                final compareAtPrice = medicine['compareAtPrice']?.trim() /*.split('/').last*/;
+                                final image = medicine['image']?.trim() /*.split('/').last*/;
+                                print(
+                                  "\n prescriptions name ---- $name, "
+                                      "\n notes - $notes, "
+                                      "\n variantId - $variantId, "
+                                      "\n productId - $productId, "
+                                      "\n price - $price "
+                                      "\n compareAtPrice - $compareAtPrice, "
+                                      "\n image - $image",
+                                );
 
-                                return PrescriptionItem(medicineName: name ?? '', notes: notes ?? '', variantId: variantId ?? '');
+                                return PrescriptionItem(
+                                  medicineName: name ?? '',
+                                  notes: notes ?? '',
+                                  variantId: variantId ?? '',
+                                  productId: productId ?? '',
+                                  compareAtPrice: compareAtPrice ?? '',
+                                  image: image ?? '',
+                                  price: price ?? '',
+                                );
                               })
                               .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
                               .toList();
@@ -336,7 +357,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
 
   final ScrollController _sheetScrollController = ScrollController();
 
-  void _showAddMedicineSheet(BuildContext context) {
+  void __showAddMedicineSheet(BuildContext context) {
     controller.loadProducts();
 
     showModalBottomSheet(
@@ -357,23 +378,11 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
           constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
           child: SingleChildScrollView(
             controller: _sheetScrollController,
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-              left: 16, right: 16, top: 16,
-            ),
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 16, right: 16, top: 16),
             // padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                /*Container(
-                  width: 40,
-                  height: 4,
-                  margin: EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),*/
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -387,26 +396,6 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                   ],
                 ),
                 const SizedBox(height: 12),
-                // TextField(
-                //   controller: controller.medicineNameController,
-                //   cursorColor: ColorCodes.colorBlack1,
-                //   decoration: InputDecoration(
-                //     hintText: 'Enter medicine name',
-                //     hintStyle: TextStyles.textStyle5_1,
-                //     border: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(16),
-                //       borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
-                //     ),
-                //     enabledBorder: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(16),
-                //       borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
-                //     ),
-                //     focusedBorder: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(16),
-                //       borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
-                //     ),
-                //   ),
-                // ),
                 Obx(() {
                   final _ = controller.searchQuery.value; // 👈 forces read!
                   final __ = controller.shopifyProducts.length;
@@ -437,7 +426,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                             final option = options.elementAt(index);
                             return ListTile(
                               leading: option.image != null ? Image.network(option.image!, width: 40) : Icon(Icons.image),
-                              title: Text(option.title, style: TextStyles.textStyle1,),
+                              title: Text(option.title, style: TextStyles.textStyle1),
                               subtitle: Text('\Rs.${option.price.toStringAsFixed(2)}'),
                               onTap: () => onSelected(option),
                             );
@@ -452,10 +441,6 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                         decoration: InputDecoration(
                           hintText: 'Search products...',
                           prefixIcon: Icon(Icons.search),
-                          // border: OutlineInputBorder(
-                          //   borderRadius: BorderRadius.circular(12),
-                            /*contentPadding: EdgeInsets.symmetric(vertical: 12)*/
-                          // ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
                             borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
@@ -473,31 +458,6 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                     },
                   );
                 }),
-                const SizedBox(height: 16),
-
-                // Selected Product Preview
-                /*Obx(() {
-                  if (controller.selectedProduct.value == null) {
-                    return const SizedBox();
-                  }
-                  final product = controller.selectedProduct.value!;
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (product.image != null) Image.network(product.image!, height: 100),
-                          const SizedBox(height: 8),
-                          Text(product.title, style: TextStyle(fontWeight: FontWeight.bold)),
-                          if (product.sku != null) Text('SKU: ${product.sku}'),
-                          Text('\$${product.price.toStringAsFixed(2)}', style: TextStyle(color: Colors.green)),
-                        ],
-                      ),
-                    ),
-                  );
-                }),*/
-
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.only(left: 10, right: 10),
@@ -548,6 +508,174 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
     );
   }
 
+  void _showAddMedicineSheet(BuildContext context) {
+    controller.loadProducts();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      // Still needed for proper keyboard behavior
+      isDismissible: false,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.9,
+          padding: EdgeInsets.only(left: 16, right: 16, top: 16),
+          child: Column(
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Add Medicine", style: TextStyles.textStyle2_2),
+                  GestureDetector(onTap: () => Get.back(), child: Image.asset('assets/ic_close.png', height: 24, width: 24)),
+                ],
+              ),
+              SizedBox(height: 16),
+
+              // Scrollable Content (excluding the button)
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom, // Keyboard padding
+                  ),
+                  child: Column(
+                    children: [
+                      // Autocomplete Search
+                      Obx(() {
+                        final _ = controller.searchQuery.value;
+                        final __ = controller.shopifyProducts.length;
+                        return Autocomplete<ProductModel>(
+                          optionsBuilder: (textEditingValue) {
+                            controller.searchQuery.value = textEditingValue.text;
+                            if (controller.searchQuery.isEmpty) {
+                              return const Iterable<ProductModel>.empty();
+                            }
+                            return controller.shopifyProducts.where(
+                              (product) => product.title.toLowerCase().contains(controller.searchQuery.value.toLowerCase()),
+                            );
+                          },
+                          displayStringForOption: (option) => option.title,
+                          onSelected: controller.selectProduct,
+                          optionsViewBuilder: (context, onSelected, options) {
+                            return Container(
+                              height: 400,
+                              width: MediaQuery.of(context).size.width,
+                              decoration: BoxDecoration(
+                                color: ColorCodes.colorGrey1,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(width: 1, color: ColorCodes.colorBlack2),
+                              ),
+                              child:
+                                  controller.isLoading.value
+                                      ? Container(
+                                        color: ColorCodes.white,
+                                        height: 20,
+                                        width: 20,
+                                        child: Center(
+                                          child: CircularProgressIndicator(color: ColorCodes.colorBlue1, backgroundColor: ColorCodes.white),
+                                        ),
+                                      )
+                                      : ListView.builder(
+                                        padding: EdgeInsets.zero,
+                                        shrinkWrap: true,
+                                        itemCount: options.length,
+                                        itemBuilder: (context, index) {
+                                          final option = options.elementAt(index);
+                                          return Container(
+                                            color: ColorCodes.white,
+                                            child: ListTile(
+                                              leading: option.image != null ? Image.network(option.image!, width: 40) : Icon(Icons.image),
+                                              title: Text(option.title, style: TextStyles.textStyle1),
+                                              subtitle: Text('\Rs.${option.price.toStringAsFixed(2)}'),
+                                              onTap: () => onSelected(option),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                            );
+                          },
+                          fieldViewBuilder: (context, controller, focusNode, onSubmitted) {
+                            return TextField(
+                              controller: controller,
+                              focusNode: focusNode,
+                              decoration: InputDecoration(
+                                hintText: 'Search products...',
+                                prefixIcon: Icon(Icons.search),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      }),
+                      SizedBox(height: 16),
+
+                      // Description Field
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: ColorCodes.colorGrey4),
+                        ),
+                        child: TextField(
+                          controller: controller.descriptionController,
+                          maxLines: null,
+                          minLines: 5, // Set a minimum height
+                          decoration: InputDecoration(
+                            hintText: "Describes Your Medicine .........",
+                            hintStyle: TextStyles.textStyle5,
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Fixed Bottom Button (won't move with keyboard)
+              Padding(
+                padding: EdgeInsets.only(bottom: 16), // Extra padding at bottom
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (controller.medicineNameController.text.isEmpty) {
+                      Constants.showError('Select Medicine');
+                    } else if (controller.descriptionController.text.isEmpty) {
+                      Constants.showError('Enter description');
+                    } else {
+                      controller.addMedicine();
+                      Get.back();
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ColorCodes.colorBlue1,
+                    minimumSize: Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: Text('ADD Medicine', style: TextStyles.textStyle6_1),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void showEditMedicinePopup(BuildContext context, int index, IndividualUpcomingScheduleController controller) {
     final nameController = TextEditingController(text: controller.medicines[index]["medicineName"]);
     final descriptionController = TextEditingController(text: controller.medicines[index]["notes"]);
@@ -569,8 +697,8 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Flexible(child: Text(nameController.text, style: TextStyles.textStyle2_2, overflow: TextOverflow.ellipsis, maxLines: 2,)),
-                      SizedBox(width: 2,),
+                      Flexible(child: Text(nameController.text, style: TextStyles.textStyle2_2, overflow: TextOverflow.ellipsis, maxLines: 2)),
+                      SizedBox(width: 2),
                       GestureDetector(onTap: () => Get.back(), child: Image.asset('assets/ic_close.png', width: 24, height: 24)),
                     ],
                   ),

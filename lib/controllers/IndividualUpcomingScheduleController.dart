@@ -15,6 +15,10 @@ class IndividualUpcomingScheduleController extends GetxController {
   final medicineNameController = TextEditingController();
   final descriptionController = TextEditingController();
   String? variantId;
+  String? productId;
+  String? compareAtPrice;
+  String? price;
+  String? image;
 
   var medicines = <Map<String, String>>[].obs;
 
@@ -24,8 +28,16 @@ class IndividualUpcomingScheduleController extends GetxController {
     final name = medicineNameController.text.trim();
     final description = descriptionController.text.trim();
 
-    if (name.isNotEmpty) {
-      medicines.add({"medicineName": name, "notes": description, "variantId": variantId.toString()});
+    if (name.isNotEmpty && description.isNotEmpty) {
+      medicines.add({
+        "medicineName": name,
+        "notes": description,
+        "variantId": variantId.toString(),
+        "productId": productId.toString(),
+        "compareAtPrice": compareAtPrice.toString(),
+        "price": price.toString(),
+        "image": image.toString(),
+      });
       medicineNameController.clear();
       descriptionController.clear();
       itemKeys.add(GlobalKey());
@@ -58,10 +70,10 @@ class IndividualUpcomingScheduleController extends GetxController {
         final responseData = jsonDecode(response.body);
         print('Add Medicine responseData: $responseData');
 
-        await _addPrescriptionsToDraft(prescriptionList);
+        // await _addPrescriptionsToDraft(prescriptionList);
 
         // Submit draft order with medicines
-        await _submitDraftOrder();
+        // await _submitDraftOrder();
         Get.back();
       } else {
         final errorData = jsonDecode(response.body);
@@ -190,6 +202,10 @@ query GetProducts(\$cursor: String) {
     selectedProduct.value = product;
     medicineNameController.text = product.title;
     variantId = product.variantId;
+    productId = product.productId;
+    compareAtPrice = product.compareAtPrice;
+    price = product.price.toString();
+    image = product.image;
   }
 
   Future<void> loadProducts() async {
@@ -258,7 +274,10 @@ query GetProducts(\$cursor: String) {
         'variant_id': prescription.variantId, // If you have variant ID
         'quantity': 1,
         'title': prescription.medicineName,
-        // 'price': prescription.price?.toString() ?? '0.00',
+        'product_id': prescription.productId,
+        'image': prescription.image,
+        'price': prescription.price?.toString() ?? '0.00',
+        'compareAtPrice': prescription.compareAtPrice?.toString() ?? '0.00',
         // Add any additional fields required by Shopify
         // 'properties': {
         //   'dosage': prescription.dosage,
@@ -407,16 +426,17 @@ query GetProducts(\$cursor: String) {
       print('lineItems -- $lineItems');
       // final cartLines = lineItems.map((item) => {'merchandiseId': item['variant_id'].toString(), 'quantity': item['quantity']}).toList();
 
-      final cartLines = lineItems.map((item) {
-        final variantId = item['variant_id'].toString();
-        // Extract just the numeric ID from the Global ID
-        final numericId = variantId.split('/').last;
+      final cartLines =
+          lineItems.map((item) {
+            final variantId = item['variant_id'].toString();
+            // Extract just the numeric ID from the Global ID
+            final numericId = variantId.split('/').last;
 
-        return {
-          'merchandiseId': numericId, // Use just the numeric ID
-          'quantity': item['quantity']
-        };
-      }).toList();
+            return {
+              'merchandiseId': numericId, // Use just the numeric ID
+              'quantity': item['quantity'],
+            };
+          }).toList();
 
       print('Processed cartLines: $cartLines');
 
