@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../model/DoctorProfileResponse.dart';
 import '../../model/PendingAppointmentsWithoutDescriptionResponse.dart';
 import '../../widgets/Constants.dart';
+import '../AppointmentsController.dart';
 
 class MainController extends GetxController {
   final RxList<Map<String, String>> appointmentList = <Map<String, String>>[].obs;
@@ -52,6 +53,7 @@ class MainController extends GetxController {
       } else {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'] ?? "Login failed";
+        print('fetchAppointmentsApi errorMessage ---- $errorMessage');
         Constants.showError(errorMessage);
       }
     } catch (e) {
@@ -66,12 +68,14 @@ class MainController extends GetxController {
   final doctorName = RxString(''); // Make it observable
   final doctorDetail = Rxn<DoctorProfileResponse>();
 
+  final AppointmentsController appointmentsController = Get.put(AppointmentsController());
+
   Future<void> fetchDoctorDetailsApi() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
 
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
-    final doctorId = prefs.getString('doctor_id') ?? '';
+    doctorId = prefs.getString('doctor_id') ?? '';
     print('doctorId -- $doctorId');
 
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
@@ -95,6 +99,7 @@ class MainController extends GetxController {
 
         fetchTodayAppointmentsApi(currentDate.value, doctorDetail.value?.data?.id);
         fetchPendingAppointmentsWithoutPrescriptionApi(doctorDetail.value?.data?.id);
+        appointmentsController.fetchAllAppointmentsApi(doctorDetail.value?.data?.id);
       } else {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'] ?? "Failed to get doctor profile";
@@ -178,7 +183,7 @@ class MainController extends GetxController {
         withoutDescriptionAppointmentResponse.value = PendingAppointmentsWithoutDescriptionResponse.fromJson(responseData);
         final appointments = withoutDescriptionAppointmentResponse.value!.data;
 
-        print("Pending Appointment Without Description List's: $appointments");
+        print("Pending Appointment Without Description List's: ${appointments.length}");
         pendingAppointmentWithoutDescriptionList.assignAll(appointments);
         // final message = responseData['message'] ?? 'Success';
         // Constants.showSuccess(message);

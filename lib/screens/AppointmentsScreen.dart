@@ -10,7 +10,9 @@ import '../widgets/TextStyles.dart';
 import 'AppointmentDetailsDialog.dart';
 
 class AppointmentsScreen extends StatefulWidget {
-  const AppointmentsScreen({super.key});
+  final String? doctorId;
+
+  const AppointmentsScreen({super.key, required this.doctorId});
 
   @override
   State<AppointmentsScreen> createState() => _AppointmentsScreenState();
@@ -22,7 +24,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   @override
   void initState() {
     super.initState();
-    controller.fetchAllAppointmentsApi();
+    controller.fetchAllAppointmentsApi(widget.doctorId);
   }
 
   @override
@@ -43,6 +45,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           ),
         ),
         body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Divider(height: 2, thickness: 2, color: ColorCodes.colorGrey2),
             Padding(
@@ -58,7 +61,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                           return Padding(
                             padding: const EdgeInsets.only(right: 8.0),
                             child: ElevatedButton(
-                              onPressed: () => controller.updateTab(tab),
+                              onPressed: () => controller.updateTab(tab, widget.doctorId),
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(100),
@@ -96,19 +99,33 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               child: Obx(() {
                 final list = controller.currentList;
 
+                if (list.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('No ${controller.selectedTab.value.name.capitalizeFirst} appointments available', style: TextStyles.textStyle2),
+                      ],
+                    ),
+                  );
+                }
+
                 return ListView.builder(
                   itemCount: list.length,
                   itemBuilder: (context, index) {
                     final item = list[index];
-                    print("item.id ---------------------------- ${item.id}");
-                    print("item.clinic ---------------------------- ${item.patientFullName}");
-                    print("item.concern ---------------------------- ${item.concerns}");
-                    print("item.date ---------------------------- ${item.appointmentDate}");
-                    print("item.time ---------------------------- ${item.timeSlot}");
-                    print("=======================");
+                    // print("item.id ---------------------------- ${item.id}");
+                    // print("item.clinic ---------------------------- ${item.patientFullName}");
+                    // print("item.concern ---------------------------- ${item.concerns}");
+                    // print("item.date ---------------------------- ${item.appointmentDate}");
+                    // print("item.time ---------------------------- ${item.timeSlot}");
+                    // print("=======================");
 
                     final parsedDate = DateTime.parse(item.appointmentDate.toString());
                     final formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
+
+                    print('selected tab -- ${controller.selectedTab.value}');
+                    print('item.status -- ${item.status}');
 
                     return GestureDetector(
                       onTap: () {
@@ -119,9 +136,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                           builder:
                               (context) => AppointmentDetailsDialog(
                                 title: item.patientFullName.toString(),
-                                image: 'https://randomuser.me/api/portraits/women/1.jpg',
+                                image: 'assets/ic_user.png', //'https://randomuser.me/api/portraits/women/1.jpg',
                                 date: formattedDate,
-                                time: '${Constants.formatTimeToAmPm(item.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(item.timeSlot?.endTime ?? '')}',
+                                time:
+                                    '${Constants.formatTimeToAmPm(item.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(item.timeSlot?.endTime ?? '')}',
                                 concern: item.concerns?.join(", ") ?? '',
                               ),
                         );
@@ -148,9 +166,8 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                                     height: 12,
                                     width: 12,
                                     decoration: BoxDecoration(
-                                      color: Colors.red, // dot color
+                                      color: controller.getStatusColor(item.status.toString()), // dot color
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white, width: 1.5),
                                     ),
                                   ),
                                 ),
@@ -187,7 +204,8 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                                 ),
                               ),
                             ),
-                            SizedBox(width: 40, height: 40, child: Image.asset('assets/ic_document.png')),
+                            if (item.status == "completed")
+                              SizedBox(width: 40, height: 40, child: Image.asset('assets/ic_document.png')),
                           ],
                         ),
                       ),

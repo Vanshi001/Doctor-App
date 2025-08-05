@@ -11,14 +11,14 @@ import '../model/schedule_item.dart';
 import '../widgets/ColorCodes.dart';
 import '../widgets/Constants.dart';
 
-enum TabType { all, recent, complete, canceled }
+enum TabType { all, completed, rejected }
 
 class AppointmentsController extends GetxController {
   var selectedTab = TabType.all.obs;
   RxList<Appointment> allList = <Appointment>[].obs;
-  RxList<Appointment> recentList = <Appointment>[].obs;
+  // RxList<Appointment> recentList = <Appointment>[].obs;
   RxList<Appointment> completeList = <Appointment>[].obs;
-  RxList<Appointment> canceledList = <Appointment>[].obs;
+  RxList<Appointment> rejectedList = <Appointment>[].obs;
 
   /*final List<ScheduleItem> allList = [
     ScheduleItem(
@@ -132,54 +132,84 @@ class AppointmentsController extends GetxController {
 
   RxList<Appointment> get currentList {
     switch (selectedTab.value) {
-      case TabType.recent:
-        return recentList;
-      case TabType.complete:
+      // case TabType.recent:
+      //   return recentList;
+      case TabType.completed:
         return completeList;
-      case TabType.canceled:
-        return canceledList;
+      case TabType.rejected:
+        return rejectedList;
       case TabType.all:
-      return allList;
+        return allList;
     }
   }
 
   Color? getDotColorForTab(TabType tab) {
     switch (tab) {
-      case TabType.recent:
-        return ColorCodes.colorYellow1;
-      case TabType.complete:
+      // case TabType.recent:
+      //   return ColorCodes.colorYellow1;
+      case TabType.completed:
         return ColorCodes.colorGreen1;
-      case TabType.canceled:
+      case TabType.rejected:
         return ColorCodes.colorRed1;
       default:
         return null;
     }
   }
 
-  void updateTab(TabType tab) {
+  Color getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return ColorCodes.colorGreen1;
+      case 'rejected':
+        return ColorCodes.colorRed1;
+      default:
+        return ColorCodes.colorBlue1;
+    }
+  }
+
+  void updateTab(TabType tab, String? doctorId) {
     selectedTab.value = tab;
+    // if (tab == TabType.all) {
+    //   fetchAllAppointmentsApi(doctorId);
+    // }
   }
 
   var isLoading = false.obs;
   Rxn<AppointmentResponse> allAppointmentResponse = Rxn<AppointmentResponse>();
 
-  Future<void> fetchAllAppointmentsApi() async {
+  Future<void> fetchAllAppointmentsApi(String? doctorId) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
 
     isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments');
-    final url = Uri.parse('${Constants.baseUrl}appointments');
+
+    String statusParam;
+    switch (selectedTab.value) {
+      // case TabType.recent:
+      //   statusParam = 'pending';
+      //   break;
+      case TabType.completed:
+        statusParam = 'completed';
+        break;
+      case TabType.rejected:
+        statusParam = 'rejected';
+        break;
+      case TabType.all:
+        statusParam = 'all';
+    }
+
+    final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId/appointment?status=all');
+    print('url ---- $url');
 
     try {
       final response = await http.get(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-          'accept': 'application/json',
-          'Authorization': 'Bearer $token'
-        },
+        headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
       );
+
+      // print('response.statusCode -- ${response.statusCode}');
+      // print('response.body -- ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -209,12 +239,13 @@ class AppointmentsController extends GetxController {
             time: '$startTime - $endTime',
           );
         }).toList();*/
-
         allList.assignAll(appointments);
-
+        completeList.assignAll(allList.where((a) => a.status == 'completed').toList());
+        rejectedList.assignAll(allList.where((a) => a.status == 'rejected').toList());
       } else {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'] ?? "Login failed";
+        print('fetchAllAppointmentsApi errorMessage ---- $errorMessage');
         Constants.showError(errorMessage);
       }
     } catch (e) {
