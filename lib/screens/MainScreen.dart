@@ -200,20 +200,20 @@ class _MainScreenState extends State<MainScreen> {
                         Image.asset("assets/ic_profile.png", height: 45, width: 45),
                         SizedBox(width: 5),
                         Expanded(
-                          child: Obx(() => Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Hello', style: TextStyles.textStyle1),
-                              Text(
-                                mainController.doctorName.value.isNotEmpty
-                                    ? mainController.doctorName.value
-                                    : 'Dr. Dermatics',
-                                style: TextStyles.textStyle2,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          )),
+                          child: Obx(
+                            () => Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Hello', style: TextStyles.textStyle1),
+                                Text(
+                                  mainController.doctorName.value.isNotEmpty ? mainController.doctorName.value : 'Dr. Dermatics',
+                                  style: TextStyles.textStyle2,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                         GestureDetector(
                           onTap: () {
@@ -344,7 +344,7 @@ class _MainScreenState extends State<MainScreen> {
                                           mainAxisAlignment: MainAxisAlignment.start,
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            ClipRRect(
+                                            /*ClipRRect(
                                               borderRadius: BorderRadius.circular(50),
                                               child: Image.network(
                                                 'https://randomuser.me/api/portraits/women/1.jpg',
@@ -353,6 +353,16 @@ class _MainScreenState extends State<MainScreen> {
                                                 fit: BoxFit.cover,
                                               ),
                                               // Image.asset(url, height: 50, width: 50, fit: BoxFit.cover),
+                                            ),*/
+                                            Container(
+                                              height: 50,
+                                              width: 50,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: ColorCodes.colorBlack2, // Background color for the circle
+                                                border: Border.all(color: ColorCodes.white, width: 3),
+                                              ),
+                                              child: Center(child: Text(mainController.getInitials(patientName), style: TextStyles.textStyle6_1)),
                                             ),
                                             SizedBox(width: 5),
                                             Expanded(
@@ -442,111 +452,114 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ),
                   ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: 100,
-                      maxHeight: 200
-                    ),
+                    constraints: BoxConstraints(minHeight: 100, maxHeight: 200),
                     child: Obx(() {
                       final appointments = mainController.withoutDescriptionAppointmentResponse.value?.data;
 
                       // print("Pending appointments ----------- ==== $appointments");
                       if (mainController.isLoadingAppointmentWithoutDescription.value) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return const Center(child: CircularProgressIndicator());
                       }
 
                       if (appointments == null || appointments.isEmpty) {
-                        return const Center(
-                          child: Text("No Pending appointments found", style: TextStyles.textStyle3,),
-                        );
+                        return const Center(child: Text("No Pending appointments found", style: TextStyles.textStyle3));
                       }
 
                       return /*mainController.isLoading.value
                           ? Center(child: CircularProgressIndicator(color: ColorCodes.colorBlack1))
-                          : */ListView.builder(
-                            // padding: EdgeInsets.symmetric(vertical: 10),
-                            shrinkWrap: true,
-                            itemCount: appointments.length > 2 ? 2 : appointments.length,
-                            // itemCount: mainController.appointmentList.length,
-                            itemBuilder: (context, index) {
-                              final appointment = appointments[index];
-                              final patientName = appointment.patientFullName ?? '';
-                              final concerns = appointment.concerns?.join(", ") ?? '';
-                              final appointmentDate = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
-                              final startTime = Constants.formatTimeToAmPm(appointment.timeSlot!.startTime);
-                              final endTime = Constants.formatTimeToAmPm(appointment.timeSlot!.endTime);
+                          : */ ListView.builder(
+                        // padding: EdgeInsets.symmetric(vertical: 10),
+                        shrinkWrap: true,
+                        itemCount: appointments.length > 2 ? 2 : appointments.length,
+                        // itemCount: mainController.appointmentList.length,
+                        itemBuilder: (context, index) {
+                          final appointment = appointments[index];
+                          final patientName = appointment.patientFullName ?? '';
+                          final concerns = appointment.concerns?.join(", ") ?? '';
+                          final appointmentDate = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
+                          final startTime = Constants.formatTimeToAmPm(appointment.timeSlot!.startTime);
+                          final endTime = Constants.formatTimeToAmPm(appointment.timeSlot!.endTime);
 
-                              return GestureDetector(
-                                onTap: () {
-                                  Get.to(() => AddPendingMedicinesScreen(appointmentData: appointment), transition: Transition.rightToLeft);
-                                },
-                                child: Card(
-                                  color: ColorCodes.white,
-                                  margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                                  child: Container(
-                                    padding: EdgeInsets.all(10),
-                                    child: Row(
+                          return GestureDetector(
+                            onTap: () {
+                              Get.to(() => AddPendingMedicinesScreen(appointmentData: appointment), transition: Transition.rightToLeft);
+                            },
+                            child: Card(
+                              color: ColorCodes.white,
+                              margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                              child: Container(
+                                padding: EdgeInsets.all(10),
+                                child: Row(
+                                  children: [
+                                    Stack(
+                                      clipBehavior: Clip.none,
                                       children: [
-                                        Stack(
-                                          clipBehavior: Clip.none,
-                                          children: [
-                                            Image.asset('assets/ic_profile.png', height: 65, width: 65),
-                                            Positioned(
-                                              top: 0,
-                                              right: 4,
-                                              child: Container(
-                                                height: 12,
-                                                width: 12,
-                                                decoration: BoxDecoration(
-                                                  color: ColorCodes.colorYellow1, // dot color
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(color: Colors.white, width: 1.5),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
+                                        // Image.asset('assets/ic_profile.png', height: 65, width: 65),
+                                        Container(
+                                          height: 50,
+                                          width: 50,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: ColorCodes.colorBlack2, // Background color for the circle
+                                            border: Border.all(color: ColorCodes.colorBlue1, width: 3),
+                                          ),
+                                          child: Center(child: Text(mainController.getInitials(patientName), style: TextStyles.textStyle4)),
                                         ),
-                                        SizedBox(width: 5),
-                                        Expanded(
+                                        Positioned(
+                                          top: 0,
+                                          right: 4,
                                           child: Container(
-                                            padding: EdgeInsets.only(left: 5, right: 5),
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(patientName, style: TextStyles.textStyle3),
-                                                SizedBox(height: 2),
-                                                SizedBox(
-                                                  width: width / 3,
-                                                  child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1),
-                                                ),
-                                                SizedBox(height: 2),
-                                                Text(concerns, style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis),
-                                                SizedBox(height: 5),
-                                                Row(
-                                                  children: [
-                                                    Image.asset('assets/ic_calendar.png', width: 12, height: 12),
-                                                    SizedBox(width: 3),
-                                                    Text(appointmentDate, style: TextStyles.textStyle4_1),
-                                                    SizedBox(width: 8),
-                                                    Image.asset('assets/ic_clock.png', width: 12, height: 12),
-                                                    SizedBox(width: 3),
-                                                    Text('$startTime - $endTime', style: TextStyles.textStyle4_1),
-                                                  ],
-                                                ),
-                                              ],
+                                            height: 12,
+                                            width: 12,
+                                            decoration: BoxDecoration(
+                                              color: ColorCodes.colorYellow1, // dot color
+                                              shape: BoxShape.circle,
+                                              border: Border.all(color: Colors.white, width: 1.5),
                                             ),
                                           ),
                                         ),
-                                        // SizedBox(width: 40, height: 40, child: Image.asset('assets/ic_document.png')),
                                       ],
                                     ),
-                                  ),
+                                    SizedBox(width: 5),
+                                    Expanded(
+                                      child: Container(
+                                        padding: EdgeInsets.only(left: 5, right: 5),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(patientName, style: TextStyles.textStyle3),
+                                            SizedBox(height: 2),
+                                            SizedBox(
+                                              width: width / 3,
+                                              child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1),
+                                            ),
+                                            SizedBox(height: 2),
+                                            Text(concerns, style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis),
+                                            SizedBox(height: 5),
+                                            Row(
+                                              children: [
+                                                Image.asset('assets/ic_calendar.png', width: 12, height: 12),
+                                                SizedBox(width: 3),
+                                                Text(appointmentDate, style: TextStyles.textStyle4_1),
+                                                SizedBox(width: 8),
+                                                Image.asset('assets/ic_clock.png', width: 12, height: 12),
+                                                SizedBox(width: 3),
+                                                Text('$startTime - $endTime', style: TextStyles.textStyle4_1),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    // SizedBox(width: 40, height: 40, child: Image.asset('assets/ic_document.png')),
+                                  ],
                                 ),
-                              );
-                            },
+                              ),
+                            ),
                           );
+                        },
+                      );
                     }),
                   ),
                   Padding(
@@ -572,29 +585,22 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ),
                   ConstrainedBox(
-                    constraints: BoxConstraints(
-                        minHeight: 100,
-                        maxHeight: 200
-                    ),
+                    constraints: BoxConstraints(minHeight: 100, maxHeight: 200),
                     child: Obx(() {
                       final appointments = appointmentsController.currentList;
 
                       print("All appointments ----------- ==== $appointments");
                       if (appointmentsController.isLoading.value) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return const Center(child: CircularProgressIndicator());
                       }
 
                       if (appointments == null || appointments.isEmpty) {
-                        return const Center(
-                          child: Text("No completed appointments found", style: TextStyles.textStyle3,),
-                        );
+                        return const Center(child: Text("No completed appointments found", style: TextStyles.textStyle3));
                       }
 
                       return /*mainController.isLoading.value
                           ? Center(child: CircularProgressIndicator(color: ColorCodes.colorBlack1))
-                          : */ListView.builder(
+                          : */ ListView.builder(
                         // padding: EdgeInsets.symmetric(vertical: 10),
                         shrinkWrap: true,
                         itemCount: appointments.length > 2 ? 2 : appointments.length,

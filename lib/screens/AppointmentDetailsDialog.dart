@@ -10,7 +10,7 @@ class AppointmentDetailsDialog extends StatelessWidget {
   final String date;
   final String time;
   final String concern;
-
+  final List<String> medicineNames;
   // final AppointmentItem item;
 
   const AppointmentDetailsDialog({
@@ -20,11 +20,12 @@ class AppointmentDetailsDialog extends StatelessWidget {
     required this.date,
     required this.time,
     required this.concern,
+    required this.medicineNames,
   });
 
   @override
   Widget build(BuildContext context) {
-    final List<String> medicines = ['Paracetamol', 'Ibuprofen', 'Atorvastatin', 'Omeprazole', 'Amlodipine'];
+    // final List<String> medicines = ['Paracetamol', 'Ibuprofen', 'Atorvastatin', 'Omeprazole', 'Amlodipine'];
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -39,7 +40,7 @@ class AppointmentDetailsDialog extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(borderRadius: BorderRadius.circular(40), child: Image.network(image, height: 50, width: 50, fit: BoxFit.cover)),
+                ClipRRect(borderRadius: BorderRadius.circular(40), child: Image.asset(image, height: 50, width: 50, fit: BoxFit.cover)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
@@ -89,7 +90,7 @@ class AppointmentDetailsDialog extends StatelessWidget {
                   children: [
                     Text("Medicines", style: TextStyles.textStyle3),
                     const SizedBox(height: 8),
-                    ...medicines.map(
+                    ...medicineNames.map(
                       (medicine) => Padding(
                         padding: const EdgeInsets.symmetric(vertical: 2),
                         child: Row(

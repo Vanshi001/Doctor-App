@@ -20,6 +20,7 @@ class AppointmentsScreen extends StatefulWidget {
 
 class _AppointmentsScreenState extends State<AppointmentsScreen> {
   final AppointmentsController controller = Get.put(AppointmentsController());
+  List<String> medicineNames = [];
 
   @override
   void initState() {
@@ -114,6 +115,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                   itemCount: list.length,
                   itemBuilder: (context, index) {
                     final item = list[index];
+                    for (var medicine in item.prescription!) {
+                      medicineNames.add(medicine.medicineName);
+                    }
                     // print("item.id ---------------------------- ${item.id}");
                     // print("item.clinic ---------------------------- ${item.patientFullName}");
                     // print("item.concern ---------------------------- ${item.concerns}");
@@ -136,11 +140,13 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                           builder:
                               (context) => AppointmentDetailsDialog(
                                 title: item.patientFullName.toString(),
-                                image: 'assets/ic_user.png', //'https://randomuser.me/api/portraits/women/1.jpg',
+                                image: 'assets/ic_user.png',
+                                //'https://randomuser.me/api/portraits/women/1.jpg',
                                 date: formattedDate,
                                 time:
                                     '${Constants.formatTimeToAmPm(item.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(item.timeSlot?.endTime ?? '')}',
                                 concern: item.concerns?.join(", ") ?? '',
+                                medicineNames: medicineNames,
                               ),
                         );
                       },
@@ -204,8 +210,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                                 ),
                               ),
                             ),
-                            if (item.status == "completed")
-                              SizedBox(width: 40, height: 40, child: Image.asset('assets/ic_document.png')),
+                            if (item.status == "completed") SizedBox(width: 40, height: 40, child: Image.asset('assets/ic_document.png')),
                           ],
                         ),
                       ),

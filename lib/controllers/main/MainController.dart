@@ -26,6 +26,15 @@ class MainController extends GetxController {
   RxList<Appointment> allList = <Appointment>[].obs;
   // Rxn<DoctorProfileResponse> doctorDetail = Rxn<DoctorProfileResponse>();
 
+  String getInitials(String firstName/*, String lastName*/) {
+    if (firstName.isEmpty /*&& lastName.isEmpty*/) return '';
+
+    String firstInitial = firstName.isNotEmpty ? firstName[0] : '';
+    // String lastInitial = lastName.isNotEmpty ? lastName[0] : '';
+
+    return firstInitial.toUpperCase(); /*${lastInitial.toUpperCase()}*/
+  }
+
   Future<void> fetchAppointmentsApi() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
