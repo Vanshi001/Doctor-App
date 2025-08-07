@@ -164,7 +164,17 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                             Stack(
                               clipBehavior: Clip.none,
                               children: [
-                                Image.asset('assets/ic_profile.png', height: 65, width: 65),
+                                // Image.asset('assets/ic_profile.png', height: 65, width: 65),
+                                Container(
+                                  height: 50,
+                                  width: 50,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: ColorCodes.colorBlack2, // Background color for the circle
+                                    border: Border.all(color: ColorCodes.colorBlue1, width: 3),
+                                  ),
+                                  child: Center(child: Text(controller.getInitials(item.patientFullName.toString()), style: TextStyles.textStyle4)),
+                                ),
                                 Positioned(
                                   top: 0,
                                   right: 4,

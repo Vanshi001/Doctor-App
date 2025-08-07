@@ -19,6 +19,12 @@ class AllPendingMedicineUserListScreen extends StatefulWidget {
 class _AllPendingMedicineUserListScreenState extends State<AllPendingMedicineUserListScreen> {
   final MainController mainController = Get.put(MainController());
 
+  String getInitials(String firstName) {
+    if (firstName.isEmpty) return '';
+    String firstInitial = firstName.isNotEmpty ? firstName[0] : '';
+    return firstInitial.toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
@@ -78,7 +84,17 @@ class _AllPendingMedicineUserListScreenState extends State<AllPendingMedicineUse
                         Stack(
                           clipBehavior: Clip.none,
                           children: [
-                            Image.asset('assets/ic_profile.png', height: 65, width: 65),
+                            // Image.asset('assets/ic_profile.png', height: 65, width: 65),
+                            Container(
+                              height: 50,
+                              width: 50,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: ColorCodes.colorBlack2, // Background color for the circle
+                                border: Border.all(color: ColorCodes.colorBlue1, width: 3),
+                              ),
+                              child: Center(child: Text(getInitials(patientName.toString()), style: TextStyles.textStyle4)),
+                            ),
                             Positioned(
                               top: 0,
                               right: 4,

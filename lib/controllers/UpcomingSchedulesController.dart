@@ -123,6 +123,14 @@ class UpcomingSchedulesController extends GetxController {
     }
   }
 
+  String getInitials(String firstName) {
+    if (firstName.isEmpty) return '';
+
+    String firstInitial = firstName.isNotEmpty ? firstName[0] : '';
+
+    return firstInitial.toUpperCase();
+  }
+
   String get emptyMessage {
     switch (selectedTab.value) {
       case TabType.today:

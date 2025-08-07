@@ -68,9 +68,19 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Profile Image
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(50),
-                          child: Image.network('https://randomuser.me/api/portraits/women/1.jpg', height: 50, width: 50, fit: BoxFit.cover),
+                        // ClipRRect(
+                        //   borderRadius: BorderRadius.circular(50),
+                        //   child: Image.network('https://randomuser.me/api/portraits/women/1.jpg', height: 50, width: 50, fit: BoxFit.cover),
+                        // ),
+                        Container(
+                          height: 50,
+                          width: 50,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: ColorCodes.colorBlack2, // Background color for the circle
+                            border: Border.all(color: ColorCodes.colorBlue1, width: 3),
+                          ),
+                          child: Center(child: Text(controller.getInitials(widget.item.patientFullName.toString()), style: TextStyles.textStyle4)),
                         ),
                         const SizedBox(width: 5),
                         Expanded(

@@ -389,8 +389,8 @@ class _MainScreenState extends State<MainScreen> {
                                       ),
                                       SizedBox(height: 5),
                                       Container(
-                                        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           borderRadius: BorderRadius.circular(100),
@@ -423,7 +423,7 @@ class _MainScreenState extends State<MainScreen> {
                           height: 150,
                           enableInfiniteScroll: isMultiple,
                           enlargeCenterPage: isMultiple,
-                          viewportFraction: isMultiple ? 0.75 : 0.90,
+                          viewportFraction: isMultiple ? 0.80 : 0.90,
                         ),
                       );
                     }),
@@ -589,7 +589,7 @@ class _MainScreenState extends State<MainScreen> {
                     child: Obx(() {
                       final appointments = appointmentsController.currentList;
 
-                      print("All appointments ----------- ==== $appointments");
+                      // print("All appointments ----------- ==== $appointments");
                       if (appointmentsController.isLoading.value) {
                         return const Center(child: CircularProgressIndicator());
                       }
@@ -625,7 +625,17 @@ class _MainScreenState extends State<MainScreen> {
                                   Stack(
                                     clipBehavior: Clip.none,
                                     children: [
-                                      Image.asset('assets/ic_profile.png', height: 65, width: 65),
+                                      // Image.asset('assets/ic_profile.png', height: 65, width: 65),
+                                      Container(
+                                        height: 50,
+                                        width: 50,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: ColorCodes.colorBlack2, // Background color for the circle
+                                          border: Border.all(color: ColorCodes.colorBlue1, width: 3),
+                                        ),
+                                        child: Center(child: Text(mainController.getInitials(patientName), style: TextStyles.textStyle4)),
+                                      ),
                                       Positioned(
                                         top: 0,
                                         right: 4,

@@ -24,6 +24,12 @@ class IndividualUpcomingScheduleController extends GetxController {
 
   final List<GlobalKey> itemKeys = [];
 
+  String getInitials(String firstName) {
+    if (firstName.isEmpty) return '';
+    String firstInitial = firstName.isNotEmpty ? firstName[0] : '';
+    return firstInitial.toUpperCase();
+  }
+
   void addMedicine() {
     final name = medicineNameController.text.trim();
     final description = descriptionController.text.trim();
