@@ -4,7 +4,9 @@ import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:zego_uikit/zego_uikit.dart';
 import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 import '../controllers/IndividualUpcomingScheduleController.dart';
 import '../model/PrescriptionRequestModel.dart';
@@ -36,7 +38,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
     final formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
 
     Constants.currentUser = ZegoUIKitUser(id: widget.item.bookingId.toString(), name: widget.item.patientFullName.toString());
-    print('widget.item.id.toString() ---- ${widget.item.id.toString()}');
+    print('widget.item.bookingId.toString() ---- ${widget.item.bookingId.toString()}');
 
     return SafeArea(
       child: Scaffold(
@@ -138,12 +140,21 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                       child: ElevatedButton(
                         onPressed: () async {
                           print('widget.item.userId.toString() ---- ${widget.item.userId.toString()}');
-                          /*           sendCallButton(
-                            isVideoCall: true,
-                            inviteeUsersIDTextCtrl: widget.item.userId.toString(),
-                            onCallFinished: onSendCallInvitationFinished,
-                          );*/
-                          Get.to(() => CallPage(callId: widget.item.userId.toString()));
+                          //if (Constants.currentUser.id.isEmpty) {
+                            onUserLogin();
+                          //} else {
+                            sendCallButton(
+                              isVideoCall: true,
+                              inviteeUsersIDTextCtrl: widget.item.userId.toString(),
+                              onCallFinished: onSendCallInvitationFinished,
+                            );
+                          //}
+                          // sendCallButton(
+                          //   isVideoCall: true,
+                          //   inviteeUsersIDTextCtrl: widget.item.userId.toString(),
+                          //   onCallFinished: onSendCallInvitationFinished,
+                          // );
+                          // Get.to(() => CallPage(callId: widget.item.userId.toString()));
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: ColorCodes.colorBlue1,
@@ -278,12 +289,12 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                                 final image = medicine['image']?.trim() /*.split('/').last*/;
                                 print(
                                   "\n prescriptions name ---- $name, "
-                                      "\n notes - $notes, "
-                                      "\n variantId - $variantId, "
-                                      "\n productId - $productId, "
-                                      "\n price - $price "
-                                      "\n compareAtPrice - $compareAtPrice, "
-                                      "\n image - $image",
+                                  "\n notes - $notes, "
+                                  "\n variantId - $variantId, "
+                                  "\n productId - $productId, "
+                                  "\n price - $price "
+                                  "\n compareAtPrice - $compareAtPrice, "
+                                  "\n image - $image",
                                 );
 
                                 return PrescriptionItem(
@@ -357,6 +368,39 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
       ),
     );
   }
+
+  void onUserLogin() {
+    /// 4/5. initialized ZegoUIKitPrebuiltCallInvitationService when account is logged in or re-logged in
+    ///
+    ZegoUIKitPrebuiltCallInvitationService().init(
+      appID: 260617754 /*input your AppID*/,
+      appSign: "0b18f31ba87471a155cfea2833abf4c8168690730f6d565f985115620ca14e28" /*input your AppSign*/,
+      userID: Constants.currentUser.id,
+      userName: Constants.currentUser.name,
+      plugins: [ZegoUIKitSignalingPlugin()],
+      requireConfig: (ZegoCallInvitationData data) {
+        final config =
+        (data.invitees.length > 1)
+            ? ZegoCallInvitationType.videoCall == data.type
+            ? ZegoUIKitPrebuiltCallConfig.groupVideoCall()
+            : ZegoUIKitPrebuiltCallConfig.groupVoiceCall()
+            : ZegoCallInvitationType.videoCall == data.type
+            ? ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall()
+            : ZegoUIKitPrebuiltCallConfig.oneOnOneVoiceCall();
+
+        /// custom avatar
+        // config.avatarBuilder = customAvatarBuilder;
+
+        /// support minimizing, show minimizing button
+        config.topMenuBar.isVisible = true;
+        config.topMenuBar.buttons.insert(0, ZegoCallMenuBarButtonName.minimizingButton);
+        config.topMenuBar.buttons.insert(1, ZegoCallMenuBarButtonName.soundEffectButton);
+
+        return config;
+      },
+    );
+  }
+
 
   String extractCustomerId(String gidOrId) {
     if (gidOrId.startsWith('gid://shopify/Customer/')) {
@@ -854,6 +898,8 @@ class CallPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print('callId ---- $callId');
+    print('Constants.currentUser.id ---- ${Constants.currentUser.id}');
+    print('Constants.currentUser.name ---- ${Constants.currentUser.name}');
 
     return ZegoUIKitPrebuiltCall(
       appID: 260617754,
