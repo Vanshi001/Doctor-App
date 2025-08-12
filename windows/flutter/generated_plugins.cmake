@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_windows
   connectivity_plus
+  firebase_core
   flutter_volume_controller
   permission_handler_windows
   zego_express_engine

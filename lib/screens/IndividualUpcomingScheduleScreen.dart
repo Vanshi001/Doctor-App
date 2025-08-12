@@ -14,6 +14,7 @@ import '../model/ProductModel.dart';
 import '../model/ShopifyService.dart';
 import '../widgets/ColorCodes.dart';
 import '../widgets/Constants.dart';
+import '../widgets/PushNotificationService.dart';
 import '../widgets/TextStyles.dart';
 
 class IndividualUpcomingScheduleScreen extends StatefulWidget {
@@ -66,6 +67,8 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                 ),
                 child: Column(
                   children: [
+                    Text('Booking id -- ${widget.item.bookingId}'),
+                    Text('User id -- ${widget.item.userId}'),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -139,16 +142,26 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                       margin: EdgeInsets.only(top: 10, bottom: 10),
                       child: ElevatedButton(
                         onPressed: () async {
-                          print('widget.item.userId.toString() ---- ${widget.item.userId.toString()}');
                           //if (Constants.currentUser.id.isEmpty) {
-                            onUserLogin();
-                          //} else {
-                            sendCallButton(
-                              isVideoCall: true,
-                              inviteeUsersIDTextCtrl: widget.item.userId.toString(),
-                              onCallFinished: onSendCallInvitationFinished,
-                            );
-                          //}
+                          Constants.currentUser.id = widget.item.bookingId.toString();
+                          Constants.currentUser.name = widget.item.patientFullName.toString();
+
+                          print('Constants.currentUser.id ---- ${Constants.currentUser.id}');
+                          print('Constants.currentUser.name ---- ${Constants.currentUser.name}');
+
+                          await PushNotificationService.sendNotificationToSelectedUserAppointment(
+                              widget.item.userId.toString(),
+                              context,
+                              Constants.currentUser.id
+                          );
+
+                          /*onUserLogin();
+                          sendCallButton(
+                            isVideoCall: true,
+                            inviteeUsersIDTextCtrl: widget.item.userId.toString(),
+                            onCallFinished: onSendCallInvitationFinished,
+                          );*/
+
                           // sendCallButton(
                           //   isVideoCall: true,
                           //   inviteeUsersIDTextCtrl: widget.item.userId.toString(),
@@ -372,6 +385,8 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
   void onUserLogin() {
     /// 4/5. initialized ZegoUIKitPrebuiltCallInvitationService when account is logged in or re-logged in
     ///
+    print('onUserLogin ----');
+
     ZegoUIKitPrebuiltCallInvitationService().init(
       appID: 260617754 /*input your AppID*/,
       appSign: "0b18f31ba87471a155cfea2833abf4c8168690730f6d565f985115620ca14e28" /*input your AppSign*/,
@@ -380,13 +395,13 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
       plugins: [ZegoUIKitSignalingPlugin()],
       requireConfig: (ZegoCallInvitationData data) {
         final config =
-        (data.invitees.length > 1)
-            ? ZegoCallInvitationType.videoCall == data.type
-            ? ZegoUIKitPrebuiltCallConfig.groupVideoCall()
-            : ZegoUIKitPrebuiltCallConfig.groupVoiceCall()
-            : ZegoCallInvitationType.videoCall == data.type
-            ? ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall()
-            : ZegoUIKitPrebuiltCallConfig.oneOnOneVoiceCall();
+            (data.invitees.length > 1)
+                ? ZegoCallInvitationType.videoCall == data.type
+                    ? ZegoUIKitPrebuiltCallConfig.groupVideoCall()
+                    : ZegoUIKitPrebuiltCallConfig.groupVoiceCall()
+                : ZegoCallInvitationType.videoCall == data.type
+                ? ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall()
+                : ZegoUIKitPrebuiltCallConfig.oneOnOneVoiceCall();
 
         /// custom avatar
         // config.avatarBuilder = customAvatarBuilder;
@@ -400,7 +415,6 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
       },
     );
   }
-
 
   String extractCustomerId(String gidOrId) {
     if (gidOrId.startsWith('gid://shopify/Customer/')) {

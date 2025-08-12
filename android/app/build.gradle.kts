@@ -1,5 +1,6 @@
 plugins {
     id("com.android.application")
+    id("com.google.gms.google-services")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
@@ -25,7 +26,7 @@ android {
         applicationId = "com.example.doctor_app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 23 //flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -33,16 +34,55 @@ android {
     }
 
     buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+//        release {
+//            // TODO: Add your own signing config for the release build.
+//            // Signing with the debug keys for now, so `flutter run --release` works.
+//            signingConfig = signingConfigs.getByName("debug")
+//        }
+        getByName("release") {
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android.txt"),
+                "proguard-rules.pro"
+            )
             signingConfig = signingConfigs.getByName("debug")
         }
+    }
+
+    //Add this to suppress lint warnings
+    lint {
+        disable.add("InvalidPackage")
+        checkReleaseBuilds = false
+        abortOnError = false
+    }
+
+    //Suppress Java compilation warnings
+//    gradle.projectsEvaluated {
+//        tasks.withType(JavaCompile) {
+//            options.compilerArgs << "-Xlint:-options"
+//            options.compilerArgs << "-Xlint:-deprecation"
+//        }
+//    }
+}
+
+// ✅ Suppress Java compilation warnings in Kotlin DSL
+gradle.projectsEvaluated {
+    tasks.withType<JavaCompile> {
+        options.compilerArgs.addAll(listOf("-Xlint:-options", "-Xlint:-deprecation"))
     }
 }
 
 dependencies {
     implementation("androidx.multidex:multidex:2.0.1")
+
+    //Introduce Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:31.0.2"))
+
+// Add dependencies for Firebase SDK for Google Analytics and FCM.
+// When using BoM, do not specify the version in the Firebase dependency
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-messaging:23.2.1")
+    implementation("im.zego:zpns-fcm:2.8.0")
 //    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 

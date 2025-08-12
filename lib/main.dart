@@ -2,6 +2,9 @@ import 'package:Doctor/screens/AuthScreen.dart';
 import 'package:Doctor/screens/MainScreen.dart';
 import 'package:Doctor/widgets/Constants.dart';
 import 'package:Doctor/zegocloud/common.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -14,6 +17,17 @@ import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+    print("FCMToken $fcmToken");
+  } catch (e) {
+    print("Firebase initialization error: $e");
+  }
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
