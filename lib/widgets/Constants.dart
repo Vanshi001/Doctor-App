@@ -5,7 +5,7 @@ import 'package:zego_uikit/zego_uikit.dart';
 
 class Constants {
   // static String baseUrl = "https://dermatics-backend.onrender.com/api/";
-  static String baseUrl = "http://192.168.1.21:5000/api/";
+  static String baseUrl = "http://192.168.1.4:5000/api/";
 
   static void showError(String message) {
     Get.snackbar("Validation Error", message, backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
@@ -25,5 +25,8 @@ class Constants {
   }
 
   static ZegoUIKitUser currentUser = ZegoUIKitUser(id: '', name: '');
+
+  static int zegoAppId = 260617754;
+  static String zegoAppSign = "0b18f31ba87471a155cfea2833abf4c8168690730f6d565f985115620ca14e28";
 
 }

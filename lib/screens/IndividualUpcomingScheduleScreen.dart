@@ -12,6 +12,7 @@ import '../controllers/IndividualUpcomingScheduleController.dart';
 import '../model/PrescriptionRequestModel.dart';
 import '../model/ProductModel.dart';
 import '../model/ShopifyService.dart';
+import '../widgets/CallService.dart';
 import '../widgets/ColorCodes.dart';
 import '../widgets/Constants.dart';
 import '../widgets/PushNotificationService.dart';
@@ -143,17 +144,27 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                       child: ElevatedButton(
                         onPressed: () async {
                           //if (Constants.currentUser.id.isEmpty) {
-                          Constants.currentUser.id = widget.item.bookingId.toString();
+                          Constants.currentUser.id = widget.item.userId.toString();
                           Constants.currentUser.name = widget.item.patientFullName.toString();
 
                           print('Constants.currentUser.id ---- ${Constants.currentUser.id}');
                           print('Constants.currentUser.name ---- ${Constants.currentUser.name}');
 
-                          await PushNotificationService.sendNotificationToSelectedUserAppointment(
+                          await CallService.initializeCallService();
+
+                          await startVideoCallWithPatient(
+                            bookingId: widget.item.bookingId.toString(),
+                            patientUserId: widget.item.userId.toString(),
+                            patientName: widget.item.patientFullName.toString(),
+                          );
+
+                          /*await PushNotificationService.sendNotificationToSelectedUserAppointment(
                               widget.item.userId.toString(),
                               context,
                               Constants.currentUser.id
-                          );
+                          );*/
+
+                          // await PushNotificationService.initNotification();
 
                           /*onUserLogin();
                           sendCallButton(
@@ -380,6 +391,37 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
         ),
       ),
     );
+  }
+
+  // In your appointment details screen or where you want to initiate calls
+  Future<void> startVideoCallWithPatient({
+    required String bookingId,
+    required String patientUserId,
+    required String patientName,
+  }) async {
+    try {
+      // Show loading indicator
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
+      await CallService.startAppointmentCall(
+        patientUserId: patientUserId,
+        bookingId: bookingId,
+        patientName: patientName,
+      );
+
+      Get.back(); // Close loading dialog
+    } catch (e) {
+      Get.back(); // Close loading dialog
+      Get.snackbar(
+        'Error',
+        'Failed to start video call: ${e.toString()}',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   void onUserLogin() {

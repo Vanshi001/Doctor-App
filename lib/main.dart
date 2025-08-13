@@ -1,5 +1,6 @@
 import 'package:Doctor/screens/AuthScreen.dart';
 import 'package:Doctor/screens/MainScreen.dart';
+import 'package:Doctor/widgets/CallService.dart';
 import 'package:Doctor/widgets/Constants.dart';
 import 'package:Doctor/zegocloud/common.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -41,6 +42,11 @@ void main() async {
   final Widget initialScreen = await getInitialScreen(prefs);
 
   final navigatorKey = GlobalKey<NavigatorState>();
+  // Initialize call service if user is logged in
+  if (prefs.getString('access_token') != null) {
+    // print('CallService.initializeCallService main');
+    // await CallService.initializeCallService();
+  }
 
   /// 2/5: set navigator key to ZegoUIKitPrebuiltCallInvitationService
   ZegoUIKitPrebuiltCallInvitationService().setNavigatorKey(navigatorKey);
