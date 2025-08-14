@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:Doctor/model/appointment_model.dart';
@@ -24,10 +25,11 @@ class MainController extends GetxController {
 
   Rxn<AppointmentResponse> todayAppointmentResponse = Rxn<AppointmentResponse>();
   RxList<Appointment> allList = <Appointment>[].obs;
+
   // Rxn<DoctorProfileResponse> doctorDetail = Rxn<DoctorProfileResponse>();
 
-  String getInitials(String firstName/*, String lastName*/) {
-    if (firstName.isEmpty /*&& lastName.isEmpty*/) return '';
+  String getInitials(String firstName /*, String lastName*/) {
+    if (firstName.isEmpty /*&& lastName.isEmpty*/ ) return '';
 
     String firstInitial = firstName.isNotEmpty ? firstName[0] : '';
     // String lastInitial = lastName.isNotEmpty ? lastName[0] : '';
@@ -91,6 +93,10 @@ class MainController extends GetxController {
     print('fetchDoctorDetailsApi url -- $url');
 
     try {
+      if (isFirstLoad.value) {
+        isFirstLoad.value = true; // only first time loader
+      }
+
       final response = await http.get(
         url,
         headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
@@ -118,8 +124,15 @@ class MainController extends GetxController {
     } catch (e) {
       print('Error:- $e');
       Constants.showError("Error -- $e");
+    } finally {
+      if (isFirstLoad.value) {
+        isFirstLoad.value = false; // hide loader after first load
+      }
     }
   }
+
+  var isFirstLoad = true.obs; // Show loader only for first fetch
+  Timer? _timer;
 
   Future<void> fetchTodayAppointmentsApi(String currentDate, String? doctorId) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -161,6 +174,19 @@ class MainController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void startAutoFetch() {
+    _timer = Timer.periodic(Duration(seconds: 15), (timer) {
+      print('startAutoFetch');
+      fetchDoctorDetailsApi(); // fetch every 5 seconds without loader
+    });
+  }
+
+  @override
+  void onClose() {
+    _timer?.cancel();
+    super.onClose();
   }
 
   RxBool isLoadingAppointmentWithoutDescription = false.obs;

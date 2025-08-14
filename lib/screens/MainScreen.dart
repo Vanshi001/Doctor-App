@@ -79,6 +79,7 @@ class _MainScreenState extends State<MainScreen> {
     // getDoctorDetails();
     // mainController.fetchAppointmentsApi();
     mainController.fetchDoctorDetailsApi();
+    mainController.startAutoFetch();
     print('currentDate -- ${mainController.currentDate.value}');
     super.initState();
   }
@@ -331,7 +332,7 @@ class _MainScreenState extends State<MainScreen> {
                                 onTap: () {
                                   final id = appointment.id;
                                   print('Tapped appointment ID: $id');
-                                  Get.to(() => IndividualUpcomingScheduleScreen(item: appointment));
+                                  Get.to(() => IndividualUpcomingScheduleScreen(item: appointment, name: mainController.doctorName.value));
                                 },
                                 child: Container(
                                   height: height / 5,

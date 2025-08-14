@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../controllers/UpcomingSchedulesController.dart';
+import '../model/DoctorProfileResponse.dart';
 import '../widgets/ColorCodes.dart';
 import '../widgets/Constants.dart';
 import '../widgets/TextStyles.dart';
@@ -19,10 +20,13 @@ class UpcomingSchedulesScreen extends StatefulWidget {
 class _UpcomingSchedulesScreenState extends State<UpcomingSchedulesScreen> {
   final UpcomingSchedulesController controller = Get.put(UpcomingSchedulesController());
 
+  late final Rxn<DoctorProfileResponse> doctorDetail;
+
   @override
   void initState() {
     super.initState();
     controller.fetchAllUpComingAppointmentsApi();
+    doctorDetail = Rxn<DoctorProfileResponse>();
     controller.fetchTodayUpComingAppointmentsApi(controller.todayDate.value);
     controller.fetchTomorrowUpComingAppointmentsApi(controller.tomorrowDate.value);
   }
@@ -114,7 +118,7 @@ class _UpcomingSchedulesScreenState extends State<UpcomingSchedulesScreen> {
                     return GestureDetector(
                       onTap: () {
                         print("Clicked item: $index -- ${item.id}");
-                        Get.to(() => IndividualUpcomingScheduleScreen(item: item));
+                        Get.to(() => IndividualUpcomingScheduleScreen(item: item, name: doctorDetail.value!.data!.name.toString()));
                       },
                       child: Container(
                         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),

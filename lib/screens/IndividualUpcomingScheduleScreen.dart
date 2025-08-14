@@ -1,9 +1,15 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:Doctor/model/appointment_model.dart';
 import 'package:Doctor/model/schedule_item.dart';
+import 'package:crypto/crypto.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 import 'package:zego_uikit/zego_uikit.dart';
 import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
@@ -20,8 +26,9 @@ import '../widgets/TextStyles.dart';
 
 class IndividualUpcomingScheduleScreen extends StatefulWidget {
   final Appointment item;
+  final String name;
 
-  const IndividualUpcomingScheduleScreen({super.key, required this.item});
+  const IndividualUpcomingScheduleScreen({super.key, required this.item, required this.name});
 
   @override
   State<IndividualUpcomingScheduleScreen> createState() => _IndividualUpcomingScheduleScreenState();
@@ -41,6 +48,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
 
     Constants.currentUser = ZegoUIKitUser(id: widget.item.bookingId.toString(), name: widget.item.patientFullName.toString());
     print('widget.item.bookingId.toString() ---- ${widget.item.bookingId.toString()}');
+    print('item ---- ${widget.name}');
 
     return SafeArea(
       child: Scaffold(
@@ -147,10 +155,10 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                           Constants.currentUser.id = widget.item.userId.toString();
                           Constants.currentUser.name = widget.item.patientFullName.toString();
 
-                          print('Constants.currentUser.id ---- ${Constants.currentUser.id}');
+                          // print('Constants.currentUser.id ---- ${Constants.currentUser.id}');
                           print('Constants.currentUser.name ---- ${Constants.currentUser.name}');
 
-                          await CallService.initializeCallService();
+                          await CallService.initializeCallService(widget.name.toString());
 
                           await startVideoCallWithPatient(
                             bookingId: widget.item.bookingId.toString(),
@@ -394,33 +402,17 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
   }
 
   // In your appointment details screen or where you want to initiate calls
-  Future<void> startVideoCallWithPatient({
-    required String bookingId,
-    required String patientUserId,
-    required String patientName,
-  }) async {
+  Future<void> startVideoCallWithPatient({required String bookingId, required String patientUserId, required String patientName}) async {
     try {
       // Show loading indicator
-      Get.dialog(
-        const Center(child: CircularProgressIndicator()),
-        barrierDismissible: false,
-      );
+      Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
 
-      await CallService.startAppointmentCall(
-        patientUserId: patientUserId,
-        bookingId: bookingId,
-        patientName: patientName,
-      );
+      await CallService.startAppointmentCall(patientUserId: patientUserId, bookingId: bookingId, patientName: patientName);
 
       Get.back(); // Close loading dialog
     } catch (e) {
       Get.back(); // Close loading dialog
-      Get.snackbar(
-        'Error',
-        'Failed to start video call: ${e.toString()}',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      Get.snackbar('Error', 'Failed to start video call: ${e.toString()}', backgroundColor: Colors.red, colorText: Colors.white);
     }
   }
 
