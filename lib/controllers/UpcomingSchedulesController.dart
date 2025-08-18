@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:Doctor/widgets/ColorCodes.dart';
@@ -7,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../model/DoctorProfileResponse.dart';
 import '../model/appointment_model.dart';
 import '../model/schedule_item.dart';
 import '../widgets/Constants.dart';
@@ -140,7 +142,7 @@ class UpcomingSchedulesController extends GetxController {
       case TabType.custom:
         return 'No schedules for selected date';
       case TabType.all:
-      return 'No schedules found';
+        return 'No schedules found';
     }
   }
 
@@ -225,7 +227,7 @@ class UpcomingSchedulesController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        print("All Upcoming Appointments: $responseData");
+        // print("All Upcoming Appointments: $responseData");
 
         allUpcomingAppointmentResponse.value = AppointmentResponse.fromJson(responseData);
 
@@ -264,6 +266,52 @@ class UpcomingSchedulesController extends GetxController {
     }
   }
 
+  String? doctorId;
+  final doctorName = RxString(''); // Make it observable
+  final doctorDetail = Rxn<DoctorProfileResponse>();
+  var isFirstLoad = false.obs; // Show loader only for first fetch
+
+  Future<void> fetchDoctorDetailsApi() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? '';
+
+    isFirstLoad.value = true;
+    // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
+    doctorId = prefs.getString('doctor_id') ?? '';
+    print('doctorId -- $doctorId');
+
+    final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
+    print('fetchDoctorDetailsApi url -- $url');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        print("doctorDetail: $responseData");
+
+        doctorDetail.value = DoctorProfileResponse.fromJson(responseData);
+        print("doctor id:==== ${doctorDetail.value?.data?.id}");
+        doctorName.value = doctorDetail.value?.data?.name ?? 'Dr. Dermatics';
+        print("doctor name:==== ${doctorDetail.value?.data?.name}");
+      } else {
+        final errorData = jsonDecode(response.body);
+        final errorMessage = errorData['message'] ?? "Failed to get doctor profile";
+        print('errorMessage fetchDoctorDetailsApi -- $errorMessage');
+        Constants.showError(errorMessage);
+      }
+    } catch (e) {
+      print('Error:- $e');
+      Constants.showError("Error -- $e");
+    } finally {
+      isFirstLoad.value = false;
+    }
+  }
+
   Future<void> fetchTodayUpComingAppointmentsApi(String date) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
@@ -283,7 +331,7 @@ class UpcomingSchedulesController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        print("Today's Appointments: $responseData");
+        // print("Today's Appointments: $responseData");
 
         todayUpcomingAppointmentResponse.value = AppointmentResponse.fromJson(responseData);
 
@@ -341,7 +389,7 @@ class UpcomingSchedulesController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        print("Tomorrow's Appointments: $responseData");
+        // print("Tomorrow's Appointments: $responseData");
 
         tomorrowUpcomingAppointmentResponse.value = AppointmentResponse.fromJson(responseData);
 
@@ -399,7 +447,7 @@ class UpcomingSchedulesController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        print("Custom Date's Appointments: $responseData");
+        // print("Custom Date's Appointments: $responseData");
 
         customUpcomingAppointmentResponse.value = AppointmentResponse.fromJson(responseData);
 

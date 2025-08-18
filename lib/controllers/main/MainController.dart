@@ -56,7 +56,7 @@ class MainController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        print('Appointments: $responseData');
+        // print('Appointments: $responseData');
 
         appointmentResponse.value = AppointmentResponse.fromJson(responseData);
         // final message = responseData['message'] ?? 'Success';
@@ -154,12 +154,12 @@ class MainController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        print("Today's Appointments: $responseData");
+        // print("Today's Appointments: $responseData");
 
         todayAppointmentResponse.value = AppointmentResponse.fromJson(responseData);
         final appointments = todayAppointmentResponse.value!.data;
 
-        print("Today's ALL Appointments: $appointments");
+        // print("Today's ALL Appointments: $appointments");
         allList.assignAll(appointments);
         // final message = responseData['message'] ?? 'Success';
         // Constants.showSuccess(message);

@@ -220,7 +220,7 @@ class AppointmentsController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        print('Appointments: $responseData');
+        // print('Appointments: $responseData');
 
         allAppointmentResponse.value = AppointmentResponse.fromJson(responseData);
         // final message = responseData['message'] ?? 'Success';

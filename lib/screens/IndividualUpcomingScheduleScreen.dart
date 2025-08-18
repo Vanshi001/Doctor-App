@@ -28,20 +28,25 @@ class IndividualUpcomingScheduleScreen extends StatefulWidget {
   final Appointment item;
   final String name;
 
-  const IndividualUpcomingScheduleScreen({super.key, required this.item, required this.name});
+  IndividualUpcomingScheduleScreen({super.key, required this.item, required this.name}) {
+    Get.put(IndividualUpcomingScheduleController(item));
+  }
 
   @override
   State<IndividualUpcomingScheduleScreen> createState() => _IndividualUpcomingScheduleScreenState();
 }
 
 class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingScheduleScreen> {
-  final controller = Get.put(IndividualUpcomingScheduleController());
+  final controller = Get.find<IndividualUpcomingScheduleController>();
 
   // final ShopifyService _shopifyService = Get.find<ShopifyService>();
 
   @override
   Widget build(BuildContext context) {
-    var width = MediaQuery.of(context).size.width;
+    var width = MediaQuery
+        .of(context)
+        .size
+        .width;
 
     final parsedDate = DateTime.parse(widget.item.appointmentDate.toString());
     final formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
@@ -76,16 +81,11 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                 ),
                 child: Column(
                   children: [
-                    Text('Booking id -- ${widget.item.bookingId}'),
-                    Text('User id -- ${widget.item.userId}'),
+                    // Text('Booking id -- ${widget.item.bookingId}'),
+                    // Text('User id -- ${widget.item.userId}'),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Profile Image
-                        // ClipRRect(
-                        //   borderRadius: BorderRadius.circular(50),
-                        //   child: Image.network('https://randomuser.me/api/portraits/women/1.jpg', height: 50, width: 50, fit: BoxFit.cover),
-                        // ),
                         Container(
                           height: 50,
                           width: 50,
@@ -139,61 +139,74 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                           Image.asset('assets/ic_clock.png', width: 16, height: 16),
                           SizedBox(width: 5),
                           Text(
-                            '${Constants.formatTimeToAmPm(widget.item.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(widget.item.timeSlot?.endTime ?? '')}',
+                            '${Constants.formatTimeToAmPm(widget.item.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(
+                                widget.item.timeSlot?.endTime ?? '')}',
                             style: TextStyles.textStyle4,
                           ),
                         ],
                       ),
                     ),
-                    Container(
-                      width: width,
-                      height: 40,
-                      margin: EdgeInsets.only(top: 10, bottom: 10),
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          //if (Constants.currentUser.id.isEmpty) {
-                          Constants.currentUser.id = widget.item.userId.toString();
-                          Constants.currentUser.name = widget.item.patientFullName.toString();
+                    Obx(() =>
+                        Container(
+                          width: width,
+                          height: 40,
+                          margin: EdgeInsets.only(top: 10, bottom: 10),
+                          child: ElevatedButton(
+                            onPressed: /*controller.isCallButtonEnabled.value ?*/ () async {
 
-                          // print('Constants.currentUser.id ---- ${Constants.currentUser.id}');
-                          print('Constants.currentUser.name ---- ${Constants.currentUser.name}');
+                              /* WORKING CODE
 
-                          await CallService.initializeCallService(widget.name.toString());
+                            Constants.currentUser.id = widget.item.userId.toString();
+                            Constants.currentUser.name = widget.item.patientFullName.toString();
 
-                          await startVideoCallWithPatient(
-                            bookingId: widget.item.bookingId.toString(),
-                            patientUserId: widget.item.userId.toString(),
-                            patientName: widget.item.patientFullName.toString(),
-                          );
+                            print('Constants.currentUser.name ---- ${Constants.currentUser.name}');
 
-                          /*await PushNotificationService.sendNotificationToSelectedUserAppointment(
-                              widget.item.userId.toString(),
-                              context,
-                              Constants.currentUser.id
-                          );*/
+                            await CallService.initializeCallService(widget.name.toString());
 
-                          // await PushNotificationService.initNotification();
+                            await startVideoCallWithPatient(
+                              bookingId: widget.item.bookingId.toString(),
+                              patientUserId: widget.item.userId.toString(),
+                              patientName: widget.item.patientFullName.toString(),
+                            );*/
 
-                          /*onUserLogin();
-                          sendCallButton(
-                            isVideoCall: true,
-                            inviteeUsersIDTextCtrl: widget.item.userId.toString(),
-                            onCallFinished: onSendCallInvitationFinished,
-                          );*/
+                              /*await PushNotificationService.sendNotificationToSelectedUserAppointment(
+                                widget.item.userId.toString(),
+                                context,
+                                Constants.currentUser.id
+                            );*/
 
-                          // sendCallButton(
-                          //   isVideoCall: true,
-                          //   inviteeUsersIDTextCtrl: widget.item.userId.toString(),
-                          //   onCallFinished: onSendCallInvitationFinished,
-                          // );
-                          // Get.to(() => CallPage(callId: widget.item.userId.toString()));
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: ColorCodes.colorBlue1,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+                              // await PushNotificationService.initNotification();
+
+                              /*onUserLogin();
+                            sendCallButton(
+                              isVideoCall: true,
+                              inviteeUsersIDTextCtrl: widget.item.userId.toString(),
+                              onCallFinished: onSendCallInvitationFinished,
+                            );*/
+
+                              // sendCallButton(
+                              //   isVideoCall: true,
+                              //   inviteeUsersIDTextCtrl: widget.item.userId.toString(),
+                              //   onCallFinished: onSendCallInvitationFinished,
+                              // );
+                              // Get.to(() => CallPage(callId: widget.item.userId.toString()));
+                            } /*: null*/,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: /*controller.isCallButtonEnabled.value
+                                  ? */ColorCodes.colorBlue1
+                                  /*: ColorCodes.colorGrey3*/,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(10))
+                              ),
+                            ),
+                            child: Text('Call', style: TextStyles.textStyle6_1.copyWith(
+                              color: /*controller.isCallButtonEnabled.value
+                                  ? */Colors.white
+                                  /*: Colors.black54*/,
+                            ),
+                            ),
+                          ),
                         ),
-                        child: Text('Call', style: TextStyles.textStyle6_1),
-                      ),
                     ),
                   ],
                 ),
@@ -232,75 +245,78 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                     ),
                     SizedBox(height: 5),
                     Obx(
-                      () => ListView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: controller.medicines.length,
-                        itemBuilder: (context, index) {
-                          final item = controller.medicines[index];
+                          () =>
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: controller.medicines.length,
+                            itemBuilder: (context, index) {
+                              final item = controller.medicines[index];
 
-                          if (controller.itemKeys.length <= index) {
-                            controller.itemKeys.add(GlobalKey());
-                          }
+                              if (controller.itemKeys.length <= index) {
+                                controller.itemKeys.add(GlobalKey());
+                              }
 
-                          return Row(
-                            children: [
-                              Flexible(
-                                child: Container(
-                                  key: controller.itemKeys[index],
-                                  margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: ColorCodes.colorGrey4),
-                                    borderRadius: BorderRadius.circular(12),
-                                    color: ColorCodes.white,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            const SizedBox(height: 2),
-                                            Text(item["medicineName"] ?? '', style: TextStyles.textStyle4_3),
-                                            Text(item["notes"] ?? '', overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyles.textStyle5_1),
-                                            const SizedBox(height: 2),
-                                          ],
-                                        ),
+                              return Row(
+                                children: [
+                                  Flexible(
+                                    child: Container(
+                                      key: controller.itemKeys[index],
+                                      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: ColorCodes.colorGrey4),
+                                        borderRadius: BorderRadius.circular(12),
+                                        color: ColorCodes.white,
                                       ),
-                                      SizedBox(width: 25),
-                                      GestureDetector(
-                                        onTap: () {
-                                          // controller.editMedicine(index);
-                                          print("Clicked item $index");
-                                          showEditMedicinePopup(context, index, controller);
-                                        },
-                                        child: Image.asset('assets/ic_edit.png', width: 24, height: 24),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const SizedBox(height: 2),
+                                                Text(item["medicineName"] ?? '', style: TextStyles.textStyle4_3),
+                                                Text(item["notes"] ?? '', overflow: TextOverflow.ellipsis,
+                                                    maxLines: 1,
+                                                    style: TextStyles.textStyle5_1),
+                                                const SizedBox(height: 2),
+                                              ],
+                                            ),
+                                          ),
+                                          SizedBox(width: 25),
+                                          GestureDetector(
+                                            onTap: () {
+                                              // controller.editMedicine(index);
+                                              print("Clicked item $index");
+                                              showEditMedicinePopup(context, index, controller);
+                                            },
+                                            child: Image.asset('assets/ic_edit.png', width: 24, height: 24),
+                                          ),
+                                          SizedBox(width: 10),
+                                        ],
                                       ),
-                                      SizedBox(width: 10),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  controller.removeMedicine(index);
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: ColorCodes.colorGrey4),
-                                    borderRadius: BorderRadius.circular(12),
-                                    color: ColorCodes.white,
+                                  GestureDetector(
+                                    onTap: () {
+                                      controller.removeMedicine(index);
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: ColorCodes.colorGrey4),
+                                        borderRadius: BorderRadius.circular(12),
+                                        color: ColorCodes.white,
+                                      ),
+                                      child: Image.asset('assets/ic_trash.png', width: 24, height: 24),
+                                    ),
                                   ),
-                                  child: Image.asset('assets/ic_trash.png', width: 24, height: 24),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
+                                ],
+                              );
+                            },
+                          ),
                     ),
                   ],
                 ),
@@ -310,37 +326,37 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                   return GestureDetector(
                     onTap: () {
                       final prescriptions =
-                          controller.medicines
-                              .map((medicine) {
-                                final name = medicine['medicineName']?.trim();
-                                final notes = medicine['notes']?.trim();
-                                final variantId = medicine['variantId']?.trim() /*.split('/').last*/;
-                                final productId = medicine['productId']?.trim() /*.split('/').last*/;
-                                final price = medicine['price']?.trim() /*.split('/').last*/;
-                                final compareAtPrice = medicine['compareAtPrice']?.trim() /*.split('/').last*/;
-                                final image = medicine['image']?.trim() /*.split('/').last*/;
-                                print(
-                                  "\n prescriptions name ---- $name, "
-                                  "\n notes - $notes, "
-                                  "\n variantId - $variantId, "
-                                  "\n productId - $productId, "
-                                  "\n price - $price "
-                                  "\n compareAtPrice - $compareAtPrice, "
-                                  "\n image - $image",
-                                );
+                      controller.medicines
+                          .map((medicine) {
+                        final name = medicine['medicineName']?.trim();
+                        final notes = medicine['notes']?.trim();
+                        final variantId = medicine['variantId']?.trim() /*.split('/').last*/;
+                        final productId = medicine['productId']?.trim() /*.split('/').last*/;
+                        final price = medicine['price']?.trim() /*.split('/').last*/;
+                        final compareAtPrice = medicine['compareAtPrice']?.trim() /*.split('/').last*/;
+                        final image = medicine['image']?.trim() /*.split('/').last*/;
+                        print(
+                          "\n prescriptions name ---- $name, "
+                              "\n notes - $notes, "
+                              "\n variantId - $variantId, "
+                              "\n productId - $productId, "
+                              "\n price - $price "
+                              "\n compareAtPrice - $compareAtPrice, "
+                              "\n image - $image",
+                        );
 
-                                return PrescriptionItem(
-                                  medicineName: name ?? '',
-                                  notes: notes ?? '',
-                                  variantId: variantId ?? '',
-                                  productId: productId ?? '',
-                                  compareAtPrice: compareAtPrice ?? '',
-                                  image: image ?? '',
-                                  price: price ?? '',
-                                );
-                              })
-                              .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
-                              .toList();
+                        return PrescriptionItem(
+                          medicineName: name ?? '',
+                          notes: notes ?? '',
+                          variantId: variantId ?? '',
+                          productId: productId ?? '',
+                          compareAtPrice: compareAtPrice ?? '',
+                          image: image ?? '',
+                          price: price ?? '',
+                        );
+                      })
+                          .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
+                          .toList();
 
                       controller.selectedCustomerId.value = '8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
                       controller.addMedicineApi(id: widget.item.id.toString(), prescriptions: prescriptions);
@@ -351,17 +367,17 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                       decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(6)), color: ColorCodes.colorBlue1),
                       child: Center(
                         child:
-                            controller.isLoading.value
-                                ? SizedBox(
-                                  height: 23,
-                                  width: 23,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    backgroundColor: ColorCodes.darkPurple1,
-                                    valueColor: AlwaysStoppedAnimation<Color>(ColorCodes.white),
-                                  ),
-                                )
-                                : Text('Save', style: TextStyles.textStyle6_1),
+                        controller.isLoading.value
+                            ? SizedBox(
+                          height: 23,
+                          width: 23,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            backgroundColor: ColorCodes.darkPurple1,
+                            valueColor: AlwaysStoppedAnimation<Color>(ColorCodes.white),
+                          ),
+                        )
+                            : Text('Save', style: TextStyles.textStyle6_1),
                       ),
                     ),
                   );
@@ -372,7 +388,10 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
               if (controller.selectedItems.isNotEmpty) ...[
                 SizedBox(height: 20),
                 Text('Selected Items:', style: TextStyle(fontWeight: FontWeight.bold)),
-                ...controller.selectedItems.asMap().entries.map((entry) {
+                ...controller.selectedItems
+                    .asMap()
+                    .entries
+                    .map((entry) {
                   final index = entry.key;
                   final item = entry.value;
                   return Text('item -- $item');
@@ -429,13 +448,13 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
       plugins: [ZegoUIKitSignalingPlugin()],
       requireConfig: (ZegoCallInvitationData data) {
         final config =
-            (data.invitees.length > 1)
-                ? ZegoCallInvitationType.videoCall == data.type
-                    ? ZegoUIKitPrebuiltCallConfig.groupVideoCall()
-                    : ZegoUIKitPrebuiltCallConfig.groupVoiceCall()
-                : ZegoCallInvitationType.videoCall == data.type
-                ? ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall()
-                : ZegoUIKitPrebuiltCallConfig.oneOnOneVoiceCall();
+        (data.invitees.length > 1)
+            ? ZegoCallInvitationType.videoCall == data.type
+            ? ZegoUIKitPrebuiltCallConfig.groupVideoCall()
+            : ZegoUIKitPrebuiltCallConfig.groupVoiceCall()
+            : ZegoCallInvitationType.videoCall == data.type
+            ? ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall()
+            : ZegoUIKitPrebuiltCallConfig.oneOnOneVoiceCall();
 
         /// custom avatar
         // config.avatarBuilder = customAvatarBuilder;
@@ -452,7 +471,9 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
 
   String extractCustomerId(String gidOrId) {
     if (gidOrId.startsWith('gid://shopify/Customer/')) {
-      return gidOrId.split('/').last;
+      return gidOrId
+          .split('/')
+          .last;
     }
     return gidOrId;
   }
@@ -473,14 +494,20 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
         vsync: Navigator.of(context), // Requires TickerProvider
       ),
       builder: (context) {
-        return ConstrainedBox /*AnimatedPadding*/ (
+        return ConstrainedBox /*AnimatedPadding*/(
           // padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           // duration: Duration(milliseconds: 300),
           // curve: Curves.easeOut,
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+          constraints: BoxConstraints(maxHeight: MediaQuery
+              .of(context)
+              .size
+              .height * 0.9),
           child: SingleChildScrollView(
             controller: _sheetScrollController,
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 16, right: 16, top: 16),
+            padding: EdgeInsets.only(bottom: MediaQuery
+                .of(context)
+                .viewInsets
+                .bottom, left: 16, right: 16, top: 16),
             // padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -512,7 +539,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                       // }
                       // return controller.shopifyProducts.where((product) => product.title.toLowerCase().contains(textEditingValue.text.toLowerCase()));
                       return controller.shopifyProducts.where(
-                        (product) => product.title.toLowerCase().contains(controller.searchQuery.value.toLowerCase()),
+                            (product) => product.title.toLowerCase().contains(controller.searchQuery.value.toLowerCase()),
                       );
                     },
                     displayStringForOption: (option) => option.title,
@@ -622,7 +649,10 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
         return Container(
-          height: MediaQuery.of(context).size.height * 0.9,
+          height: MediaQuery
+              .of(context)
+              .size
+              .height * 0.9,
           padding: EdgeInsets.only(left: 16, right: 16, top: 16),
           child: Column(
             children: [
@@ -640,7 +670,10 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
               Expanded(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom, // Keyboard padding
+                    bottom: MediaQuery
+                        .of(context)
+                        .viewInsets
+                        .bottom, // Keyboard padding
                   ),
                   child: Column(
                     children: [
@@ -655,7 +688,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                               return const Iterable<ProductModel>.empty();
                             }
                             return controller.shopifyProducts.where(
-                              (product) => product.title.toLowerCase().contains(controller.searchQuery.value.toLowerCase()),
+                                  (product) => product.title.toLowerCase().contains(controller.searchQuery.value.toLowerCase()),
                             );
                           },
                           displayStringForOption: (option) => option.title,
@@ -663,39 +696,42 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                           optionsViewBuilder: (context, onSelected, options) {
                             return Container(
                               height: 400,
-                              width: MediaQuery.of(context).size.width,
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width,
                               decoration: BoxDecoration(
                                 color: ColorCodes.colorGrey1,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(width: 1, color: ColorCodes.colorBlack2),
                               ),
                               child:
-                                  controller.isLoading.value
-                                      ? Container(
-                                        color: ColorCodes.white,
-                                        height: 20,
-                                        width: 20,
-                                        child: Center(
-                                          child: CircularProgressIndicator(color: ColorCodes.colorBlue1, backgroundColor: ColorCodes.white),
-                                        ),
-                                      )
-                                      : ListView.builder(
-                                        padding: EdgeInsets.zero,
-                                        shrinkWrap: true,
-                                        itemCount: options.length,
-                                        itemBuilder: (context, index) {
-                                          final option = options.elementAt(index);
-                                          return Container(
-                                            color: ColorCodes.white,
-                                            child: ListTile(
-                                              leading: option.image != null ? Image.network(option.image!, width: 40) : Icon(Icons.image),
-                                              title: Text(option.title, style: TextStyles.textStyle1),
-                                              subtitle: Text('\Rs.${option.price.toStringAsFixed(2)}'),
-                                              onTap: () => onSelected(option),
-                                            ),
-                                          );
-                                        },
-                                      ),
+                              controller.isLoading.value
+                                  ? Container(
+                                color: ColorCodes.white,
+                                height: 20,
+                                width: 20,
+                                child: Center(
+                                  child: CircularProgressIndicator(color: ColorCodes.colorBlue1, backgroundColor: ColorCodes.white),
+                                ),
+                              )
+                                  : ListView.builder(
+                                padding: EdgeInsets.zero,
+                                shrinkWrap: true,
+                                itemCount: options.length,
+                                itemBuilder: (context, index) {
+                                  final option = options.elementAt(index);
+                                  return Container(
+                                    color: ColorCodes.white,
+                                    child: ListTile(
+                                      leading: option.image != null ? Image.network(option.image!, width: 40) : Icon(Icons.image),
+                                      title: Text(option.title, style: TextStyles.textStyle1),
+                                      subtitle: Text('\Rs.${option.price.toStringAsFixed(2)}'),
+                                      onTap: () => onSelected(option),
+                                    ),
+                                  );
+                                },
+                              ),
                             );
                           },
                           fieldViewBuilder: (context, controller, focusNode, onSubmitted) {

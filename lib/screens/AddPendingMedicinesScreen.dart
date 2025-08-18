@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../controllers/AddPendingMedicineController.dart';
 import '../controllers/IndividualUpcomingScheduleController.dart';
 import '../controllers/main/MainController.dart';
 import '../model/PrescriptionRequestModel.dart';
@@ -22,7 +23,7 @@ class AddPendingMedicinesScreen extends StatefulWidget {
 }
 
 class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
-  final controller = Get.put(IndividualUpcomingScheduleController());
+  final controller = Get.put(AddPendingMedicineController());
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +152,7 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                     ),
                     SizedBox(height: 5),
                     Obx(
-                          () => ListView.builder(
+                      () => ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
                         itemCount: controller.medicines.length,
@@ -229,39 +230,39 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                   return GestureDetector(
                     onTap: () {
                       final prescriptions =
-                      controller.medicines
-                          .map((medicine) {
-                        final name = medicine['medicineName']?.trim();
-                        final notes = medicine['notes']?.trim();
-                        final variantId = medicine['variantId']?.trim() /*.split('/').last*/;
-                        final productId = medicine['productId']?.trim() /*.split('/').last*/;
-                        final price = medicine['price']?.trim() /*.split('/').last*/;
-                        final compareAtPrice = medicine['compareAtPrice']?.trim() /*.split('/').last*/;
-                        final image = medicine['image']?.trim() /*.split('/').last*/;
-                        print(
-                          "\n prescriptions name ---- $name, "
-                              "\n notes - $notes, "
-                              "\n variantId - $variantId, "
-                              "\n productId - $productId, "
-                              "\n price - $price "
-                              "\n compareAtPrice - $compareAtPrice, "
-                              "\n image - $image",
-                        );
+                          controller.medicines
+                              .map((medicine) {
+                                final name = medicine['medicineName']?.trim();
+                                final notes = medicine['notes']?.trim();
+                                final variantId = medicine['variantId']?.trim() /*.split('/').last*/;
+                                final productId = medicine['productId']?.trim() /*.split('/').last*/;
+                                final price = medicine['price']?.trim() /*.split('/').last*/;
+                                final compareAtPrice = medicine['compareAtPrice']?.trim() /*.split('/').last*/;
+                                final image = medicine['image']?.trim() /*.split('/').last*/;
+                                print(
+                                  "\n prescriptions name ---- $name, "
+                                  "\n notes - $notes, "
+                                  "\n variantId - $variantId, "
+                                  "\n productId - $productId, "
+                                  "\n price - $price "
+                                  "\n compareAtPrice - $compareAtPrice, "
+                                  "\n image - $image",
+                                );
 
-                        return PrescriptionItem(
-                          medicineName: name ?? '',
-                          notes: notes ?? '',
-                          variantId: variantId ?? '',
-                          productId: productId ?? '',
-                          compareAtPrice: compareAtPrice ?? '',
-                          image: image ?? '',
-                          price: price ?? '',
-                        );
-                      })
-                          .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
-                          .toList();
+                                return PrescriptionItem(
+                                  medicineName: name ?? '',
+                                  notes: notes ?? '',
+                                  variantId: variantId ?? '',
+                                  productId: productId ?? '',
+                                  compareAtPrice: compareAtPrice ?? '',
+                                  image: image ?? '',
+                                  price: price ?? '',
+                                );
+                              })
+                              .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
+                              .toList();
 
-                      controller.selectedCustomerId.value = '8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
+                      // controller.selectedCustomerId.value = '8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
                       controller.addMedicineApi(id: widget.appointmentData.id.toString(), prescriptions: prescriptions);
                     },
                     child: Container(
@@ -270,17 +271,17 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                       decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(6)), color: ColorCodes.colorBlue1),
                       child: Center(
                         child:
-                        controller.isLoading.value
-                            ? SizedBox(
-                          height: 23,
-                          width: 23,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            backgroundColor: ColorCodes.darkPurple1,
-                            valueColor: AlwaysStoppedAnimation<Color>(ColorCodes.white),
-                          ),
-                        )
-                            : Text('Save', style: TextStyles.textStyle6_1),
+                            controller.isLoading.value
+                                ? SizedBox(
+                                  height: 23,
+                                  width: 23,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    backgroundColor: ColorCodes.darkPurple1,
+                                    valueColor: AlwaysStoppedAnimation<Color>(ColorCodes.white),
+                                  ),
+                                )
+                                : Text('Save', style: TextStyles.textStyle6_1),
                       ),
                     ),
                   );
@@ -340,7 +341,7 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                               return const Iterable<ProductModel>.empty();
                             }
                             return controller.shopifyProducts.where(
-                                  (product) => product.title.toLowerCase().contains(controller.searchQuery.value.toLowerCase()),
+                              (product) => product.title.toLowerCase().contains(controller.searchQuery.value.toLowerCase()),
                             );
                           },
                           displayStringForOption: (option) => option.title,
@@ -355,32 +356,32 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                                 border: Border.all(width: 1, color: ColorCodes.colorBlack2),
                               ),
                               child:
-                              controller.isLoading.value
-                                  ? Container(
-                                color: ColorCodes.white,
-                                height: 20,
-                                width: 20,
-                                child: Center(
-                                  child: CircularProgressIndicator(color: ColorCodes.colorBlue1, backgroundColor: ColorCodes.white),
-                                ),
-                              )
-                                  : ListView.builder(
-                                padding: EdgeInsets.zero,
-                                shrinkWrap: true,
-                                itemCount: options.length,
-                                itemBuilder: (context, index) {
-                                  final option = options.elementAt(index);
-                                  return Container(
-                                    color: ColorCodes.white,
-                                    child: ListTile(
-                                      leading: option.image != null ? Image.network(option.image!, width: 40) : Icon(Icons.image),
-                                      title: Text(option.title, style: TextStyles.textStyle1),
-                                      subtitle: Text('\Rs.${option.price.toStringAsFixed(2)}'),
-                                      onTap: () => onSelected(option),
-                                    ),
-                                  );
-                                },
-                              ),
+                                  controller.isLoading.value
+                                      ? Container(
+                                        color: ColorCodes.white,
+                                        height: 20,
+                                        width: 20,
+                                        child: Center(
+                                          child: CircularProgressIndicator(color: ColorCodes.colorBlue1, backgroundColor: ColorCodes.white),
+                                        ),
+                                      )
+                                      : ListView.builder(
+                                        padding: EdgeInsets.zero,
+                                        shrinkWrap: true,
+                                        itemCount: options.length,
+                                        itemBuilder: (context, index) {
+                                          final option = options.elementAt(index);
+                                          return Container(
+                                            color: ColorCodes.white,
+                                            child: ListTile(
+                                              leading: option.image != null ? Image.network(option.image!, width: 40) : Icon(Icons.image),
+                                              title: Text(option.title, style: TextStyles.textStyle1),
+                                              subtitle: Text('\Rs.${option.price.toStringAsFixed(2)}'),
+                                              onTap: () => onSelected(option),
+                                            ),
+                                          );
+                                        },
+                                      ),
                             );
                           },
                           fieldViewBuilder: (context, controller, focusNode, onSubmitted) {
@@ -463,7 +464,7 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
     );
   }
 
-  void showEditMedicinePopup(BuildContext context, int index, IndividualUpcomingScheduleController controller) {
+  void showEditMedicinePopup(BuildContext context, int index, AddPendingMedicineController controller) {
     final nameController = TextEditingController(text: controller.medicines[index]["medicineName"]);
     final descriptionController = TextEditingController(text: controller.medicines[index]["notes"]);
 
@@ -543,5 +544,4 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
       },
     );
   }
-
 }

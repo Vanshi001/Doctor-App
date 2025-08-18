@@ -24,6 +24,17 @@ class Constants {
     return DateFormat('h:mm a').format(dt);
   }
 
+  static DateTime parseTimeString(String timeStr) {
+    final now = DateTime.now();
+    final timeParts = timeStr.split(':');
+    if (timeParts.length < 2) return now;
+
+    final hour = int.tryParse(timeParts[0]) ?? 0;
+    final minute = int.tryParse(timeParts[1]) ?? 0;
+
+    return DateTime(now.year, now.month, now.day, hour, minute);
+  }
+
   static ZegoUIKitUser currentUser = ZegoUIKitUser(id: '', name: '');
 
   static int zegoAppId = 260617754;

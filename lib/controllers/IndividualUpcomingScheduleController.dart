@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:Doctor/model/PrescriptionRequestModel.dart';
@@ -531,6 +532,54 @@ query GetProducts(\$cursor: String) {
       print('Error creating cart: $e');
       return null;
     }
+  }
+
+  final Appointment? item;
+
+  IndividualUpcomingScheduleController(this.item);
+
+  RxBool isCallButtonEnabled = false.obs;
+  Timer? _timeCheckTimer;
+
+  @override
+  void onInit() {
+    super.onInit();
+    if (item != null) {
+      _setupTimeChecker();
+    }
+  }
+
+  @override
+  void onClose() {
+    _timeCheckTimer?.cancel();
+    super.onClose();
+  }
+
+  void _setupTimeChecker() {
+    // Check time immediately
+    _checkCallTime();
+
+    // Then check every second
+    _timeCheckTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _checkCallTime();
+    });
+  }
+
+  void _checkCallTime() {
+    final startTimeStr = item?.timeSlot?.startTime ?? '';
+    if (startTimeStr.isEmpty) {
+      isCallButtonEnabled.value = false;
+      return;
+    }
+
+    final startTime = Constants.parseTimeString(startTimeStr);
+    final now = DateTime.now();
+    final timeDifference = startTime.difference(now);
+
+    // Enable button if current time is within 5 minutes before or after start time
+    isCallButtonEnabled.value = timeDifference.inMinutes <= 5 && !timeDifference.isNegative;
+    print('isCallButtonEnabled.value -- ${isCallButtonEnabled.value}');
+    print('timeDifference -- ${timeDifference}');
   }
 }
 

@@ -354,9 +354,9 @@ class _AuthScreenState extends State {
     return Column(
       children: [
         SizedBox(height: 20),
-        InputTextFieldWidget(loginController.emailController, "dr.sarah@example.com" /*'Email*'*/),
+        InputTextFieldWidget(loginController.emailController, /*"dr.sarah@example.com"*/ 'Email*'),
         SizedBox(height: 10),
-        InputTextFieldWidget(loginController.passwordController, "securePassword123" /*'Password*'*/),
+        InputTextFieldWidget(loginController.passwordController, /*"securePassword123" */'Password*'),
         SizedBox(height: 20),
         Obx(
           () => SizedBox(
