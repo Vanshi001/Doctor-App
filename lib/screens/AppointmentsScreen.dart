@@ -99,6 +99,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
             Expanded(
               child: Obx(() {
                 final list = controller.currentList;
+                medicineNames.clear();
 
                 if (list.isEmpty) {
                   return Center(
@@ -134,21 +135,25 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     return GestureDetector(
                       onTap: () {
                         print("Clicked on individual appointment : ${item.id} -- $index");
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder:
-                              (context) => AppointmentDetailsDialog(
-                                title: item.patientFullName.toString(),
-                                image: 'assets/ic_user.png',
-                                //'https://randomuser.me/api/portraits/women/1.jpg',
-                                date: formattedDate,
-                                time:
-                                    '${Constants.formatTimeToAmPm(item.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(item.timeSlot?.endTime ?? '')}',
-                                concern: item.concerns?.join(", ") ?? '',
-                                medicineNames: medicineNames,
-                              ),
-                        );
+                        if (item.status == "completed") {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder:
+                                (context) =>
+                                AppointmentDetailsDialog(
+                                  title: item.patientFullName.toString(),
+                                  image: 'assets/ic_user.png',
+                                  //'https://randomuser.me/api/portraits/women/1.jpg',
+                                  date: formattedDate,
+                                  time:
+                                  '${Constants.formatTimeToAmPm(item.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(
+                                      item.timeSlot?.endTime ?? '')}',
+                                  concern: item.concerns?.join(", ") ?? '',
+                                  medicineNames: medicineNames,
+                                ),
+                          );
+                        }
                       },
                       child: Container(
                         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),

@@ -545,7 +545,7 @@ query GetProducts(\$cursor: String) {
   void onInit() {
     super.onInit();
     if (item != null) {
-      _setupTimeChecker();
+      // _setupTimeChecker();
     }
   }
 

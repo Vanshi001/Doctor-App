@@ -13,6 +13,9 @@ import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 import '../widgets/Constants.dart';
 
 class CallService {
+  static DateTime? _callStartTime;
+  static DateTime? _callEndTime;
+
   static final ZegoUIKitPrebuiltCallInvitationService invitationService = ZegoUIKitPrebuiltCallInvitationService();
 
   static Future<void> initializeCallService(String callerUserName) async {
@@ -20,29 +23,28 @@ class CallService {
     final doctorId = prefs.getString('doctor_id') ?? '';
     final doctorName = prefs.getString('doctor_name') ?? 'Doctor';
 
-    String uniqueUserId = await getUniqueUserId();
-    print("Unique User Id - $uniqueUserId");
+    // String uniqueUserId = await getUniqueUserId();
+    // print("Unique User Id - $uniqueUserId");
     // Constants.currentUser.id = uniqueUserId;
 
-    // print('CallService doctorId -- $doctorId');
+    print('CallService doctorId -- $doctorId');
+    print('CallService callerUserName -- $callerUserName');
     // print('CallService doctorName -- $doctorName');
 
     // First uninitialize any existing service
-    try {
+    /*try {
       await ZegoUIKitPrebuiltCallInvitationService().uninit();
     } catch (e) {
-      debugPrint('Error uninitializing: $e');
-    }
-
-    // print('Constants.currentUser.id ==---=====-=- ${Constants.currentUser.id}');
+      print('Error uninitializing: $e');
+    }*/
 
     await ZegoUIKitPrebuiltCallInvitationService().init(
       appID: Constants.zegoAppId,
       appSign: Constants.zegoAppSign,
-      userID: uniqueUserId,
+      userID: doctorId,
       userName: callerUserName,
       plugins: [ZegoUIKitSignalingPlugin()],
-      config: ZegoCallInvitationConfig(offline: ZegoCallInvitationOfflineConfig(autoEnterAcceptedOfflineCall: false)),
+      // config: ZegoCallInvitationConfig(offline: ZegoCallInvitationOfflineConfig(autoEnterAcceptedOfflineCall: false)),
       notificationConfig: ZegoCallInvitationNotificationConfig(
         androidNotificationConfig: ZegoCallAndroidNotificationConfig(
           showFullScreen: true,
@@ -65,10 +67,26 @@ class CallService {
       ),
     );
 
-    await ZegoUIKitPrebuiltCallInvitationService().send(
+    print('INIT SERVICE -- ${Constants.currentUser.id} -- ${Constants.currentUser.name}');
+
+    await sendCallInvitation(Constants.currentUser.id, Constants.currentUser.name, isVideo: true);
+
+    /*await ZegoUIKitPrebuiltCallInvitationService().send(
       invitees: [ZegoCallUser(Constants.currentUser.id, Constants.currentUser.name)],
       isVideoCall: true,
-    );
+    );*/
+  }
+
+  static Future<void> sendCallInvitation(String targetUserId, String targetUserName, {bool isVideo = true}) async {
+    try {
+      await ZegoUIKitPrebuiltCallInvitationService().send(
+        invitees: [ZegoCallUser(targetUserId, targetUserName)], // 👈 pass doctor/patient id here
+        isVideoCall: isVideo,
+      );
+      print("Invitation sent to $targetUserId - $targetUserName");
+    } catch (e) {
+      print("Error sending call invitation: $e");
+    }
   }
 
   static Future<String> getUniqueUserId() async {
@@ -163,18 +181,18 @@ class CallService {
       }
       if (userIDs.isNotEmpty) {
         userIDs = userIDs.substring(0, userIDs.length - 1);
-        print('userIDs:- $userIDs');
+        print('1C userIDs:- $userIDs');
       }
 
       var message = "User doesn't exist or is offline: $userIDs";
       if (code.isNotEmpty) {
         message += ', code: $code, message:$message';
       }
-      print('message:- $message');
+      print('1C message:- $message');
       Constants.showSuccess(message);
     } else if (code.isNotEmpty) {
-      Constants.showError('code: $code, message:$message');
-      print('code: $code, message:$message');
+      Constants.showError('1C code: $code, message:$message');
+      print('1C code: $code, message:$message');
     }
   }
 
@@ -187,7 +205,7 @@ class CallService {
         return;
       }
 
-      print('inviteeUserID: $inviteeUserID');
+      print('1C inviteeUserID: $inviteeUserID');
       invitees.add(ZegoUIKitUser(id: inviteeUserID, name: name)); /*'user_$inviteeUserID'*/
     });
 
