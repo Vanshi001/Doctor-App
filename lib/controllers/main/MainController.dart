@@ -90,7 +90,7 @@ class MainController extends GetxController {
     print('doctorId -- $doctorId');
 
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
-    print('fetchDoctorDetailsApi url -- $url');
+    // print('fetchDoctorDetailsApi url -- $url');
 
     try {
       if (isFirstLoad.value) {
@@ -105,12 +105,12 @@ class MainController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        print("doctorDetail: $responseData");
+        // print("doctorDetail: $responseData");
 
         doctorDetail.value = DoctorProfileResponse.fromJson(responseData);
-        print("doctor id:==== ${doctorDetail.value?.data?.id}");
+        // print("doctor id:==== ${doctorDetail.value?.data?.id}");
         doctorName.value = doctorDetail.value?.data?.name ?? 'Dr. Dermatics';
-        print("doctor name:==== ${doctorDetail.value?.data?.name}");
+        // print("doctor name:==== ${doctorDetail.value?.data?.name}");
 
         fetchTodayAppointmentsApi(currentDate.value, doctorDetail.value?.data?.id);
         fetchPendingAppointmentsWithoutPrescriptionApi(doctorDetail.value?.data?.id);
@@ -143,7 +143,7 @@ class MainController extends GetxController {
     // final doctorId = prefs.getString('doctor_id') ?? '';
     print('doctorId -~- $doctorId');
     final url = Uri.parse('${Constants.baseUrl}appointments?status=today&date=$currentDate&doctorId=$doctorId');
-    print('fetchTodayAppointmentsApi url -- $url');
+    // print('fetchTodayAppointmentsApi url -- $url');
 
     try {
       final response = await http.get(
@@ -202,7 +202,7 @@ class MainController extends GetxController {
     // final doctorId = prefs.getString('doctor_id') ?? '';
     print('doctorId -~~- $doctorId');
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId/appointments/no-prescription');
-    print('fetchPendingAppointmentsWithoutPrescriptionApi url -- $url');
+    // print('fetchPendingAppointmentsWithoutPrescriptionApi url -- $url');
 
     try {
       final response = await http.get(

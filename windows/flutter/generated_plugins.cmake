@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   firebase_core
   flutter_volume_controller
+  geolocator_windows
   permission_handler_windows
   zego_express_engine
   zego_zim

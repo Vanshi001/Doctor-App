@@ -16,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
 import '../controllers/AppointmentsController.dart';
+import '../controllers/PermissionController.dart';
 import '../controllers/main/MainController.dart';
 import '../model/appointment_item.dart';
 import '../widgets/ColorCodes.dart';
@@ -74,10 +75,13 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  final PermissionController permissionController = Get.put(PermissionController());
+
   @override
   void initState() {
     // getDoctorDetails();
     // mainController.fetchAppointmentsApi();
+    // permissionController.requestAllPermissions();
     mainController.fetchDoctorDetailsApi();
     mainController.startAutoFetch();
     print('currentDate -- ${mainController.currentDate.value}');
@@ -804,6 +808,7 @@ class _MainScreenState extends State<MainScreen> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("access_token", '');
     Constants.showSuccess('Logout Successfully!');
+    await ZegoUIKitPrebuiltCallInvitationService().uninit();
     Get.offAll(() => AuthScreen());
   }
 

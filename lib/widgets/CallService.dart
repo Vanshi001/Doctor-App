@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:get/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zego_uikit/zego_uikit.dart';
@@ -13,12 +14,14 @@ import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 import '../widgets/Constants.dart';
 
 class CallService {
-  static DateTime? _callStartTime;
-  static DateTime? _callEndTime;
+  static DateTime? callStartTime;
+  static DateTime? callEndTime;
 
   static final ZegoUIKitPrebuiltCallInvitationService invitationService = ZegoUIKitPrebuiltCallInvitationService();
+  static final navigatorKey = GlobalKey<NavigatorState>();
 
   static Future<void> initializeCallService(String callerUserName) async {
+    callStartTime = null;
     final prefs = await SharedPreferences.getInstance();
     final doctorId = prefs.getString('doctor_id') ?? '';
     final doctorName = prefs.getString('doctor_name') ?? 'Doctor';
@@ -44,27 +47,58 @@ class CallService {
       userID: doctorId,
       userName: callerUserName,
       plugins: [ZegoUIKitSignalingPlugin()],
-      // config: ZegoCallInvitationConfig(offline: ZegoCallInvitationOfflineConfig(autoEnterAcceptedOfflineCall: false)),
-      notificationConfig: ZegoCallInvitationNotificationConfig(
-        androidNotificationConfig: ZegoCallAndroidNotificationConfig(
-          showFullScreen: true,
-          fullScreenBackgroundAssetURL: 'assets/image/call.png',
-          callChannel: ZegoCallAndroidNotificationChannelConfig(
-            channelID: "ZegoUIKit",
-            channelName: "Call Notifications",
-            sound: "call",
-            icon: "call",
-          ),
-          missedCallChannel: ZegoCallAndroidNotificationChannelConfig(
-            channelID: "MissedCall",
-            channelName: "Missed Call",
-            sound: "missed_call",
-            icon: "missed_call",
-            vibrate: false,
-          ),
-        ),
-        iOSNotificationConfig: ZegoCallIOSNotificationConfig(systemCallingIconName: 'CallKitIcon'),
-      ),
+      requireConfig: (ZegoCallInvitationData data) {
+        var config = ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall();
+        /*..duration.isVisible = true
+        ..duration.onDurationUpdate = (Duration duration) {
+          if (duration.inSeconds >= 1 * 60) { // Example: 1 minute limit
+            print('duration.inSeconds -- ${duration.inSeconds}');
+          }
+        };*/
+
+        // Modify your custom configurations here.
+        config.duration.isVisible = true;
+        config.duration.onDurationUpdate = (Duration duration) {
+          // Capture start time when duration begins (first callback)
+          // if (callStartTime == null) {
+          //   callStartTime = DateTime.now().subtract(duration);
+          //   print('callStartTime -- $callStartTime');
+          // }
+
+          // if (duration.inSeconds == 30 /*15 * 60*/ ) {
+          //   print('duration.inSeconds -- ${duration.inSeconds}');
+            /* 15 * 60 = 900 seconds = 15 minutes */
+            // ZegoUIKitPrebuiltCallController().hangUp(navigatorKey.currentState!.context);
+           // }
+        };
+
+        print('------------------------------------------------------------==');
+
+        return config;
+      },
+
+      config: ZegoCallInvitationConfig(offline: ZegoCallInvitationOfflineConfig(autoEnterAcceptedOfflineCall: false)),
+
+      // notificationConfig: ZegoCallInvitationNotificationConfig(
+      //   androidNotificationConfig: ZegoCallAndroidNotificationConfig(
+      //     showFullScreen: true,
+      //     fullScreenBackgroundAssetURL: 'assets/image/call.png',
+      //     callChannel: ZegoCallAndroidNotificationChannelConfig(
+      //       channelID: "ZegoUIKit",
+      //       channelName: "Call Notifications",
+      //       sound: "call",
+      //       icon: "call",
+      //     ),
+      //     missedCallChannel: ZegoCallAndroidNotificationChannelConfig(
+      //       channelID: "MissedCall",
+      //       channelName: "Missed Call",
+      //       sound: "missed_call",
+      //       icon: "missed_call",
+      //       vibrate: false,
+      //     ),
+      //   ),
+      //   iOSNotificationConfig: ZegoCallIOSNotificationConfig(systemCallingIconName: 'CallKitIcon'),
+      // ),
     );
 
     print('INIT SERVICE -- ${Constants.currentUser.id} -- ${Constants.currentUser.name}');
@@ -79,10 +113,7 @@ class CallService {
 
   static Future<void> sendCallInvitation(String targetUserId, String targetUserName, {bool isVideo = true}) async {
     try {
-      await ZegoUIKitPrebuiltCallInvitationService().send(
-        invitees: [ZegoCallUser(targetUserId, targetUserName)], // 👈 pass doctor/patient id here
-        isVideoCall: isVideo,
-      );
+      await ZegoUIKitPrebuiltCallInvitationService().send(invitees: [ZegoCallUser(targetUserId, targetUserName)], isVideoCall: isVideo);
       print("Invitation sent to $targetUserId - $targetUserName");
     } catch (e) {
       print("Error sending call invitation: $e");
@@ -122,11 +153,29 @@ class CallService {
     return userID.substring(userID.length - 6);
   }
 
-  static Future<void> startAppointmentCall({required String patientUserId, required String bookingId, required String patientName}) async {
+  static Future<void> startAppointmentCall_({required String patientUserId, required String bookingId, required String patientName}) async {
     try {
       // Get the signaling plugin instance
       print('sending call invitation');
       sendCallButton(isVideoCall: true, inviteeUsersIDTextCtrl: patientUserId, name: patientName, onCallFinished: onSendCallInvitationFinished);
+    } catch (e) {
+      print('Error sending call invitation: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> startAppointmentCall({required String patientUserId, required String bookingId, required String patientName}) async {
+    try {
+      print('sending call invitation to: $patientUserId');
+
+      // Send invitation through the signaling plugin
+      await invitationService.send(isVideoCall: true, invitees: [ZegoCallUser(patientUserId, patientName)]).then((result) {
+        // Handle the call result
+        print('Call invitation sent successfully');
+
+        // Since we can't get direct callback, set up listeners for call events
+        print('result.toString() -- ${result.toString()}');
+      });
     } catch (e) {
       print('Error sending call invitation: $e');
       rethrow;
@@ -205,7 +254,7 @@ class CallService {
         return;
       }
 
-      print('1C inviteeUserID: $inviteeUserID');
+      // print('1C inviteeUserID: $inviteeUserID');
       invitees.add(ZegoUIKitUser(id: inviteeUserID, name: name)); /*'user_$inviteeUserID'*/
     });
 

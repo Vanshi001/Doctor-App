@@ -206,7 +206,7 @@ class AppointmentsController extends GetxController {
     }
 
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId/appointment?status=all');
-    print('url ---- $url');
+    // print('url ---- $url');
 
     try {
       final response = await http.get(

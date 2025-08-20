@@ -18,6 +18,7 @@ import '../controllers/IndividualUpcomingScheduleController.dart';
 import '../model/PrescriptionRequestModel.dart';
 import '../model/ProductModel.dart';
 import '../model/ShopifyService.dart';
+import '../widgets/CallDurationTracker.dart';
 import '../widgets/CallService.dart';
 import '../widgets/ColorCodes.dart';
 import '../widgets/Constants.dart';
@@ -432,14 +433,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
       userName: Constants.currentUser.name,
       plugins: [ZegoUIKitSignalingPlugin()],
       requireConfig: (ZegoCallInvitationData data) {
-        final config =
-            (data.invitees.length > 1)
-                ? ZegoCallInvitationType.videoCall == data.type
-                    ? ZegoUIKitPrebuiltCallConfig.groupVideoCall()
-                    : ZegoUIKitPrebuiltCallConfig.groupVoiceCall()
-                : ZegoCallInvitationType.videoCall == data.type
-                ? ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall()
-                : ZegoUIKitPrebuiltCallConfig.oneOnOneVoiceCall();
+        final config = ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall();
 
         /// custom avatar
         // config.avatarBuilder = customAvatarBuilder;
@@ -448,6 +442,11 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
         config.topMenuBar.isVisible = true;
         config.topMenuBar.buttons.insert(0, ZegoCallMenuBarButtonName.minimizingButton);
         config.topMenuBar.buttons.insert(1, ZegoCallMenuBarButtonName.soundEffectButton);
+
+        // Add call duration tracking events
+        config.duration.onDurationUpdate = (Duration duration) {
+          print('duration.inMinutes ---- ${duration.inMinutes}');
+        };
 
         return config;
       },

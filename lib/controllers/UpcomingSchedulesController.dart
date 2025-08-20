@@ -281,7 +281,7 @@ class UpcomingSchedulesController extends GetxController {
     print('doctorId -- $doctorId');
 
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
-    print('fetchDoctorDetailsApi url -- $url');
+    // print('fetchDoctorDetailsApi url -- $url');
 
     try {
       final response = await http.get(
@@ -292,12 +292,12 @@ class UpcomingSchedulesController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        print("doctorDetail: $responseData");
+        // print("doctorDetail: $responseData");
 
         doctorDetail.value = DoctorProfileResponse.fromJson(responseData);
-        print("doctor id:==== ${doctorDetail.value?.data?.id}");
+        // print("doctor id:==== ${doctorDetail.value?.data?.id}");
         doctorName.value = doctorDetail.value?.data?.name ?? 'Dr. Dermatics';
-        print("doctor name:==== ${doctorDetail.value?.data?.name}");
+        // print("doctor name:==== ${doctorDetail.value?.data?.name}");
       } else {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'] ?? "Failed to get doctor profile";

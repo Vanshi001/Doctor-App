@@ -85,7 +85,7 @@ class LoginController extends GetxController {
     // final doctorId = prefs.getString('doctor_id') ?? '';
     print('doctorId -- $doctorId');
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
-    print('fetchDoctorDetailsApi url -- $url');
+    // print('fetchDoctorDetailsApi url -- $url');
 
     try {
       final response = await http.get(
@@ -96,7 +96,7 @@ class LoginController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        print("doctorDetail: $responseData");
+        // print("doctorDetail: $responseData");
 
         doctorDetail.value = DoctorProfileResponse.fromJson(responseData);
       } else {
