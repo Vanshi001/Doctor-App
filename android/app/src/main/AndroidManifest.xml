@@ -29,6 +29,9 @@
     <!--for bring app to foreground from background in Android 10 -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
+    <uses-feature android:name="android.software.picture_in_picture"
+        android:required="false" />
+
     <application
         android:label="DoctorApp"
         android:name="${applicationName}"
@@ -41,6 +44,7 @@
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
+            android:resizeableActivity="true"
             android:windowSoftInputMode="adjustResize">
             <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user

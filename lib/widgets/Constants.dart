@@ -11,6 +11,10 @@ class Constants {
     Get.snackbar("Validation Error", message, backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
   }
 
+  static void showCallHistoryError(String message) {
+    Get.snackbar("Error", message, backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
+  }
+
   static void showSuccess(String message) {
     Get.snackbar("Successful!", message, backgroundColor: Colors.green, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
   }

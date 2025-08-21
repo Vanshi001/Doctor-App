@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:Doctor/model/CallHistoryResponseModel.dart';
 import 'package:Doctor/model/PrescriptionRequestModel.dart';
 import 'package:Doctor/model/appointment_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../model/ProductModel.dart';
 import '../model/ShopifyService.dart';
@@ -555,31 +557,106 @@ query GetProducts(\$cursor: String) {
     super.onClose();
   }
 
-  void _setupTimeChecker() {
-    // Check time immediately
-    _checkCallTime();
+  // final RxList<Map<String, dynamic>> callHistory = <Map<String, dynamic>>[].obs;
+  // final RxBool hasCallHistory = false.obs;
 
-    // Then check every second
-    _timeCheckTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      _checkCallTime();
-    });
+  var isLoadingCallHistory = false.obs;
+  var callHistoryData = Rxn<CallHistoryData>();
+  var callHistoryStatus = false.obs; // 👈 will be true if API status is true
+
+  var isLoadingAppointmentData = false.obs;
+  final Rx<CallHistoryData?> appointmentData = Rx<CallHistoryData?>(null);
+
+  Future<void> callHistoryApi(Map<String, String?> callLog, String? appointmentId) async {
+    isLoadingCallHistory.value = true;
+    // final url = Uri.parse('http://192.168.1.10:5000/api/doctors/request');
+    final url = Uri.parse('${Constants.baseUrl}appointments/$appointmentId/call-history');
+
+    print('url -- $url');
+
+    final data = callLog;
+
+    print(data);
+
+    try {
+      final response = await http.post(url, headers: {'Content-Type': 'application/json', 'accept': 'application/json'}, body: jsonEncode(data));
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        print('responseData -- $responseData');
+        // ✅ check if status is true
+        final status = responseData['success'] ?? false;
+        callHistoryStatus.value = status;
+        print('status -- $status');
+        print('callHistoryStatus.value -- ${callHistoryStatus.value}');
+
+        if (status) {
+          Constants.showSuccess("Success");
+
+          // save data in observable
+          callHistoryData.value = CallHistoryData.fromJson(responseData);
+          update(status);
+          fetchAppointmentByIdApi(appointmentId.toString());
+          Get.back();
+        } else {
+          print('Error errorMessage:-- ${responseData['message']}');
+          Constants.showCallHistoryError(responseData['message'] ?? "Failed");
+        }
+      } else {
+        final errorData = jsonDecode(response.body);
+        final errorMessage = errorData['message'] ?? "Something went wrong!";
+        print('Error errorMessage: $errorMessage');
+        callHistoryStatus.value = false;
+        Constants.showCallHistoryError(errorMessage);
+      }
+    } catch (e) {
+      print('Error: $e');
+      callHistoryStatus.value = false;
+      Constants.showCallHistoryError("Error -- $e");
+    } finally {
+      callHistoryStatus.value = false;
+      isLoadingCallHistory.value = false;
+    }
   }
 
-  void _checkCallTime() {
-    final startTimeStr = item?.timeSlot?.startTime ?? '';
-    if (startTimeStr.isEmpty) {
-      isCallButtonEnabled.value = false;
-      return;
+  Future<void> fetchAppointmentByIdApi(String appointmentId) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? '';
+    print('token -- $token');
+
+    isLoadingAppointmentData.value = true;
+    // final url = Uri.parse('http://192.168.1.10:5000/api/appointments');
+    final url = Uri.parse('${Constants.baseUrl}appointments/$appointmentId');
+    print('url ---=== $url');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        // print('Appointments: $responseData');
+
+        appointmentData.value = CallHistoryData.fromJson(responseData);
+        print('appointmentData.value ---=== ${appointmentData.value}');
+
+        // final message = responseData['message'] ?? 'Success';
+        // Constants.showSuccess(message);
+      } else {
+        final errorData = jsonDecode(response.body);
+        final errorMessage = errorData['message'] ?? "Login failed";
+        print('fetchAppointmentByIdApi errorMessage ---- $errorMessage');
+        Constants.showError(errorMessage);
+      }
+    } catch (e) {
+      print('Error fetchAppointmentByIdApi: $e');
+      Constants.showError("Error -- $e");
+    } finally {
+      isLoadingAppointmentData.value = false;
     }
-
-    final startTime = Constants.parseTimeString(startTimeStr);
-    final now = DateTime.now();
-    final timeDifference = startTime.difference(now);
-
-    // Enable button if current time is within 5 minutes before or after start time
-    isCallButtonEnabled.value = timeDifference.inMinutes <= 5 && !timeDifference.isNegative;
-    print('isCallButtonEnabled.value -- ${isCallButtonEnabled.value}');
-    print('timeDifference -- ${timeDifference}');
   }
 }
 

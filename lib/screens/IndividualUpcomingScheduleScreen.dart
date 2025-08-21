@@ -43,15 +43,15 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
   // final ShopifyService _shopifyService = Get.find<ShopifyService>();
 
   @override
+  void initState() {
+    super.initState();
+    print('item ---- ${widget.item.id}');
+    controller.fetchAppointmentByIdApi(widget.item.id.toString());
+  }
+
+  @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
-
-    final parsedDate = DateTime.parse(widget.item.appointmentDate.toString());
-    final formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
-
-    Constants.currentUser = ZegoUIKitUser(id: widget.item.bookingId.toString(), name: widget.item.patientFullName.toString());
-    print('widget.item.bookingId.toString() ---- ${widget.item.bookingId.toString()}');
-    print('item ---- ${widget.name}');
 
     return SafeArea(
       child: Scaffold(
@@ -66,353 +66,360 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
             },
           ),
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: ColorCodes.colorGrey4, width: 1.5),
-                ),
-                child: Column(
-                  children: [
-                    Text('Booking id -- ${widget.item.bookingId}'),
-                    Text('User id -- ${widget.item.userId}'),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Obx(() {
+            final data = widget.item; //controller.appointmentData.value;
+            if (data == null) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            final parsedDate = DateTime.parse(data.appointmentDate.toString());
+            final formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
+
+            Constants.currentUser = ZegoUIKitUser(id: data.bookingId.toString(), name: data.patientFullName.toString());
+
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: ColorCodes.colorGrey4, width: 1.5),
+                    ),
+                    child: Column(
                       children: [
-                        Container(
-                          height: 50,
-                          width: 50,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: ColorCodes.colorBlack2, // Background color for the circle
-                            border: Border.all(color: ColorCodes.colorBlue1, width: 3),
-                          ),
-                          child: Center(child: Text(controller.getInitials(widget.item.patientFullName.toString()), style: TextStyles.textStyle4)),
-                        ),
-                        const SizedBox(width: 5),
-                        Expanded(
-                          child: Container(
-                            padding: EdgeInsets.only(left: 5, right: 5),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(widget.item.patientFullName.toString(), style: TextStyles.textStyle3),
-                                SizedBox(height: 2),
-                                SizedBox(width: width / 3, child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1)),
-                                SizedBox(height: 2),
-                                Text(
-                                  widget.item.concerns?.join(", ") ?? '',
-                                  style: TextStyles.textStyle5,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                ),
-                                SizedBox(height: 5),
-                              ],
+                        Text('Booking id -- ${data.bookingId}'),
+                        Text('User id -- ${data.userId}'),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 50,
+                              width: 50,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: ColorCodes.colorBlack2, // Background color for the circle
+                                border: Border.all(color: ColorCodes.colorBlue1, width: 3),
+                              ),
+                              child: Center(child: Text(controller.getInitials(data.patientFullName.toString()), style: TextStyles.textStyle4)),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 12),
-                    Container(
-                      padding: EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(100)),
-                        border: Border.all(color: ColorCodes.colorGrey4),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset('assets/ic_calendar.png', width: 16, height: 16),
-                          SizedBox(width: 5),
-                          Text(formattedDate, style: TextStyles.textStyle4),
-                          SizedBox(width: 20),
-                          Image.asset('assets/ic_vertical_line.png', height: 30, width: 1),
-                          SizedBox(width: 20),
-                          Image.asset('assets/ic_clock.png', width: 16, height: 16),
-                          SizedBox(width: 5),
-                          Text(
-                            '${Constants.formatTimeToAmPm(widget.item.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(widget.item.timeSlot?.endTime ?? '')}',
-                            style: TextStyles.textStyle4,
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Obx(() =>
-                    Container(
-                      width: width,
-                      height: 40,
-                      margin: EdgeInsets.only(top: 10, bottom: 10),
-                      child: ElevatedButton(
-                        onPressed: /*controller.isCallButtonEnabled.value ?*/ () async {
-                          //WORKING CODE
-
-                          Constants.currentUser.id = widget.item.userId.toString();
-                          Constants.currentUser.name = widget.item.patientFullName.toString();
-
-                          print('Constants.currentUser.id ---- ${Constants.currentUser.id}');
-                          print('Constants.currentUser.name ---- ${Constants.currentUser.name}');
-
-                          await CallService.initializeCallService(widget.name.toString());
-
-                          await startVideoCallWithPatient(
-                            bookingId: widget.item.bookingId.toString(),
-                            patientUserId: widget.item.userId.toString(),
-                            patientName: widget.item.patientFullName.toString(),
-                          );
-
-
-                          /*onUserLogin();
-                            sendCallButton(
-                              isVideoCall: true,
-                              inviteeUsersIDTextCtrl: widget.item.userId.toString(),
-                              onCallFinished: onSendCallInvitationFinished,
-                            );*/
-
-                          // sendCallButton(
-                          //   isVideoCall: true,
-                          //   inviteeUsersIDTextCtrl: widget.item.userId.toString(),
-                          //   onCallFinished: onSendCallInvitationFinished,
-                          // );
-                          // Get.to(() => CallPage(callId: widget.item.userId.toString()));
-                        } /*: null*/,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: /*controller.isCallButtonEnabled.value
-                                  ? */
-                              ColorCodes.colorBlue1,
-                          /*: ColorCodes.colorGrey3*/
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-                        ),
-                        child: Text(
-                          'Call',
-                          style: TextStyles.textStyle6_1.copyWith(
-                            color: /*controller.isCallButtonEnabled.value
-                                  ? */
-                                Colors.white,
-                            /*: Colors.black54*/
-                          ),
-                        ),
-                      ),
-                    ),
-                    //),
-                  ],
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: ColorCodes.colorGrey4, width: 1.5),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Add Medicine', style: TextStyles.textStyle3),
-                        GestureDetector(
-                          onTap: () {
-                            _showAddMedicineSheet(context);
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(10)),
-                              border: Border.all(color: ColorCodes.colorBlue1, width: 1),
-                              color: ColorCodes.white,
-                            ),
-                            alignment: Alignment.center,
-                            height: 40,
-                            padding: EdgeInsets.only(left: 15, top: 5, right: 15, bottom: 5),
-                            child: Obx(() => Text(controller.medicines.isEmpty ? 'Add Medicine' : 'Add', style: TextStyles.textStyle4_2)),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 5),
-                    Obx(
-                      () => ListView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: controller.medicines.length,
-                        itemBuilder: (context, index) {
-                          final item = controller.medicines[index];
-
-                          if (controller.itemKeys.length <= index) {
-                            controller.itemKeys.add(GlobalKey());
-                          }
-
-                          return Row(
-                            children: [
-                              Flexible(
-                                child: Container(
-                                  key: controller.itemKeys[index],
-                                  margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: ColorCodes.colorGrey4),
-                                    borderRadius: BorderRadius.circular(12),
-                                    color: ColorCodes.white,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            const SizedBox(height: 2),
-                                            Text(item["medicineName"] ?? '', style: TextStyles.textStyle4_3),
-                                            Text(item["notes"] ?? '', overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyles.textStyle5_1),
-                                            const SizedBox(height: 2),
-                                          ],
-                                        ),
-                                      ),
-                                      SizedBox(width: 25),
-                                      GestureDetector(
-                                        onTap: () {
-                                          // controller.editMedicine(index);
-                                          print("Clicked item $index");
-                                          showEditMedicinePopup(context, index, controller);
-                                        },
-                                        child: Image.asset('assets/ic_edit.png', width: 24, height: 24),
-                                      ),
-                                      SizedBox(width: 10),
-                                    ],
-                                  ),
+                            const SizedBox(width: 5),
+                            Expanded(
+                              child: Container(
+                                padding: EdgeInsets.only(left: 5, right: 5),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(data.patientFullName.toString(), style: TextStyles.textStyle3),
+                                    SizedBox(height: 2),
+                                    SizedBox(width: width / 3, child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1)),
+                                    SizedBox(height: 2),
+                                    Text(data.concerns?.join(", ") ?? '', style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis, maxLines: 2),
+                                    SizedBox(height: 5),
+                                  ],
                                 ),
                               ),
-                              GestureDetector(
-                                onTap: () {
-                                  controller.removeMedicine(index);
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: ColorCodes.colorGrey4),
-                                    borderRadius: BorderRadius.circular(12),
-                                    color: ColorCodes.white,
-                                  ),
-                                  child: Image.asset('assets/ic_trash.png', width: 24, height: 24),
-                                ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 12),
+                        Container(
+                          padding: EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(100)),
+                            border: Border.all(color: ColorCodes.colorGrey4),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset('assets/ic_calendar.png', width: 16, height: 16),
+                              SizedBox(width: 5),
+                              Text(formattedDate, style: TextStyles.textStyle4),
+                              SizedBox(width: 20),
+                              Image.asset('assets/ic_vertical_line.png', height: 30, width: 1),
+                              SizedBox(width: 20),
+                              Image.asset('assets/ic_clock.png', width: 16, height: 16),
+                              SizedBox(width: 5),
+                              Text(
+                                '${Constants.formatTimeToAmPm(data.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(data.timeSlot?.endTime ?? '')}',
+                                style: TextStyles.textStyle4,
                               ),
                             ],
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                        // Obx(() =>
+                        Container(
+                          width: width,
+                          height: 40,
+                          margin: EdgeInsets.only(top: 10, bottom: 10),
+                          child: ElevatedButton(
+                            onPressed: /*controller.isCallButtonEnabled.value ?*/ () async {
+                              //WORKING CODE
+
+                              Constants.currentUser.id = data.userId.toString();
+                              Constants.currentUser.name = data.patientFullName.toString();
+
+                              print('Constants.currentUser.id ---- ${Constants.currentUser.id}');
+                              print('Constants.currentUser.name ---- ${Constants.currentUser.name}');
+                              print('data.id ---- ${data.id}');
+
+                              await CallService.initializeCallService(widget.name.toString(), context, data.id);
+
+                              await startVideoCallWithPatient(patientUserId: data.userId.toString(), patientName: data.patientFullName.toString());
+
+                              /*onUserLogin();
+                                sendCallButton(
+                                  isVideoCall: true,
+                                  inviteeUsersIDTextCtrl: widget.item.userId.toString(),
+                                  onCallFinished: onSendCallInvitationFinished,
+                                );*/
+
+                              // sendCallButton(
+                              //   isVideoCall: true,
+                              //   inviteeUsersIDTextCtrl: widget.item.userId.toString(),
+                              //   onCallFinished: onSendCallInvitationFinished,
+                              // );
+                              // Get.to(() => CallPage(callId: widget.item.userId.toString()));
+                            } /*: null*/,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: /*controller.isCallButtonEnabled.value
+                                      ? */
+                                  ColorCodes.colorBlue1,
+                              /*: ColorCodes.colorGrey3*/
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+                            ),
+                            child: Text(
+                              'Call',
+                              style: TextStyles.textStyle6_1.copyWith(
+                                color: /*controller.isCallButtonEnabled.value
+                                      ? */
+                                    Colors.white,
+                                /*: Colors.black54*/
+                              ),
+                            ),
+                          ),
+                        ),
+                        //),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              Obx(() {
-                if (controller.medicines.isNotEmpty) {
-                  return GestureDetector(
-                    onTap: () {
-                      final prescriptions =
-                          controller.medicines
-                              .map((medicine) {
-                                final name = medicine['medicineName']?.trim();
-                                final notes = medicine['notes']?.trim();
-                                final variantId = medicine['variantId']?.trim() /*.split('/').last*/;
-                                final productId = medicine['productId']?.trim() /*.split('/').last*/;
-                                final price = medicine['price']?.trim() /*.split('/').last*/;
-                                final compareAtPrice = medicine['compareAtPrice']?.trim() /*.split('/').last*/;
-                                final image = medicine['image']?.trim() /*.split('/').last*/;
-                                print(
-                                  "\n prescriptions name ---- $name, "
-                                  "\n notes - $notes, "
-                                  "\n variantId - $variantId, "
-                                  "\n productId - $productId, "
-                                  "\n price - $price "
-                                  "\n compareAtPrice - $compareAtPrice, "
-                                  "\n image - $image",
-                                );
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: ColorCodes.colorGrey4, width: 1.5),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Add Medicine', style: TextStyles.textStyle3),
+                            GestureDetector(
+                              onTap: () {
+                                print('controller.callHistoryStatus.value -- ${data.callHistory?.duration}');
+                                // _showAddMedicineSheet(context);
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                                  border: Border.all(color: ColorCodes.colorBlue1, width: 1),
+                                  color: ColorCodes.white,
+                                ),
+                                alignment: Alignment.center,
+                                height: 40,
+                                padding: EdgeInsets.only(left: 15, top: 5, right: 15, bottom: 5),
+                                child: Obx(() => Text(controller.medicines.isEmpty ? 'Add Medicine' : 'Add', style: TextStyles.textStyle4_2)),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5),
+                        Obx(
+                          () => ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: controller.medicines.length,
+                            itemBuilder: (context, index) {
+                              final item = controller.medicines[index];
 
-                                return PrescriptionItem(
-                                  medicineName: name ?? '',
-                                  notes: notes ?? '',
-                                  variantId: variantId ?? '',
-                                  productId: productId ?? '',
-                                  compareAtPrice: compareAtPrice ?? '',
-                                  image: image ?? '',
-                                  price: price ?? '',
-                                );
-                              })
-                              .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
-                              .toList();
+                              if (controller.itemKeys.length <= index) {
+                                controller.itemKeys.add(GlobalKey());
+                              }
 
-                      controller.selectedCustomerId.value = '8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
-                      controller.addMedicineApi(id: widget.item.id.toString(), prescriptions: prescriptions);
-                    },
-                    child: Container(
-                      margin: EdgeInsets.only(left: 15, top: 10, right: 15, bottom: 10),
-                      height: 40,
-                      decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(6)), color: ColorCodes.colorBlue1),
-                      child: Center(
-                        child:
-                            controller.isLoading.value
-                                ? SizedBox(
-                                  height: 23,
-                                  width: 23,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    backgroundColor: ColorCodes.darkPurple1,
-                                    valueColor: AlwaysStoppedAnimation<Color>(ColorCodes.white),
+                              return Row(
+                                children: [
+                                  Flexible(
+                                    child: Container(
+                                      key: controller.itemKeys[index],
+                                      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: ColorCodes.colorGrey4),
+                                        borderRadius: BorderRadius.circular(12),
+                                        color: ColorCodes.white,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const SizedBox(height: 2),
+                                                Text(item["medicineName"] ?? '', style: TextStyles.textStyle4_3),
+                                                Text(item["notes"] ?? '', overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyles.textStyle5_1),
+                                                const SizedBox(height: 2),
+                                              ],
+                                            ),
+                                          ),
+                                          SizedBox(width: 25),
+                                          GestureDetector(
+                                            onTap: () {
+                                              // controller.editMedicine(index);
+                                              print("Clicked item $index");
+                                              showEditMedicinePopup(context, index, controller);
+                                            },
+                                            child: Image.asset('assets/ic_edit.png', width: 24, height: 24),
+                                          ),
+                                          SizedBox(width: 10),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                )
-                                : Text('Save', style: TextStyles.textStyle6_1),
-                      ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      controller.removeMedicine(index);
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: ColorCodes.colorGrey4),
+                                        borderRadius: BorderRadius.circular(12),
+                                        color: ColorCodes.white,
+                                      ),
+                                      child: Image.asset('assets/ic_trash.png', width: 24, height: 24),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                } else {
-                  return SizedBox.shrink();
-                }
-              }),
-              if (controller.selectedItems.isNotEmpty) ...[
-                SizedBox(height: 20),
-                Text('Selected Items:', style: TextStyle(fontWeight: FontWeight.bold)),
-                ...controller.selectedItems.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
-                  return Text('item -- $item');
-                  /*final product = controller.products.firstWhere(
-                        (p) => (p['variants'] as List).any(
-                          (v) => v['id'].toString() == item['variant_id'],
-                    ),
-                    orElse: () => {'title': 'Unknown', 'variants': []},
-                  );
+                  ),
+                  Obx(() {
+                    if (controller.medicines.isNotEmpty) {
+                      return GestureDetector(
+                        onTap: () {
+                          final prescriptions =
+                              controller.medicines
+                                  .map((medicine) {
+                                    final name = medicine['medicineName']?.trim();
+                                    final notes = medicine['notes']?.trim();
+                                    final variantId = medicine['variantId']?.trim() /*.split('/').last*/;
+                                    final productId = medicine['productId']?.trim() /*.split('/').last*/;
+                                    final price = medicine['price']?.trim() /*.split('/').last*/;
+                                    final compareAtPrice = medicine['compareAtPrice']?.trim() /*.split('/').last*/;
+                                    final image = medicine['image']?.trim() /*.split('/').last*/;
+                                    print(
+                                      "\n prescriptions name ---- $name, "
+                                      "\n notes - $notes, "
+                                      "\n variantId - $variantId, "
+                                      "\n productId - $productId, "
+                                      "\n price - $price "
+                                      "\n compareAtPrice - $compareAtPrice, "
+                                      "\n image - $image",
+                                    );
 
-                  final variant = (product['variants'] as List).firstWhere(
-                        (v) => v['id'].toString() == item['variant_id'],
-                    orElse: () => {'title': 'Unknown', 'price': '0'},
-                  );
+                                    return PrescriptionItem(
+                                      medicineName: name ?? '',
+                                      notes: notes ?? '',
+                                      variantId: variantId ?? '',
+                                      productId: productId ?? '',
+                                      compareAtPrice: compareAtPrice ?? '',
+                                      image: image ?? '',
+                                      price: price ?? '',
+                                    );
+                                  })
+                                  .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
+                                  .toList();
 
-                  return ListTile(
-                    title: Text('${product['title']} - ${variant['title']}'),
-                    subtitle: Text('Qty: ${item['quantity']} × \$${variant['price']}'),
-                  );*/
-                }).toList(),
-              ],
-            ],
-          ),
+                          controller.selectedCustomerId.value = '8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
+                          controller.addMedicineApi(id: data.id.toString(), prescriptions: prescriptions);
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(left: 15, top: 10, right: 15, bottom: 10),
+                          height: 40,
+                          decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(6)), color: ColorCodes.colorBlue1),
+                          child: Center(
+                            child:
+                                controller.isLoading.value
+                                    ? SizedBox(
+                                      height: 23,
+                                      width: 23,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        backgroundColor: ColorCodes.darkPurple1,
+                                        valueColor: AlwaysStoppedAnimation<Color>(ColorCodes.white),
+                                      ),
+                                    )
+                                    : Text('Save', style: TextStyles.textStyle6_1),
+                          ),
+                        ),
+                      );
+                    } else {
+                      return SizedBox.shrink();
+                    }
+                  }),
+                  if (controller.selectedItems.isNotEmpty) ...[
+                    SizedBox(height: 20),
+                    Text('Selected Items:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ...controller.selectedItems.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      return Text('item -- $item');
+                      /*final product = controller.products.firstWhere(
+                            (p) => (p['variants'] as List).any(
+                              (v) => v['id'].toString() == item['variant_id'],
+                        ),
+                        orElse: () => {'title': 'Unknown', 'variants': []},
+                      );
+
+                      final variant = (product['variants'] as List).firstWhere(
+                            (v) => v['id'].toString() == item['variant_id'],
+                        orElse: () => {'title': 'Unknown', 'price': '0'},
+                      );
+
+                      return ListTile(
+                        title: Text('${product['title']} - ${variant['title']}'),
+                        subtitle: Text('Qty: ${item['quantity']} × \$${variant['price']}'),
+                      );*/
+                    }).toList(),
+                  ],
+                ],
+              ),
+            );
+          }),
         ),
       ),
     );
   }
 
   // In your appointment details screen or where you want to initiate calls
-  Future<void> startVideoCallWithPatient({required String bookingId, required String patientUserId, required String patientName}) async {
+  Future<void> startVideoCallWithPatient({required String patientUserId, required String patientName}) async {
     try {
       // Show loading indicator
       Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
 
-      await CallService.startAppointmentCall(patientUserId: patientUserId, bookingId: bookingId, patientName: patientName);
+      await CallService.startAppointmentCall(patientUserId: patientUserId, patientName: patientName);
 
       Get.back(); // Close loading dialog
     } catch (e) {

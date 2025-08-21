@@ -5,13 +5,20 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:get/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest.dart';
+import 'package:timezone/data/latest.dart' as tz;
 import 'package:uuid/uuid.dart';
 import 'package:zego_uikit/zego_uikit.dart';
 import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
+import '../controllers/IndividualUpcomingScheduleController.dart';
 import '../widgets/Constants.dart';
+import 'CallDurationTracker.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class CallService {
   static DateTime? callStartTime;
@@ -20,7 +27,7 @@ class CallService {
   static final ZegoUIKitPrebuiltCallInvitationService invitationService = ZegoUIKitPrebuiltCallInvitationService();
   static final navigatorKey = GlobalKey<NavigatorState>();
 
-  static Future<void> initializeCallService(String callerUserName) async {
+  static Future<void> initializeCallService(String callerUserName, BuildContext context, String? appointmentId) async {
     callStartTime = null;
     final prefs = await SharedPreferences.getInstance();
     final doctorId = prefs.getString('doctor_id') ?? '';
@@ -49,30 +56,13 @@ class CallService {
       plugins: [ZegoUIKitSignalingPlugin()],
       requireConfig: (ZegoCallInvitationData data) {
         var config = ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall();
-        /*..duration.isVisible = true
-        ..duration.onDurationUpdate = (Duration duration) {
-          if (duration.inSeconds >= 1 * 60) { // Example: 1 minute limit
-            print('duration.inSeconds -- ${duration.inSeconds}');
-          }
-        };*/
 
-        // Modify your custom configurations here.
-        config.duration.isVisible = true;
-        config.duration.onDurationUpdate = (Duration duration) {
-          // Capture start time when duration begins (first callback)
-          // if (callStartTime == null) {
-          //   callStartTime = DateTime.now().subtract(duration);
-          //   print('callStartTime -- $callStartTime');
-          // }
+        config.layout = ZegoLayout.pictureInPicture(
+          isSmallViewDraggable: true,
+          switchLargeOrSmallViewByClick: true,
+        );
 
-          // if (duration.inSeconds == 30 /*15 * 60*/ ) {
-          //   print('duration.inSeconds -- ${duration.inSeconds}');
-            /* 15 * 60 = 900 seconds = 15 minutes */
-            // ZegoUIKitPrebuiltCallController().hangUp(navigatorKey.currentState!.context);
-           // }
-        };
-
-        print('------------------------------------------------------------==');
+        _setupCallDurationTracking(config, context, appointmentId);
 
         return config;
       },
@@ -109,6 +99,73 @@ class CallService {
       invitees: [ZegoCallUser(Constants.currentUser.id, Constants.currentUser.name)],
       isVideoCall: true,
     );*/
+  }
+
+  static void _setupCallDurationTracking(ZegoUIKitPrebuiltCallConfig config, BuildContext context, String? appointmentId) {
+    // Use duration callback for timing (this is available)
+    config.duration = ZegoCallDurationConfig(
+      isVisible: true,
+      onDurationUpdate: (Duration duration) {
+        print('VANSHI Elapsed time: ${CallDurationTracker.formatDuration(duration)}');
+
+        // Track start time on first duration update
+        if (callStartTime == null) {
+          callStartTime = DateTime.now().subtract(duration);
+          CallDurationTracker.startCall();
+          print('VANSHI Call started at: $callStartTime');
+        }
+
+        // Check for 15-minute limit (900 seconds)
+        if (duration.inSeconds >= 10) {
+          print('VANSHI 15-minute time limit reached - ending call');
+          // You can add logic to end the call here if needed
+          callEndTime = DateTime.now();
+          CallDurationTracker.endCall();
+          ZegoUIKitPrebuiltCallController().hangUp(context);
+          _saveCallLog(duration.toString(), appointmentId);
+        }
+      },
+    );
+
+    // Use window events for call start/end detection
+    /*config.windowCreated = (controller) {
+      print('Call window created - call started');
+      callStartTime = DateTime.now();
+      CallDurationTracker.startCall();
+    };
+
+    config.onWindowDestroyed = (controller) {
+      print('Call window destroyed - call ended');
+      callEndTime = DateTime.now();
+      CallDurationTracker.endCall();
+      _saveCallLog();
+    };*/
+  }
+
+  static void _saveCallLog(String duration, String? appointmentId) {
+    // Save to shared preferences or send to your backend
+
+    final callLog = {
+      'startTime': callStartTime?.toIso8601String(),
+      'endTime': callEndTime?.toIso8601String(),
+    };
+
+    print('VANSHI Call log: $callLog');
+    // Save to controller
+    final controller = Get.find<IndividualUpcomingScheduleController>();
+    // controller.callHistory.add(callLog);
+    // controller.hasCallHistory.value = true;
+
+    // Also save to shared preferences for persistence
+    controller.callHistoryApi(callLog, appointmentId);
+    // saveCallLogToPrefs(callLog);
+  }
+
+  static void saveCallLogToPrefs(Map<String, dynamic> callLog) async {
+    final prefs = await SharedPreferences.getInstance();
+    final callHistoryJson = prefs.getStringList('call_history') ?? [];
+    callHistoryJson.add(jsonEncode(callLog));
+    await prefs.setStringList('call_history', callHistoryJson);
   }
 
   static Future<void> sendCallInvitation(String targetUserId, String targetUserName, {bool isVideo = true}) async {
@@ -164,7 +221,7 @@ class CallService {
     }
   }
 
-  static Future<void> startAppointmentCall({required String patientUserId, required String bookingId, required String patientName}) async {
+  static Future<void> startAppointmentCall({required String patientUserId, required String patientName}) async {
     try {
       print('sending call invitation to: $patientUserId');
 

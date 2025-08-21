@@ -1,57 +1,60 @@
+// lib/utils/call_duration_tracker.dart
 import 'dart:async';
-import 'package:zego_uikit/zego_uikit.dart';
-import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
-
-import 'Constants.dart';
 
 class CallDurationTracker {
-  static Timer? _callDurationTimer;
-  static const int maxCallDurationMinutes = 15;
-  static const int maxCallDurationSeconds = maxCallDurationMinutes * 60;
+  static DateTime? _callStartTime;
+  static DateTime? _callEndTime;
+  static Timer? _durationTimer;
+  static Duration _currentDuration = Duration.zero;
 
-  static void startCallTimer() {
-    // Cancel any existing timer
-    _callDurationTimer?.cancel();
+  static void startCall() {
+    _callStartTime = DateTime.now();
+    _currentDuration = Duration.zero;
 
-    // Start new timer
-    _callDurationTimer = Timer(Duration(minutes: maxCallDurationMinutes), () {
-      _endCallAfterTimeout();
+    _durationTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      _currentDuration += Duration(seconds: 1);
+      print('VANSHI CallDurationTrackerCall duration: ${formatDuration(_currentDuration)}');
     });
 
-    print('Call timer started - ${maxCallDurationMinutes} minutes countdown');
+    print('VANSHI CallDurationTracker Call started at: $_callStartTime');
   }
 
-  static void _endCallAfterTimeout() {
-    print('Call time limit reached - ending call');
+  static void endCall() {
+    _callEndTime = DateTime.now();
+    _durationTimer?.cancel();
+    _durationTimer = null;
 
-    // End the call through ZegoUIKit
-    ZegoUIKit().leaveRoom();
-
-    // Show notification to both users
-    _showTimeLimitNotification();
+    print('VANSHI CallDurationTracker Call ended at: $_callEndTime');
+    print('VANSHI CallDurationTracker Total call duration: ${getFormattedDuration()}');
   }
 
-  static void _showTimeLimitNotification() {
-    // You can use GetX, snackbar, or local notification
-    Constants.showError('Call ended automatically after $maxCallDurationMinutes minutes');
-  }
-
-  static void stopCallTimer() {
-    _callDurationTimer?.cancel();
-    _callDurationTimer = null;
-    print('Call timer stopped');
-  }
-
-  static String getRemainingTime() {
-    if (_callDurationTimer == null || !_callDurationTimer!.isActive) {
-      return '00:00';
+  static Duration? get totalDuration {
+    if (_callStartTime != null && _callEndTime != null) {
+      return _callEndTime!.difference(_callStartTime!);
     }
+    return null;
+  }
 
-    // Calculate remaining time (this is approximate)
-    final remaining = Duration(seconds: maxCallDurationSeconds);
-    final minutes = remaining.inMinutes;
-    final seconds = remaining.inSeconds.remainder(60);
+  static String getFormattedDuration() {
+    final duration = totalDuration;
+    if (duration != null) {
+      return formatDuration(duration);
+    }
+    return '00:00:00';
+  }
 
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  static String formatDuration(Duration duration) {
+    final hours = duration.inHours.toString().padLeft(2, '0');
+    final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    return '$hours:$minutes:$seconds';
+  }
+
+  static void reset() {
+    _durationTimer?.cancel();
+    _durationTimer = null;
+    _callStartTime = null;
+    _callEndTime = null;
+    _currentDuration = Duration.zero;
   }
 }

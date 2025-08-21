@@ -61,6 +61,7 @@ dependencies:
 
   geocoding: ^4.0.0
   geolocator: ^14.0.1
+  timezone: ^0.10.1
 
 #  card_slider: ^1.0.5
 
