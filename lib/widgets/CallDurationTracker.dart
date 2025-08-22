@@ -6,26 +6,62 @@ class CallDurationTracker {
   static DateTime? _callEndTime;
   static Timer? _durationTimer;
   static Duration _currentDuration = Duration.zero;
+  static bool _isCallActive = false;
 
   static void startCall() {
+    if (_isCallActive) {
+      print('VANSHI CallDurationTracker: Call is already active');
+      return;
+    }
+
     _callStartTime = DateTime.now();
     _currentDuration = Duration.zero;
+    _isCallActive = true;
 
     _durationTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_isCallActive) {
       _currentDuration += Duration(seconds: 1);
       print('VANSHI CallDurationTrackerCall duration: ${formatDuration(_currentDuration)}');
+      } else {
+        timer.cancel();
+      }
     });
 
     print('VANSHI CallDurationTracker Call started at: $_callStartTime');
   }
 
   static void endCall() {
+    if (!_isCallActive) {
+      print('VANSHI CallDurationTracker: No active call to end');
+      return;
+    }
+
     _callEndTime = DateTime.now();
+    _isCallActive = false;
     _durationTimer?.cancel();
     _durationTimer = null;
 
     print('VANSHI CallDurationTracker Call ended at: $_callEndTime');
     print('VANSHI CallDurationTracker Total call duration: ${getFormattedDuration()}');
+  }
+
+  // Call this when call is cut/disconnected unexpectedly
+  static void onCallCut() {
+    if (!_isCallActive) {
+      print('VANSHI CallDurationTracker: No active call to cut');
+      return;
+    }
+
+    print('VANSHI CallDurationTracker: Call was cut/disconnected');
+    endCall(); // Use the same end call logic
+  }
+
+  // Force stop the tracker in case of any issues
+  static void forceStop() {
+    _isCallActive = false;
+    _durationTimer?.cancel();
+    _durationTimer = null;
+    print('VANSHI CallDurationTracker: Force stopped');
   }
 
   static Duration? get totalDuration {
@@ -35,12 +71,17 @@ class CallDurationTracker {
     return null;
   }
 
+  static Duration get currentDuration => _currentDuration;
+
+  static bool get isCallActive => _isCallActive;
+
   static String getFormattedDuration() {
     final duration = totalDuration;
     if (duration != null) {
       return formatDuration(duration);
     }
-    return '00:00:00';
+    return formatDuration(_currentDuration);
+    // return '00:00:00';
   }
 
   static String formatDuration(Duration duration) {
@@ -51,10 +92,13 @@ class CallDurationTracker {
   }
 
   static void reset() {
+    _isCallActive = false;
     _durationTimer?.cancel();
     _durationTimer = null;
     _callStartTime = null;
     _callEndTime = null;
     _currentDuration = Duration.zero;
+    _currentDuration = Duration.zero;
+    print('VANSHI CallDurationTracker: Reset complete');
   }
 }

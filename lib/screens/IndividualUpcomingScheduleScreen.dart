@@ -66,148 +66,148 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
             },
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Obx(() {
-            final data = widget.item; //controller.appointmentData.value;
-            if (data == null) {
-              return Center(child: CircularProgressIndicator());
-            }
+        body: Obx(() {
+          if (controller.isLoadingAppointmentData.value) {
+            return CircularProgressIndicator(color: ColorCodes.black);
+          }
 
-            final parsedDate = DateTime.parse(data.appointmentDate.toString());
-            final formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
+          final data = controller.appointmentData.value!;
 
-            Constants.currentUser = ZegoUIKitUser(id: data.bookingId.toString(), name: data.patientFullName.toString());
+          final parsedDate = DateTime.parse(data.appointmentDate.toString());
+          final formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
+          final bookingId = data.bookingId.toString();
+          final userId = data.userId.toString();
+          final patientFullName = data.patientFullName.toString();
+          final concerns = data.concerns?.join(", ") ?? '';
+          final startTime = Constants.formatTimeToAmPm(data.timeSlot?.startTime ?? '');
+          final endTime = Constants.formatTimeToAmPm(data.timeSlot?.endTime ?? '');
 
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: ColorCodes.colorGrey4, width: 1.5),
-                    ),
-                    child: Column(
-                      children: [
-                        Text('Booking id -- ${data.bookingId}'),
-                        Text('User id -- ${data.userId}'),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+          Constants.currentUser = ZegoUIKitUser(id: bookingId, name: patientFullName);
+
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: ColorCodes.colorGrey4, width: 1.5),
+                  ),
+                  child: Column(
+                    children: [
+                      Text('Booking id -- $bookingId'),
+                      Text('User id -- $userId'),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 50,
+                            width: 50,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: ColorCodes.colorBlack2, // Background color for the circle
+                              border: Border.all(color: ColorCodes.colorBlue1, width: 3),
+                            ),
+                            child: Center(child: Text(controller.getInitials(patientFullName), style: TextStyles.textStyle4)),
+                          ),
+                          const SizedBox(width: 5),
+                          Expanded(
+                            child: Container(
+                              padding: EdgeInsets.only(left: 5, right: 5),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(patientFullName, style: TextStyles.textStyle3),
+                                  SizedBox(height: 2),
+                                  SizedBox(width: width / 3, child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1)),
+                                  SizedBox(height: 2),
+                                  Text(concerns, style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis, maxLines: 2),
+                                  SizedBox(height: 5),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12),
+                      Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(100)),
+                          border: Border.all(color: ColorCodes.colorGrey4),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Container(
-                              height: 50,
-                              width: 50,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: ColorCodes.colorBlack2, // Background color for the circle
-                                border: Border.all(color: ColorCodes.colorBlue1, width: 3),
-                              ),
-                              child: Center(child: Text(controller.getInitials(data.patientFullName.toString()), style: TextStyles.textStyle4)),
-                            ),
-                            const SizedBox(width: 5),
-                            Expanded(
-                              child: Container(
-                                padding: EdgeInsets.only(left: 5, right: 5),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(data.patientFullName.toString(), style: TextStyles.textStyle3),
-                                    SizedBox(height: 2),
-                                    SizedBox(width: width / 3, child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1)),
-                                    SizedBox(height: 2),
-                                    Text(data.concerns?.join(", ") ?? '', style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis, maxLines: 2),
-                                    SizedBox(height: 5),
-                                  ],
-                                ),
-                              ),
-                            ),
+                            Image.asset('assets/ic_calendar.png', width: 16, height: 16),
+                            SizedBox(width: 5),
+                            Text(formattedDate, style: TextStyles.textStyle4),
+                            SizedBox(width: 20),
+                            Image.asset('assets/ic_vertical_line.png', height: 30, width: 1),
+                            SizedBox(width: 20),
+                            Image.asset('assets/ic_clock.png', width: 16, height: 16),
+                            SizedBox(width: 5),
+                            Text('$startTime - $endTime', style: TextStyles.textStyle4),
                           ],
                         ),
-                        SizedBox(height: 12),
-                        Container(
-                          padding: EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.all(Radius.circular(100)),
-                            border: Border.all(color: ColorCodes.colorGrey4),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset('assets/ic_calendar.png', width: 16, height: 16),
-                              SizedBox(width: 5),
-                              Text(formattedDate, style: TextStyles.textStyle4),
-                              SizedBox(width: 20),
-                              Image.asset('assets/ic_vertical_line.png', height: 30, width: 1),
-                              SizedBox(width: 20),
-                              Image.asset('assets/ic_clock.png', width: 16, height: 16),
-                              SizedBox(width: 5),
-                              Text(
-                                '${Constants.formatTimeToAmPm(data.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(data.timeSlot?.endTime ?? '')}',
-                                style: TextStyles.textStyle4,
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Obx(() =>
-                        Container(
-                          width: width,
-                          height: 40,
-                          margin: EdgeInsets.only(top: 10, bottom: 10),
-                          child: ElevatedButton(
-                            onPressed: /*controller.isCallButtonEnabled.value ?*/ () async {
-                              //WORKING CODE
+                      ),
+                      // Obx(() =>
+                      Container(
+                        width: width,
+                        height: 40,
+                        margin: EdgeInsets.only(top: 10, bottom: 10),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            //WORKING CODE
 
-                              Constants.currentUser.id = data.userId.toString();
-                              Constants.currentUser.name = data.patientFullName.toString();
+                            Get.snackbar('Calling', 'Please wait...');
+                            Constants.currentUser.id = userId;
+                            Constants.currentUser.name = patientFullName;
 
-                              print('Constants.currentUser.id ---- ${Constants.currentUser.id}');
-                              print('Constants.currentUser.name ---- ${Constants.currentUser.name}');
-                              print('data.id ---- ${data.id}');
+                            print('Constants.currentUser.id ---- ${Constants.currentUser.id}');
+                            print('Constants.currentUser.name ---- ${Constants.currentUser.name}');
+                            print('data.id ---- ${data.id}');
 
-                              await CallService.initializeCallService(widget.name.toString(), context, data.id);
+                            await CallService.initializeCallService(widget.name.toString(), context, data.id);
 
-                              await startVideoCallWithPatient(patientUserId: data.userId.toString(), patientName: data.patientFullName.toString());
+                            await startVideoCallWithPatient(patientUserId: userId, patientName: patientFullName);
 
-                              /*onUserLogin();
+                            /*onUserLogin();
                                 sendCallButton(
                                   isVideoCall: true,
                                   inviteeUsersIDTextCtrl: widget.item.userId.toString(),
                                   onCallFinished: onSendCallInvitationFinished,
                                 );*/
 
-                              // sendCallButton(
-                              //   isVideoCall: true,
-                              //   inviteeUsersIDTextCtrl: widget.item.userId.toString(),
-                              //   onCallFinished: onSendCallInvitationFinished,
-                              // );
-                              // Get.to(() => CallPage(callId: widget.item.userId.toString()));
-                            } /*: null*/,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: /*controller.isCallButtonEnabled.value
+                            // sendCallButton(
+                            //   isVideoCall: true,
+                            //   inviteeUsersIDTextCtrl: widget.item.userId.toString(),
+                            //   onCallFinished: onSendCallInvitationFinished,
+                            // );
+                            // Get.to(() => CallPage(callId: widget.item.userId.toString()));
+                          } /*: null*/,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: /*controller.isCallButtonEnabled.value
                                       ? */
-                                  ColorCodes.colorBlue1,
-                              /*: ColorCodes.colorGrey3*/
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-                            ),
-                            child: Text(
-                              'Call',
-                              style: TextStyles.textStyle6_1.copyWith(
-                                color: /*controller.isCallButtonEnabled.value
-                                      ? */
-                                    Colors.white,
-                                /*: Colors.black54*/
-                              ),
-                            ),
+                                ColorCodes.colorBlue1,
+                            /*: ColorCodes.colorGrey3*/
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
                           ),
+                          child: Text('Call', style: TextStyles.textStyle6_1.copyWith(color: Colors.white)),
                         ),
-                        //),
-                      ],
-                    ),
+                      ),
+                      //),
+                    ],
                   ),
-                  Container(
+                ),
+                Obx(() {
+                  if (controller.callDuration.value <= 0) {
+                    return SizedBox.shrink();
+                  }
+
+                  return Container(
                     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -273,7 +273,12 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                                               children: [
                                                 const SizedBox(height: 2),
                                                 Text(item["medicineName"] ?? '', style: TextStyles.textStyle4_3),
-                                                Text(item["notes"] ?? '', overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyles.textStyle5_1),
+                                                Text(
+                                                  item["notes"] ?? '',
+                                                  overflow: TextOverflow.ellipsis,
+                                                  maxLines: 1,
+                                                  style: TextStyles.textStyle5_1,
+                                                ),
                                                 const SizedBox(height: 2),
                                               ],
                                             ),
@@ -314,79 +319,80 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                         ),
                       ],
                     ),
-                  ),
-                  Obx(() {
-                    if (controller.medicines.isNotEmpty) {
-                      return GestureDetector(
-                        onTap: () {
-                          final prescriptions =
-                              controller.medicines
-                                  .map((medicine) {
-                                    final name = medicine['medicineName']?.trim();
-                                    final notes = medicine['notes']?.trim();
-                                    final variantId = medicine['variantId']?.trim() /*.split('/').last*/;
-                                    final productId = medicine['productId']?.trim() /*.split('/').last*/;
-                                    final price = medicine['price']?.trim() /*.split('/').last*/;
-                                    final compareAtPrice = medicine['compareAtPrice']?.trim() /*.split('/').last*/;
-                                    final image = medicine['image']?.trim() /*.split('/').last*/;
-                                    print(
-                                      "\n prescriptions name ---- $name, "
-                                      "\n notes - $notes, "
-                                      "\n variantId - $variantId, "
-                                      "\n productId - $productId, "
-                                      "\n price - $price "
-                                      "\n compareAtPrice - $compareAtPrice, "
-                                      "\n image - $image",
-                                    );
+                  );
+                }),
+                Obx(() {
+                  if (controller.medicines.isNotEmpty) {
+                    return GestureDetector(
+                      onTap: () {
+                        final prescriptions =
+                            controller.medicines
+                                .map((medicine) {
+                                  final name = medicine['medicineName']?.trim();
+                                  final notes = medicine['notes']?.trim();
+                                  final variantId = medicine['variantId']?.trim() /*.split('/').last*/;
+                                  final productId = medicine['productId']?.trim() /*.split('/').last*/;
+                                  final price = medicine['price']?.trim() /*.split('/').last*/;
+                                  final compareAtPrice = medicine['compareAtPrice']?.trim() /*.split('/').last*/;
+                                  final image = medicine['image']?.trim() /*.split('/').last*/;
+                                  print(
+                                    "\n prescriptions name ---- $name, "
+                                    "\n notes - $notes, "
+                                    "\n variantId - $variantId, "
+                                    "\n productId - $productId, "
+                                    "\n price - $price "
+                                    "\n compareAtPrice - $compareAtPrice, "
+                                    "\n image - $image",
+                                  );
 
-                                    return PrescriptionItem(
-                                      medicineName: name ?? '',
-                                      notes: notes ?? '',
-                                      variantId: variantId ?? '',
-                                      productId: productId ?? '',
-                                      compareAtPrice: compareAtPrice ?? '',
-                                      image: image ?? '',
-                                      price: price ?? '',
-                                    );
-                                  })
-                                  .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
-                                  .toList();
+                                  return PrescriptionItem(
+                                    medicineName: name ?? '',
+                                    notes: notes ?? '',
+                                    variantId: variantId ?? '',
+                                    productId: productId ?? '',
+                                    compareAtPrice: compareAtPrice ?? '',
+                                    image: image ?? '',
+                                    price: price ?? '',
+                                  );
+                                })
+                                .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
+                                .toList();
 
-                          controller.selectedCustomerId.value = '8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
-                          controller.addMedicineApi(id: data.id.toString(), prescriptions: prescriptions);
-                        },
-                        child: Container(
-                          margin: EdgeInsets.only(left: 15, top: 10, right: 15, bottom: 10),
-                          height: 40,
-                          decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(6)), color: ColorCodes.colorBlue1),
-                          child: Center(
-                            child:
-                                controller.isLoading.value
-                                    ? SizedBox(
-                                      height: 23,
-                                      width: 23,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        backgroundColor: ColorCodes.darkPurple1,
-                                        valueColor: AlwaysStoppedAnimation<Color>(ColorCodes.white),
-                                      ),
-                                    )
-                                    : Text('Save', style: TextStyles.textStyle6_1),
-                          ),
+                        controller.selectedCustomerId.value = '8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
+                        controller.addMedicineApi(id: data.id.toString(), prescriptions: prescriptions);
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(left: 15, top: 10, right: 15, bottom: 10),
+                        height: 40,
+                        decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(6)), color: ColorCodes.colorBlue1),
+                        child: Center(
+                          child:
+                              controller.isLoading.value
+                                  ? SizedBox(
+                                    height: 23,
+                                    width: 23,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      backgroundColor: ColorCodes.darkPurple1,
+                                      valueColor: AlwaysStoppedAnimation<Color>(ColorCodes.white),
+                                    ),
+                                  )
+                                  : Text('Save', style: TextStyles.textStyle6_1),
                         ),
-                      );
-                    } else {
-                      return SizedBox.shrink();
-                    }
-                  }),
-                  if (controller.selectedItems.isNotEmpty) ...[
-                    SizedBox(height: 20),
-                    Text('Selected Items:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...controller.selectedItems.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final item = entry.value;
-                      return Text('item -- $item');
-                      /*final product = controller.products.firstWhere(
+                      ),
+                    );
+                  } else {
+                    return SizedBox.shrink();
+                  }
+                }),
+                if (controller.selectedItems.isNotEmpty) ...[
+                  SizedBox(height: 20),
+                  Text('Selected Items:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ...controller.selectedItems.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final item = entry.value;
+                    return Text('item -- $item');
+                    /*final product = controller.products.firstWhere(
                             (p) => (p['variants'] as List).any(
                               (v) => v['id'].toString() == item['variant_id'],
                         ),
@@ -402,13 +408,12 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                         title: Text('${product['title']} - ${variant['title']}'),
                         subtitle: Text('Qty: ${item['quantity']} × \$${variant['price']}'),
                       );*/
-                    }).toList(),
-                  ],
+                  }).toList(),
                 ],
-              ),
-            );
-          }),
-        ),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }

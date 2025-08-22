@@ -20,9 +20,13 @@ import '../widgets/Constants.dart';
 import 'CallDurationTracker.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import 'ColorCodes.dart';
+import 'TextStyles.dart';
+
 class CallService {
   static DateTime? callStartTime;
   static DateTime? callEndTime;
+  static var finalDuration;
 
   static final ZegoUIKitPrebuiltCallInvitationService invitationService = ZegoUIKitPrebuiltCallInvitationService();
   static final navigatorKey = GlobalKey<NavigatorState>();
@@ -54,18 +58,68 @@ class CallService {
       userID: doctorId,
       userName: callerUserName,
       plugins: [ZegoUIKitSignalingPlugin()],
+      events: ZegoUIKitPrebuiltCallEvents(
+        // Modify your custom configurations here.
+        onHangUpConfirmation: (
+          ZegoCallHangUpConfirmationEvent event,
+
+          /// defaultAction to return to the previous page
+          Future<bool> Function() defaultAction,
+        ) async {
+          return await showDialog(
+            context: event.context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                backgroundColor: ColorCodes.colorBlue1,
+                title: Text("Hang Up", style: TextStyles.textStyle5_2),
+                content: Text("Are you sure want to hang up the call?", style: TextStyles.textStyle5_2),
+                actions: [
+                  ElevatedButton(child: const Text("Cancel", style: TextStyles.textStyle4), onPressed: () => Navigator.of(context).pop(false)),
+                  ElevatedButton(child: const Text("Exit", style: TextStyles.textStyle4), onPressed: () => {
+                    Navigator.of(context).pop(true),
+                    print('EXIT'),
+                  CallDurationTracker.endCall(),
+                  _saveCallLog(finalDuration.toString(), appointmentId),
+
+                  }),
+                ],
+              );
+            },
+          );
+        },
+      ),
       requireConfig: (ZegoCallInvitationData data) {
         var config = ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall();
 
-        config.layout = ZegoLayout.pictureInPicture(
-          isSmallViewDraggable: true,
-          switchLargeOrSmallViewByClick: true,
-        );
+        config.layout = ZegoLayout.pictureInPicture(isSmallViewDraggable: true, switchLargeOrSmallViewByClick: true);
 
         _setupCallDurationTracking(config, context, appointmentId);
 
         return config;
       },
+      invitationEvents: ZegoUIKitPrebuiltCallInvitationEvents(
+        onOutgoingCallCancelButtonPressed: () {
+          print('invitationEvents onOutgoingCallCancelButtonPressed button clicked');
+          ZegoUIKitPrebuiltCallController().hangUp(context);
+        },
+        onOutgoingCallDeclined: (callID, callee, customData) {
+          print('invitationEvents onOutgoingCallDeclined callID -- $callID');
+          print('invitationEvents onOutgoingCallDeclined callee name-- ${callee.name}');
+          ZegoUIKitPrebuiltCallInvitationService().reject(causeByPopScope: true);
+          Constants.showError('${callee.name} has rejected the appointment call.');
+        },
+
+        /*onOutgoingCallRejectedCauseBusy: (callID, callee, customData) {
+          print('invitationEvents callID -- $callID');
+          print('invitationEvents callee name-- ${callee.name}');
+          ZegoUIKitPrebuiltCallInvitationService().reject();
+        },*/
+        onInvitationUserStateChanged: (event) {
+          print('invitationEvents Invitation state changed: ${event.last.state}');
+          // Get.back();
+        },
+      ),
 
       config: ZegoCallInvitationConfig(offline: ZegoCallInvitationOfflineConfig(autoEnterAcceptedOfflineCall: false)),
 
@@ -116,13 +170,14 @@ class CallService {
         }
 
         // Check for 15-minute limit (900 seconds)
-        if (duration.inSeconds >= 10) {
+        if (duration.inSeconds >= 70) {
           print('VANSHI 15-minute time limit reached - ending call');
           // You can add logic to end the call here if needed
           callEndTime = DateTime.now();
           CallDurationTracker.endCall();
           ZegoUIKitPrebuiltCallController().hangUp(context);
-          _saveCallLog(duration.toString(), appointmentId);
+          finalDuration = duration;
+          _saveCallLog(finalDuration, appointmentId);
         }
       },
     );
@@ -145,10 +200,7 @@ class CallService {
   static void _saveCallLog(String duration, String? appointmentId) {
     // Save to shared preferences or send to your backend
 
-    final callLog = {
-      'startTime': callStartTime?.toIso8601String(),
-      'endTime': callEndTime?.toIso8601String(),
-    };
+    final callLog = {'startTime': callStartTime?.toIso8601String(), 'endTime': callEndTime?.toIso8601String()};
 
     print('VANSHI Call log: $callLog');
     // Save to controller
@@ -210,18 +262,28 @@ class CallService {
     return userID.substring(userID.length - 6);
   }
 
-  static Future<void> startAppointmentCall_({required String patientUserId, required String bookingId, required String patientName}) async {
+  static Future<void> startAppointmentCall({required String patientUserId, required String patientName}) async {
     try {
       // Get the signaling plugin instance
       print('sending call invitation');
-      sendCallButton(isVideoCall: true, inviteeUsersIDTextCtrl: patientUserId, name: patientName, onCallFinished: onSendCallInvitationFinished);
+      late TextEditingController inviteeUsersIDTextCtrl = TextEditingController(text: patientUserId);
+      // inviteeUsersIDTextCtrl.text = patientUserId;
+
+      sendCallButton(
+        isVideoCall: true,
+        inviteeUsersIDTextCtrl: inviteeUsersIDTextCtrl,
+        name: patientName,
+        onCallFinished: (code, message, errorInvitees) {
+          print('Call finished: $code, $message, $errorInvitees');
+        },
+      );
     } catch (e) {
       print('Error sending call invitation: $e');
       rethrow;
     }
   }
 
-  static Future<void> startAppointmentCall({required String patientUserId, required String patientName}) async {
+  static Future<void> startAppointmentCall_({required String patientUserId, required String patientName}) async {
     try {
       print('sending call invitation to: $patientUserId');
 
@@ -231,7 +293,7 @@ class CallService {
         print('Call invitation sent successfully');
 
         // Since we can't get direct callback, set up listeners for call events
-        print('result.toString() -- ${result.toString()}');
+        // print('result.toString() -- ${result.toString()}');
       });
     } catch (e) {
       print('Error sending call invitation: $e');
@@ -241,14 +303,14 @@ class CallService {
 
   static Widget sendCallButton({
     required bool isVideoCall,
-    required String inviteeUsersIDTextCtrl,
+    required TextEditingController inviteeUsersIDTextCtrl,
     required String name,
     void Function(String code, String message, List<String>)? onCallFinished,
   }) {
-    /*return ValueListenableBuilder<String>(
+    return ValueListenableBuilder<TextEditingValue>(
       valueListenable: inviteeUsersIDTextCtrl,
       builder: (context, inviteeUserID, _) {
-        final invitees = getInvitesFromTextCtrl(inviteeUserID.trim());
+        final invitees = getInvitesFromTextCtrl(inviteeUserID.toString(), name);
 
         return ZegoSendCallInvitationButton(
           isVideoCall: isVideoCall,
@@ -259,8 +321,8 @@ class CallService {
           onPressed: onCallFinished,
         );
       },
-    );*/
-    final invitees = getInvitesFromTextCtrl(inviteeUsersIDTextCtrl.trim(), name);
+    );
+    /*final invitees = getInvitesFromTextCtrl(inviteeUsersIDTextCtrl.trim(), name);
 
     print('invitees ---- $invitees');
     return ZegoSendCallInvitationButton(
@@ -270,10 +332,11 @@ class CallService {
       iconSize: const Size(40, 40),
       buttonSize: const Size(50, 50),
       onPressed: onCallFinished,
-    );
+    );*/
   }
 
   static void onSendCallInvitationFinished(String code, String message, List<String> errorInvitees) {
+    print('onSendCallInvitationFinished');
     if (errorInvitees.isNotEmpty) {
       var userIDs = '';
       for (var index = 0; index < errorInvitees.length; index++) {

@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../model/ProductModel.dart';
 import '../model/ShopifyService.dart';
+import '../model/SingleAppointmentDetailModel.dart';
 import '../widgets/Constants.dart';
 
 class IndividualUpcomingScheduleController extends GetxController {
@@ -560,15 +561,21 @@ query GetProducts(\$cursor: String) {
   // final RxList<Map<String, dynamic>> callHistory = <Map<String, dynamic>>[].obs;
   // final RxBool hasCallHistory = false.obs;
 
-  var isLoadingCallHistory = false.obs;
+  // var isLoadingCallHistory = false.obs;
   var callHistoryData = Rxn<CallHistoryData>();
   var callHistoryStatus = false.obs; // 👈 will be true if API status is true
 
   var isLoadingAppointmentData = false.obs;
-  final Rx<CallHistoryData?> appointmentData = Rx<CallHistoryData?>(null);
+  Rxn<AppointmentDetailData> appointmentData = Rxn<AppointmentDetailData>();
+
+  var callDuration = 0.obs;
 
   Future<void> callHistoryApi(Map<String, String?> callLog, String? appointmentId) async {
-    isLoadingCallHistory.value = true;
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? '';
+    print('token -- $token');
+
+    // isLoadingCallHistory.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/doctors/request');
     final url = Uri.parse('${Constants.baseUrl}appointments/$appointmentId/call-history');
 
@@ -579,7 +586,7 @@ query GetProducts(\$cursor: String) {
     print(data);
 
     try {
-      final response = await http.post(url, headers: {'Content-Type': 'application/json', 'accept': 'application/json'}, body: jsonEncode(data));
+      final response = await http.post(url, headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'}, body: jsonEncode(data));
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -595,7 +602,7 @@ query GetProducts(\$cursor: String) {
 
           // save data in observable
           callHistoryData.value = CallHistoryData.fromJson(responseData);
-          update(status);
+          update();
           fetchAppointmentByIdApi(appointmentId.toString());
           Get.back();
         } else {
@@ -615,7 +622,7 @@ query GetProducts(\$cursor: String) {
       Constants.showCallHistoryError("Error -- $e");
     } finally {
       callHistoryStatus.value = false;
-      isLoadingCallHistory.value = false;
+      // isLoadingCallHistory.value = false;
     }
   }
 
@@ -636,13 +643,16 @@ query GetProducts(\$cursor: String) {
       );
 
       if (response.statusCode == 200) {
+        isLoadingAppointmentData.value = false;
         final responseData = jsonDecode(response.body);
 
         // print('Appointments: $responseData');
 
-        appointmentData.value = CallHistoryData.fromJson(responseData);
-        print('appointmentData.value ---=== ${appointmentData.value}');
-
+        final appointmentDetails = SingleAppointmentDetailModel.fromJson(responseData);
+        print('appointmentData.value ---=== ${appointmentDetails.data}');
+        appointmentData.value = appointmentDetails.data;
+        callDuration.value = appointmentDetails.data?.callHistory?.duration ?? 0;
+        print('callDuration.value -- ${callDuration.value}');
         // final message = responseData['message'] ?? 'Success';
         // Constants.showSuccess(message);
       } else {
