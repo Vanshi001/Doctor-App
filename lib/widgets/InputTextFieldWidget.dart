@@ -11,6 +11,8 @@ class InputTextFieldWidget extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final void Function(String)? onSubmitted;
   final TextInputType keyboardType;
+  final bool obscureText;
+  final Widget? suffixIcon;
 
   const InputTextFieldWidget(
     this.textEditingController,
@@ -20,6 +22,8 @@ class InputTextFieldWidget extends StatelessWidget {
     this.inputFormatters,
     this.onSubmitted,
     this.keyboardType = TextInputType.text,
+    this.obscureText = false,
+    this.suffixIcon,
   });
 
   @override
@@ -27,10 +31,7 @@ class InputTextFieldWidget extends StatelessWidget {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 4),
       padding: EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: ColorCodes.colorGrey4),
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: ColorCodes.colorGrey4)),
       child: TextField(
         controller: textEditingController,
         cursorColor: ColorCodes.colorBlack1,
@@ -38,11 +39,13 @@ class InputTextFieldWidget extends StatelessWidget {
         style: TextStyles.textStyle1,
         onSubmitted: onSubmitted,
         keyboardType: keyboardType,
+        obscureText: obscureText,
         decoration: InputDecoration(
           alignLabelWithHint: true,
           border: InputBorder.none,
           labelText: hintText,
           labelStyle: TextStyles.textStyle1,
+          suffixIcon: suffixIcon,
         ),
         inputFormatters: inputFormatters ?? [],
       ),

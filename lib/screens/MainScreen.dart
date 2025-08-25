@@ -83,15 +83,21 @@ class _MainScreenState extends State<MainScreen> {
     // mainController.fetchAppointmentsApi();
     // permissionController.requestAllPermissions();
     mainController.fetchDoctorDetailsApi();
-    mainController.startAutoFetch();
-    print('currentDate -- ${mainController.currentDate.value}');
+    getDoctorDetails();
+    // mainController.startAutoFetch();
     super.initState();
   }
 
-  /* void getDoctorDetails() async {
+  void getDoctorDetails() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    doctorName = prefs.getString('doctor_name');
-  }*/
+    var doctorId = prefs.getString('doctor_id');
+    print('doctorId -- ${doctorId}');
+    print('currentDate -- ${mainController.currentDate.value}');
+
+    mainController.fetchTodayAppointmentsApi(mainController.currentDate.value, doctorId);
+    mainController.fetchPendingAppointmentsWithoutPrescriptionApi(doctorId);
+    mainController.fetchAllAppointments(doctorId);
+  }
 
   @override
   Widget build(BuildContext context) {

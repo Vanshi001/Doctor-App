@@ -23,6 +23,12 @@ class AppointmentDetailsDialog extends StatelessWidget {
     required this.medicineNames,
   });
 
+  String getInitials(String firstName) {
+    if (firstName.isEmpty) return '';
+    String firstInitial = firstName.isNotEmpty ? firstName[0] : '';
+    return firstInitial.toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     // final List<String> medicines = ['Paracetamol', 'Ibuprofen', 'Atorvastatin', 'Omeprazole', 'Amlodipine'];
@@ -40,7 +46,17 @@ class AppointmentDetailsDialog extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(borderRadius: BorderRadius.circular(40), child: Image.asset(image, height: 50, width: 50, fit: BoxFit.cover)),
+                // ClipRRect(borderRadius: BorderRadius.circular(40), child: Image.asset(image, height: 50, width: 50, fit: BoxFit.cover)),
+                Container(
+                  height: 50,
+                  width: 50,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: ColorCodes.colorBlack2, // Background color for the circle
+                    border: Border.all(color: ColorCodes.colorBlue1, width: 3),
+                  ),
+                  child: Center(child: Text(getInitials(title.toString()), style: TextStyles.textStyle4)),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(

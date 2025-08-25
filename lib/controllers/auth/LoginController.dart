@@ -15,6 +15,8 @@ class LoginController extends GetxController {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
+  var isPasswordHidden = true.obs;
+
   var isLoading = false.obs;
 
   Rxn<LoginResponse> loginResponse = Rxn<LoginResponse>();

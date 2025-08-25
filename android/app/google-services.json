@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "745251515679",
-    "project_id": "di-doctorapp",
-    "storage_bucket": "di-doctorapp.firebasestorage.app"
+    "project_number": "916072699968",
+    "project_id": "dermatics-india-doctor",
+    "storage_bucket": "dermatics-india-doctor.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:745251515679:android:b485b0605feccd5de9d42a",
+        "mobilesdk_app_id": "1:916072699968:android:8a7d20ef87e52ec387a7a5",
         "android_client_info": {
-          "package_name": "com.example.doctor_app"
+          "package_name": "com.dermatics.doctor_app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA7mxjGRfht_Rl392UyInIEaxi0KC3xeAc"
+          "current_key": "AIzaSyDft5QA1SdsbtNH84UFZjMIPr0nHGLjg0g"
         }
       ],
       "services": {

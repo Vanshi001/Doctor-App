@@ -26,7 +26,7 @@ import 'TextStyles.dart';
 class CallService {
   static DateTime? callStartTime;
   static DateTime? callEndTime;
-  static var finalDuration;
+  static Duration? finalDuration;
 
   static final ZegoUIKitPrebuiltCallInvitationService invitationService = ZegoUIKitPrebuiltCallInvitationService();
   static final navigatorKey = GlobalKey<NavigatorState>();
@@ -80,7 +80,7 @@ class CallService {
                     Navigator.of(context).pop(true),
                     print('EXIT'),
                   CallDurationTracker.endCall(),
-                  _saveCallLog(finalDuration.toString(), appointmentId),
+                  _saveCallLog(finalDuration, appointmentId),
 
                   }),
                 ],
@@ -170,7 +170,7 @@ class CallService {
         }
 
         // Check for 15-minute limit (900 seconds)
-        if (duration.inSeconds >= 70) {
+        if (duration.inSeconds >= 900) {
           print('VANSHI 15-minute time limit reached - ending call');
           // You can add logic to end the call here if needed
           callEndTime = DateTime.now();
@@ -197,7 +197,7 @@ class CallService {
     };*/
   }
 
-  static void _saveCallLog(String duration, String? appointmentId) {
+  static void _saveCallLog(Duration? duration, String? appointmentId) {
     // Save to shared preferences or send to your backend
 
     final callLog = {'startTime': callStartTime?.toIso8601String(), 'endTime': callEndTime?.toIso8601String()};
@@ -210,6 +210,7 @@ class CallService {
 
     // Also save to shared preferences for persistence
     controller.callHistoryApi(callLog, appointmentId);
+    Get.back();
     // saveCallLogToPrefs(callLog);
   }
 

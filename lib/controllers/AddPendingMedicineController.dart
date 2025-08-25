@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../model/PrescriptionRequestModel.dart';
 import '../model/ProductModel.dart';
+import '../widgets/Constants.dart';
 
 class AddPendingMedicineController extends GetxController {
 
@@ -50,7 +51,7 @@ class AddPendingMedicineController extends GetxController {
 
   Future<void> addMedicineApi({required String id, required dynamic prescriptions}) async {
     isLoading.value = true;
-    final url = Uri.parse('http://192.168.1.21:5000/api/appointments/$id/prescription');
+    final url = Uri.parse('${Constants.baseUrl}appointments/$id/prescription');
     print("add medicine url == $url");
 
     try {

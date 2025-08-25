@@ -5,7 +5,8 @@ import 'package:zego_uikit/zego_uikit.dart';
 
 class Constants {
   // static String baseUrl = "https://dermatics-backend.onrender.com/api/";
-  static String baseUrl = "http://192.168.1.4:5000/api/";
+  // static String baseUrl = "http://192.168.1.7:5000/api/";
+  static String baseUrl = "http://ec2-13-126-77-72.ap-south-1.compute.amazonaws.com/api/";
 
   static void showError(String message) {
     Get.snackbar("Validation Error", message, backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);

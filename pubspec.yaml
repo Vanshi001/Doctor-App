@@ -68,6 +68,16 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/ic_app_icon.png"
+  # Path to your icon file
+  # Optional: different icons for different platforms
+  # android: "assets/icon/icon_android.png"
+  # ios: "assets/icon/icon_ios.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -104,7 +114,7 @@ flutter:
   # in this "flutter" section. Each entry in this list should have a
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
-  # example:
+  # dermatics:
   fonts:
     - family: Figtree
       fonts:

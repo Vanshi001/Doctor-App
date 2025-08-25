@@ -81,7 +81,15 @@ class MainController extends GetxController {
 
   final AppointmentsController appointmentsController = Get.put(AppointmentsController());
 
+  RxBool isLoadingDoctorDetails = false.obs;
+  RxBool isFirstLoad = true.obs; // Show loader only for first fetch
+  Timer? _refreshDoctorTimer;
+
   Future<void> fetchDoctorDetailsApi() async {
+    if (isFirstLoad.value) {
+      isLoadingDoctorDetails.value = true; // only first time loader
+    }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
 
@@ -93,10 +101,6 @@ class MainController extends GetxController {
     // print('fetchDoctorDetailsApi url -- $url');
 
     try {
-      if (isFirstLoad.value) {
-        isFirstLoad.value = true; // only first time loader
-      }
-
       final response = await http.get(
         url,
         headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
@@ -112,9 +116,9 @@ class MainController extends GetxController {
         doctorName.value = doctorDetail.value?.data?.name ?? 'Dr. Dermatics';
         // print("doctor name:==== ${doctorDetail.value?.data?.name}");
 
-        fetchTodayAppointmentsApi(currentDate.value, doctorDetail.value?.data?.id);
-        fetchPendingAppointmentsWithoutPrescriptionApi(doctorDetail.value?.data?.id);
-        appointmentsController.fetchAllAppointmentsApi(doctorDetail.value?.data?.id);
+        // fetchTodayAppointmentsApi(currentDate.value, doctorDetail.value?.data?.id);
+        // fetchPendingAppointmentsWithoutPrescriptionApi(doctorDetail.value?.data?.id);
+        // fetchAllAppointments(doctorDetail.value?.data?.id);
       } else {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'] ?? "Failed to get doctor profile";
@@ -126,19 +130,66 @@ class MainController extends GetxController {
       Constants.showError("Error -- $e");
     } finally {
       if (isFirstLoad.value) {
-        isFirstLoad.value = false; // hide loader after first load
+        isLoadingDoctorDetails.value = false; // hide loader after first load
       }
+      if (isFirstLoad.value) {
+        isLoadingDoctorDetails.value = false;
+        isFirstLoad.value = false;
+      }
+
+      // Schedule next refresh
+      _refreshDoctorTimer?.cancel();
+      _refreshDoctorTimer = Timer(const Duration(seconds: 10), () {
+        fetchDoctorDetailsApi();
+      });
     }
   }
 
-  var isFirstLoad = true.obs; // Show loader only for first fetch
+  RxBool isLoadingAllAppointment = false.obs;
+  RxBool isFirstLoadAllAppointment = true.obs; // Show loader only for first fetch
+  Timer? _refreshAllAppointmentTimer;
+
+  void fetchAllAppointments(String? doctorId) {
+    if (isFirstLoadAllAppointment.value) {
+      isLoadingAllAppointment.value = true; // only first time loader
+    }
+    try {
+      print('fetchAllAppointments');
+      appointmentsController.fetchAllAppointmentsApi(doctorId);
+    } catch (e) {
+      print('Error fetchAllAppointments:- $e');
+      Constants.showError("Error fetchAllAppointments -- $e");
+    } finally {
+      if (isFirstLoadAllAppointment.value) {
+        isFirstLoadAllAppointment.value = false; // hide loader after first load
+      }
+      if (isFirstLoadAllAppointment.value) {
+        isFirstLoadAllAppointment.value = false;
+        isFirstLoadAllAppointment.value = false;
+      }
+
+      // Schedule next refresh
+      _refreshAllAppointmentTimer?.cancel();
+      _refreshAllAppointmentTimer = Timer(const Duration(seconds: 10), () {
+        fetchAllAppointments(doctorId);
+      });
+    }
+  }
+
   Timer? _timer;
 
+  RxBool isLoadingToday = false.obs;
+  RxBool isFirstLoadToday = true.obs; // Show loader only for first fetch
+  Timer? _refreshTodayTimer;
+
   Future<void> fetchTodayAppointmentsApi(String currentDate, String? doctorId) async {
+    if (isFirstLoadToday.value) {
+      isLoadingToday.value = true; // only first time loader
+    }
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
 
-    isLoading.value = true;
+    // isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
     // final doctorId = prefs.getString('doctor_id') ?? '';
     print('doctorId -~- $doctorId');
@@ -172,12 +223,25 @@ class MainController extends GetxController {
       print('Error:~~ $e');
       Constants.showError("Error -- $e");
     } finally {
-      isLoading.value = false;
+      // isLoading.value = false;
+      if (isFirstLoadToday.value) {
+        isLoadingToday.value = false; // hide loader after first load
+      }
+      if (isFirstLoadToday.value) {
+        isLoadingToday.value = false;
+        isFirstLoadToday.value = false;
+      }
+
+      // Schedule next refresh
+      _refreshTodayTimer?.cancel();
+      _refreshTodayTimer = Timer(const Duration(seconds: 10), () {
+        fetchTodayAppointmentsApi(currentDate, doctorId);
+      });
     }
   }
 
   void startAutoFetch() {
-    _timer = Timer.periodic(Duration(seconds: 15), (timer) {
+    _timer = Timer.periodic(Duration(seconds: 10), (timer) {
       print('startAutoFetch');
       fetchDoctorDetailsApi(); // fetch every 5 seconds without loader
     });
@@ -186,6 +250,9 @@ class MainController extends GetxController {
   @override
   void onClose() {
     _timer?.cancel();
+    _refreshTodayTimer?.cancel();
+    _refreshPendingTimer?.cancel();
+    _refreshAllAppointmentTimer?.cancel();
     super.onClose();
   }
 
@@ -193,11 +260,19 @@ class MainController extends GetxController {
   RxList<WithoutDescriptionAppointment> pendingAppointmentWithoutDescriptionList = <WithoutDescriptionAppointment>[].obs;
   Rxn<PendingAppointmentsWithoutDescriptionResponse> withoutDescriptionAppointmentResponse = Rxn<PendingAppointmentsWithoutDescriptionResponse>();
 
+  RxBool isFirstLoadPending = true.obs; // Show loader only for first fetch
+  Timer? _refreshPendingTimer;
+
   Future<void> fetchPendingAppointmentsWithoutPrescriptionApi(String? doctorId) async {
+    if (isFirstLoadPending.value) {
+      isLoadingAppointmentWithoutDescription.value = true;
+    }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
 
-    isLoadingAppointmentWithoutDescription.value = true;
+    // isLoadingAppointmentWithoutDescription.value = true;
+
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
     // final doctorId = prefs.getString('doctor_id') ?? '';
     print('doctorId -~~- $doctorId');
@@ -231,7 +306,20 @@ class MainController extends GetxController {
       print('Error:~~ $e');
       Constants.showError("Error -- $e");
     } finally {
-      isLoadingAppointmentWithoutDescription.value = false;
+      // isLoadingAppointmentWithoutDescription.value = false;
+      if (isFirstLoadPending.value) {
+        isLoadingAppointmentWithoutDescription.value = false; // hide loader after first load
+      }
+      if (isFirstLoadPending.value) {
+        isLoadingAppointmentWithoutDescription.value = false;
+        isFirstLoadPending.value = false;
+      }
+
+      // Schedule next refresh
+      _refreshPendingTimer?.cancel();
+      _refreshPendingTimer = Timer(const Duration(seconds: 10), () {
+        fetchPendingAppointmentsWithoutPrescriptionApi(doctorId);
+      });
     }
   }
 }

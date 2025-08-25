@@ -63,7 +63,7 @@ class IndividualUpcomingScheduleController extends GetxController {
 
   Future<void> addMedicineApi({required String id, required dynamic prescriptions}) async {
     isLoading.value = true;
-    final url = Uri.parse('http://192.168.1.21:5000/api/appointments/$id/prescription');
+    final url = Uri.parse('${Constants.baseUrl}appointments/$id/prescription');
     print("add medicine url == $url");
 
     try {

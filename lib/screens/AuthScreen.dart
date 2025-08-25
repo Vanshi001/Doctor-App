@@ -41,10 +41,7 @@ class _AuthScreenState extends State {
           Container(
             height: MediaQuery.of(context).size.height * 0.45,
             width: double.infinity,
-            child: Image.asset(
-              'assets/ic_login_bg.png',
-              fit: BoxFit.contain,
-            ),
+            child: Image.asset('assets/ic_login_bg.png', fit: BoxFit.contain),
           ),
 
           // ✅ Foreground scrollable container (bottom sheet)
@@ -53,9 +50,7 @@ class _AuthScreenState extends State {
             child: SingleChildScrollView(
               child: Container(
                 width: double.infinity,
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height * 0.58,
-                ),
+                constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height * 0.58),
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -69,10 +64,7 @@ class _AuthScreenState extends State {
                       width: 40,
                       height: 4,
                       margin: EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: ColorCodes.colorBlack2,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
+                      decoration: BoxDecoration(color: ColorCodes.colorBlack2, borderRadius: BorderRadius.circular(2)),
                     ),
                     Text('Log in or Sign up', style: TextStyles.textStyle1),
                     Text(Texts.welcome, style: TextStyles.textStyle2_3),
@@ -93,14 +85,8 @@ class _AuthScreenState extends State {
                           text: 'Want to become a ',
                           style: TextStyles.textStyle1,
                           children: [
-                            TextSpan(
-                              text: 'Doctor Partner',
-                              style: TextStyles.textStyle4_2
-                            ),
-                            TextSpan(
-                              text: ' ?',
-                              style: TextStyles.textStyle1
-                            ),
+                            TextSpan(text: 'Doctor Partner', style: TextStyles.textStyle4_2),
+                            TextSpan(text: ' ?', style: TextStyles.textStyle1),
                           ],
                         ),
                       ),
@@ -356,7 +342,20 @@ class _AuthScreenState extends State {
         SizedBox(height: 20),
         InputTextFieldWidget(loginController.emailController, /*"dr.sarah@example.com"*/ 'Email*'),
         SizedBox(height: 10),
-        InputTextFieldWidget(loginController.passwordController, /*"securePassword123" */'Password*'),
+        // InputTextFieldWidget(loginController.passwordController, /*"securePassword123" */'Password*'),
+        Obx(
+          () => InputTextFieldWidget(
+            loginController.passwordController,
+            'Password',
+            obscureText: loginController.isPasswordHidden.value, // 👈 hide/show
+            suffixIcon: IconButton(
+              icon: Icon(loginController.isPasswordHidden.value ? Icons.visibility_off : Icons.visibility, size: 18),
+              onPressed: () {
+                loginController.isPasswordHidden.toggle();
+              },
+            ),
+          ),
+        ),
         SizedBox(height: 20),
         Obx(
           () => SizedBox(

@@ -41,46 +41,47 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBG2xfU-Cv93OzarXp1UNBaTCcWdSn7S5U',
-    appId: '1:745251515679:web:11ba9e6d94b8cd09e9d42a',
-    messagingSenderId: '745251515679',
-    projectId: 'di-doctorapp',
-    authDomain: 'di-doctorapp.firebaseapp.com',
-    storageBucket: 'di-doctorapp.firebasestorage.app',
+    apiKey: 'AIzaSyBqiTxuPD1J_C0jieXgpZGbEtXQKXeWIi0',
+    appId: '1:916072699968:web:62fbaffc5aa962f887a7a5',
+    messagingSenderId: '916072699968',
+    projectId: 'dermatics-india-doctor',
+    authDomain: 'dermatics-india-doctor.firebaseapp.com',
+    storageBucket: 'dermatics-india-doctor.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyA7mxjGRfht_Rl392UyInIEaxi0KC3xeAc',
-    appId: '1:745251515679:android:b485b0605feccd5de9d42a',
-    messagingSenderId: '745251515679',
-    projectId: 'di-doctorapp',
-    storageBucket: 'di-doctorapp.firebasestorage.app',
+    apiKey: 'AIzaSyDft5QA1SdsbtNH84UFZjMIPr0nHGLjg0g',
+    appId: '1:916072699968:android:8a7d20ef87e52ec387a7a5',
+    messagingSenderId: '916072699968',
+    projectId: 'dermatics-india-doctor',
+    storageBucket: 'dermatics-india-doctor.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCgZL4Mq10pNTjFBWyiDsMQ-M5gC_mWYf4',
-    appId: '1:745251515679:ios:e04ebd674a26d44ce9d42a',
-    messagingSenderId: '745251515679',
-    projectId: 'di-doctorapp',
-    storageBucket: 'di-doctorapp.firebasestorage.app',
+    apiKey: 'AIzaSyDllEApuSVV4v2Vu7Fb6XL_sEuOi0bkueQ',
+    appId: '1:916072699968:ios:b15a9bcd62c8ddd887a7a5',
+    messagingSenderId: '916072699968',
+    projectId: 'dermatics-india-doctor',
+    storageBucket: 'dermatics-india-doctor.firebasestorage.app',
     iosBundleId: 'com.example.doctorApp',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCgZL4Mq10pNTjFBWyiDsMQ-M5gC_mWYf4',
-    appId: '1:745251515679:ios:e04ebd674a26d44ce9d42a',
-    messagingSenderId: '745251515679',
-    projectId: 'di-doctorapp',
-    storageBucket: 'di-doctorapp.firebasestorage.app',
+    apiKey: 'AIzaSyDllEApuSVV4v2Vu7Fb6XL_sEuOi0bkueQ',
+    appId: '1:916072699968:ios:b15a9bcd62c8ddd887a7a5',
+    messagingSenderId: '916072699968',
+    projectId: 'dermatics-india-doctor',
+    storageBucket: 'dermatics-india-doctor.firebasestorage.app',
     iosBundleId: 'com.example.doctorApp',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBG2xfU-Cv93OzarXp1UNBaTCcWdSn7S5U',
-    appId: '1:745251515679:web:b22a505b562f8b20e9d42a',
-    messagingSenderId: '745251515679',
-    projectId: 'di-doctorapp',
-    authDomain: 'di-doctorapp.firebaseapp.com',
-    storageBucket: 'di-doctorapp.firebasestorage.app',
+    apiKey: 'AIzaSyBqiTxuPD1J_C0jieXgpZGbEtXQKXeWIi0',
+    appId: '1:916072699968:web:96a2712b06143cf287a7a5',
+    messagingSenderId: '916072699968',
+    projectId: 'dermatics-india-doctor',
+    authDomain: 'dermatics-india-doctor.firebaseapp.com',
+    storageBucket: 'dermatics-india-doctor.firebasestorage.app',
   );
+
 }

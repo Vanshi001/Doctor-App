@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
@@ -182,12 +183,18 @@ class AppointmentsController extends GetxController {
 
   var isLoading = false.obs;
   Rxn<AppointmentResponse> allAppointmentResponse = Rxn<AppointmentResponse>();
+  RxBool isFirstLoadAllAppointment = true.obs; // Show loader only for first fetch
+  Timer? _refreshAllAppointmentTimer;
 
   Future<void> fetchAllAppointmentsApi(String? doctorId) async {
+    if (isFirstLoadAllAppointment.value) {
+      isLoading.value = true; // only first time loader
+    }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
 
-    isLoading.value = true;
+    // isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments');
 
     String statusParam;
@@ -258,7 +265,20 @@ class AppointmentsController extends GetxController {
       print('Error: $e');
       Constants.showError("Error -- $e");
     } finally {
-      isLoading.value = false;
+      // isLoading.value = false;
+      if (isFirstLoadAllAppointment.value) {
+        isLoading.value = false; // hide loader after first load
+      }
+      if (isFirstLoadAllAppointment.value) {
+        isLoading.value = false;
+        isFirstLoadAllAppointment.value = false;
+      }
+
+      // Schedule next refresh
+      _refreshAllAppointmentTimer?.cancel();
+      _refreshAllAppointmentTimer = Timer(const Duration(seconds: 10), () {
+        fetchAllAppointmentsApi(doctorId);
+      });
     }
   }
 }
