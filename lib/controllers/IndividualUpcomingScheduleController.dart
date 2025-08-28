@@ -14,6 +14,7 @@ import '../model/ProductModel.dart';
 import '../model/ShopifyService.dart';
 import '../model/SingleAppointmentDetailModel.dart';
 import '../widgets/Constants.dart';
+import 'auth/AuthController.dart';
 
 class IndividualUpcomingScheduleController extends GetxController {
   final medicineNameController = TextEditingController();
@@ -567,10 +568,18 @@ query GetProducts(\$cursor: String) {
 
   var isLoadingAppointmentData = false.obs;
   Rxn<AppointmentDetailData> appointmentData = Rxn<AppointmentDetailData>();
+  // Rxn<AppointmentDetailDataWithoutCallHistory> appointmentDataWithoutCallHistory = Rxn<AppointmentDetailDataWithoutCallHistory>();
 
   var callDuration = 0.obs;
 
   Future<void> callHistoryApi(Map<String, String?> callLog, String? appointmentId) async {
+
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
     print('token -- $token');
@@ -627,9 +636,16 @@ query GetProducts(\$cursor: String) {
   }
 
   Future<void> fetchAppointmentByIdApi(String appointmentId) async {
+
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
-    print('token -- $token');
+    print('token -+=~~~~~~~~~~~~~~=+- $token');
 
     isLoadingAppointmentData.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments');
@@ -646,7 +662,7 @@ query GetProducts(\$cursor: String) {
         isLoadingAppointmentData.value = false;
         final responseData = jsonDecode(response.body);
 
-        // print('Appointments: $responseData');
+        print('fetchAppointmentByIdApi Appointments: $responseData');
 
         final appointmentDetails = SingleAppointmentDetailModel.fromJson(responseData);
         print('appointmentData.value ---=== ${appointmentDetails.data}');
@@ -668,6 +684,57 @@ query GetProducts(\$cursor: String) {
       isLoadingAppointmentData.value = false;
     }
   }
+
+  /*Future<void> fetchAppointmentByIdApiWithoutCallHistory(String appointmentId) async {
+    final authController = Get.put(AuthController());
+
+    // ✅ Don't call API if user is logged out
+    if (AuthController.isLoggedIn.value) {
+      print("User logged out. API not called.");
+      return;
+    }
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? '';
+    print('token -+=~~~~~~~~~~~~~~=+- $token');
+
+    isLoadingAppointmentData.value = true;
+    // final url = Uri.parse('http://192.168.1.10:5000/api/appointments');
+    final url = Uri.parse('${Constants.baseUrl}appointments/$appointmentId');
+    print('url ---=== $url');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        isLoadingAppointmentData.value = false;
+        final responseData = jsonDecode(response.body);
+
+        // print('Appointments: $responseData');
+
+        final appointmentDetails = SingleAppointmentDetailModelWithoutCallHistory.fromJson(responseData);
+        print('appointmentData.value ---=== ${appointmentDetails.data}');
+        appointmentDataWithoutCallHistory.value = appointmentDetails.data;
+        // callDuration.value = appointmentDetails.data?.callHistory?.duration ?? 0;
+        // print('callDuration.value -- ${callDuration.value}');
+        // final message = responseData['message'] ?? 'Success';
+        // Constants.showSuccess(message);
+      } else {
+        final errorData = jsonDecode(response.body);
+        final errorMessage = errorData['message'] ?? "Login failed";
+        print('fetchAppointmentByIdApi errorMessage ---- $errorMessage');
+        Constants.showError(errorMessage);
+      }
+    } catch (e) {
+      print('Error fetchAppointmentByIdApi: $e');
+      Constants.showError("Error -- $e");
+    } finally {
+      isLoadingAppointmentData.value = false;
+    }
+  }*/
 }
 
 class LineItem {

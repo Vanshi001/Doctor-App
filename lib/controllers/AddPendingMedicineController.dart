@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../model/PrescriptionRequestModel.dart';
 import '../model/ProductModel.dart';
 import '../widgets/Constants.dart';
+import 'auth/AuthController.dart';
 
 class AddPendingMedicineController extends GetxController {
 
@@ -50,6 +51,14 @@ class AddPendingMedicineController extends GetxController {
   var isLoading = false.obs;
 
   Future<void> addMedicineApi({required String id, required dynamic prescriptions}) async {
+    // final authController = Get.put(AuthController());
+
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     isLoading.value = true;
     final url = Uri.parse('${Constants.baseUrl}appointments/$id/prescription');
     print("add medicine url == $url");
@@ -111,6 +120,13 @@ class AddPendingMedicineController extends GetxController {
   }
 
   Future<void> fetchShopifyProducts() async {
+
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     String? cursor;
     final allProducts = <ProductModel>[];
 

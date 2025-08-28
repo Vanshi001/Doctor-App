@@ -11,12 +11,14 @@ import '../model/appointment_model.dart';
 import '../model/schedule_item.dart';
 import '../widgets/ColorCodes.dart';
 import '../widgets/Constants.dart';
+import 'auth/AuthController.dart';
 
 enum TabType { all, completed, rejected }
 
 class AppointmentsController extends GetxController {
   var selectedTab = TabType.all.obs;
   RxList<Appointment> allList = <Appointment>[].obs;
+
   // RxList<Appointment> recentList = <Appointment>[].obs;
   RxList<Appointment> completeList = <Appointment>[].obs;
   RxList<Appointment> rejectedList = <Appointment>[].obs;
@@ -187,21 +189,25 @@ class AppointmentsController extends GetxController {
   Timer? _refreshAllAppointmentTimer;
 
   Future<void> fetchAllAppointmentsApi(String? doctorId) async {
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     if (isFirstLoadAllAppointment.value) {
       isLoading.value = true; // only first time loader
     }
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access_token') ?? '';
+    final token = prefs.getString('access_token');
+    print('token =====~~~~~~~~~~~~~~~~~~ $token');
 
     // isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments');
 
     String statusParam;
     switch (selectedTab.value) {
-      // case TabType.recent:
-      //   statusParam = 'pending';
-      //   break;
       case TabType.completed:
         statusParam = 'completed';
         break;
@@ -258,17 +264,19 @@ class AppointmentsController extends GetxController {
       } else {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'] ?? "Login failed";
-        print('fetchAllAppointmentsApi errorMessage ---- $errorMessage');
-        Constants.showError(errorMessage);
+        if (token != null && token.isNotEmpty && errorMessage == "Unauthorized") {
+          print('fetchAllAppointmentsApi errorMessage ---- $errorMessage');
+          Constants.showError(errorMessage);
+        }
       }
     } catch (e) {
       print('Error: $e');
       Constants.showError("Error -- $e");
     } finally {
       // isLoading.value = false;
-      if (isFirstLoadAllAppointment.value) {
+      /*if (isFirstLoadAllAppointment.value) {
         isLoading.value = false; // hide loader after first load
-      }
+      }*/
       if (isFirstLoadAllAppointment.value) {
         isLoading.value = false;
         isFirstLoadAllAppointment.value = false;
@@ -276,9 +284,20 @@ class AppointmentsController extends GetxController {
 
       // Schedule next refresh
       _refreshAllAppointmentTimer?.cancel();
-      _refreshAllAppointmentTimer = Timer(const Duration(seconds: 10), () {
-        fetchAllAppointmentsApi(doctorId);
-      });
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token');
+
+      if (token != null && token.isNotEmpty) {
+        _refreshAllAppointmentTimer = Timer(const Duration(seconds: 10), () async {
+          print('_refreshAllAppointmentTimer');
+          // final SharedPreferences prefs = await SharedPreferences.getInstance();
+          // var token = prefs.getString('access_token');
+          print('token ............................... $token');
+          if (token != null && token.isNotEmpty) fetchAllAppointmentsApi(doctorId);
+        });
+      } else {
+        print("Skipping auto-refresh: token is null/empty");
+      }
     }
   }
 }

@@ -10,6 +10,7 @@ import '../../model/DoctorProfileResponse.dart';
 import '../../model/login_model.dart';
 import '../../screens/MainScreen.dart';
 import '../EditProfileController.dart';
+import 'AuthController.dart';
 
 class LoginController extends GetxController {
   TextEditingController emailController = TextEditingController();
@@ -29,22 +30,12 @@ class LoginController extends GetxController {
     // final url = Uri.parse('http://192.168.1.10:5000/api/doctors/login');
     final url = Uri.parse('${Constants.baseUrl}doctors/login');
 
-    final data = {
-      "email": emailController.text.trim().toString(),
-      "password": passwordController.text.trim().toString(),
-    };
+    final data = {"email": emailController.text.trim().toString(), "password": passwordController.text.trim().toString()};
 
     print(data);
 
     try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'accept': 'application/json',
-        },
-        body: jsonEncode(data),
-      );
+      final response = await http.post(url, headers: {'Content-Type': 'application/json', 'accept': 'application/json'}, body: jsonEncode(data));
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -60,6 +51,8 @@ class LoginController extends GetxController {
         prefs.setString('access_token', loginResponse.value!.token.toString());
         prefs.setString('doctor_name', loginResponse.value!.doctor.name);
         prefs.setString('doctor_id', loginResponse.value!.doctor.id);
+
+        // authController.login();
 
         Doctor model = Doctor.fromJson(responseData['data']);
         editProfileController.setDoctor(model);
@@ -79,7 +72,17 @@ class LoginController extends GetxController {
   }
 
   Rxn<DoctorProfileResponse> doctorDetail = Rxn<DoctorProfileResponse>();
+
   Future<void> fetchDoctorDetailsApi(String doctorId) async {
+
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called. -login fetchDoctorDetailsApi- ${AuthController.isLoggedIn.value}");
+    //   return;
+    // } else {
+    //   print("User logged out. API not called. else -login fetchDoctorDetailsApi- ${AuthController.isLoggedIn.value}");
+    // }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
 
@@ -104,7 +107,7 @@ class LoginController extends GetxController {
       } else {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'] ?? "Failed to get doctor profile";
-        print('errorMessage fetchDoctorDetailsApi -- $errorMessage');
+        print('errorMessage login fetchDoctorDetailsApi -- $errorMessage');
         Constants.showError(errorMessage);
       }
     } catch (e) {

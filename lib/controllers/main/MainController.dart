@@ -11,6 +11,7 @@ import '../../model/DoctorProfileResponse.dart';
 import '../../model/PendingAppointmentsWithoutDescriptionResponse.dart';
 import '../../widgets/Constants.dart';
 import '../AppointmentsController.dart';
+import '../auth/AuthController.dart';
 
 class MainController extends GetxController {
   final RxList<Map<String, String>> appointmentList = <Map<String, String>>[].obs;
@@ -38,6 +39,14 @@ class MainController extends GetxController {
   }
 
   Future<void> fetchAppointmentsApi() async {
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called. -mainController fetchAppointmentsApi- ${AuthController.isLoggedIn.value}");
+    //   return;
+    // } else {
+    //   print("User logged out. API not called. else -mainController fetchAppointmentsApi- ${AuthController.isLoggedIn.value}");
+    // }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
     final doctorId = prefs.getString('doctor_id') ?? '';
@@ -81,11 +90,21 @@ class MainController extends GetxController {
 
   final AppointmentsController appointmentsController = Get.put(AppointmentsController());
 
+  // final authController = Get.put(AuthController());
+
   RxBool isLoadingDoctorDetails = false.obs;
   RxBool isFirstLoad = true.obs; // Show loader only for first fetch
   Timer? _refreshDoctorTimer;
 
   Future<void> fetchDoctorDetailsApi() async {
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called. - mainController fetchDoctorDetailsApi- ${AuthController.isLoggedIn.value}");
+    //   return;
+    // } else {
+    //   print("User logged out. API not called. else -mainController fetchDoctorDetailsApi- ${AuthController.isLoggedIn.value}");
+    // }
+
     if (isFirstLoad.value) {
       isLoadingDoctorDetails.value = true; // only first time loader
     }
@@ -122,8 +141,10 @@ class MainController extends GetxController {
       } else {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'] ?? "Failed to get doctor profile";
-        print('errorMessage fetchDoctorDetailsApi -- $errorMessage');
-        Constants.showError(errorMessage);
+        if (token != null && token.isNotEmpty && errorMessage == "Unauthorized") {
+          print('errorMessage main fetchDoctorDetailsApi -- $errorMessage');
+          Constants.showError(errorMessage);
+          }
       }
     } catch (e) {
       print('Error:- $e');
@@ -137,11 +158,15 @@ class MainController extends GetxController {
         isFirstLoad.value = false;
       }
 
-      // Schedule next refresh
-      _refreshDoctorTimer?.cancel();
-      _refreshDoctorTimer = Timer(const Duration(seconds: 10), () {
-        fetchDoctorDetailsApi();
-      });
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      var token = prefs.getString("access_token");
+
+      if (token != null && token.isNotEmpty) {
+        _refreshDoctorTimer?.cancel();
+        _refreshDoctorTimer = Timer(const Duration(seconds: 10), () async {
+          if (token != null && token.isNotEmpty) fetchDoctorDetailsApi();
+        });
+      }
     }
   }
 
@@ -149,13 +174,21 @@ class MainController extends GetxController {
   RxBool isFirstLoadAllAppointment = true.obs; // Show loader only for first fetch
   Timer? _refreshAllAppointmentTimer;
 
-  void fetchAllAppointments(String? doctorId) {
+  void fetchAllAppointments(String? doctorId) async {
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     if (isFirstLoadAllAppointment.value) {
       isLoadingAllAppointment.value = true; // only first time loader
     }
     try {
       print('fetchAllAppointments');
-      appointmentsController.fetchAllAppointmentsApi(doctorId);
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      var token = prefs.getString("access_token");
+      if (token != null) appointmentsController.fetchAllAppointmentsApi(doctorId);
     } catch (e) {
       print('Error fetchAllAppointments:- $e');
       Constants.showError("Error fetchAllAppointments -- $e");
@@ -170,8 +203,10 @@ class MainController extends GetxController {
 
       // Schedule next refresh
       _refreshAllAppointmentTimer?.cancel();
-      _refreshAllAppointmentTimer = Timer(const Duration(seconds: 10), () {
-        fetchAllAppointments(doctorId);
+      _refreshAllAppointmentTimer = Timer(const Duration(seconds: 10), () async {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        var token = prefs.getString("access_token");
+        if (token != null && token.isNotEmpty) fetchAllAppointments(doctorId);
       });
     }
   }
@@ -183,6 +218,12 @@ class MainController extends GetxController {
   Timer? _refreshTodayTimer;
 
   Future<void> fetchTodayAppointmentsApi(String currentDate, String? doctorId) async {
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     if (isFirstLoadToday.value) {
       isLoadingToday.value = true; // only first time loader
     }
@@ -234,8 +275,10 @@ class MainController extends GetxController {
 
       // Schedule next refresh
       _refreshTodayTimer?.cancel();
-      _refreshTodayTimer = Timer(const Duration(seconds: 10), () {
-        fetchTodayAppointmentsApi(currentDate, doctorId);
+      _refreshTodayTimer = Timer(const Duration(seconds: 10), () async {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        var token = prefs.getString("access_token");
+        if (token != null) fetchTodayAppointmentsApi(currentDate, doctorId);
       });
     }
   }
@@ -264,6 +307,12 @@ class MainController extends GetxController {
   Timer? _refreshPendingTimer;
 
   Future<void> fetchPendingAppointmentsWithoutPrescriptionApi(String? doctorId) async {
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     if (isFirstLoadPending.value) {
       isLoadingAppointmentWithoutDescription.value = true;
     }
@@ -317,8 +366,10 @@ class MainController extends GetxController {
 
       // Schedule next refresh
       _refreshPendingTimer?.cancel();
-      _refreshPendingTimer = Timer(const Duration(seconds: 10), () {
-        fetchPendingAppointmentsWithoutPrescriptionApi(doctorId);
+      _refreshPendingTimer = Timer(const Duration(seconds: 10), () async {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        var token = prefs.getString("access_token");
+        if (token != null) fetchPendingAppointmentsWithoutPrescriptionApi(doctorId);
       });
     }
   }

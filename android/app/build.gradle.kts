@@ -65,6 +65,16 @@ android {
 //    }
 }
 
+/*java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+tasks.withType<JavaCompile> {
+    options.compilerArgs.add("-Xlint:-options")
+}*/
+
 // ✅ Suppress Java compilation warnings in Kotlin DSL
 gradle.projectsEvaluated {
     tasks.withType<JavaCompile> {

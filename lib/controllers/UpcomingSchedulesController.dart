@@ -13,6 +13,7 @@ import '../model/appointment_model.dart';
 import '../model/schedule_item.dart';
 import '../widgets/Constants.dart';
 import '../widgets/TextStyles.dart';
+import 'auth/AuthController.dart';
 
 enum TabType { all, today, tomorrow, custom }
 
@@ -209,6 +210,13 @@ class UpcomingSchedulesController extends GetxController {
   final tomorrowDate = DateFormat('yyyy-MM-dd').format(DateTime.now().add(Duration(days: 1))).obs;
 
   Future<void> fetchAllUpComingAppointmentsApi() async {
+
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
     final doctorId = prefs.getString('doctor_id') ?? '';
@@ -272,6 +280,13 @@ class UpcomingSchedulesController extends GetxController {
   var isFirstLoad = false.obs; // Show loader only for first fetch
 
   Future<void> fetchDoctorDetailsApi() async {
+
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
 
@@ -301,7 +316,7 @@ class UpcomingSchedulesController extends GetxController {
       } else {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'] ?? "Failed to get doctor profile";
-        print('errorMessage fetchDoctorDetailsApi -- $errorMessage');
+        print('errorMessage upcoming fetchDoctorDetailsApi -- $errorMessage');
         Constants.showError(errorMessage);
       }
     } catch (e) {
@@ -313,6 +328,13 @@ class UpcomingSchedulesController extends GetxController {
   }
 
   Future<void> fetchTodayUpComingAppointmentsApi(String date) async {
+
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
     final doctorId = prefs.getString('doctor_id') ?? '';
@@ -371,6 +393,13 @@ class UpcomingSchedulesController extends GetxController {
   }
 
   Future<void> fetchTomorrowUpComingAppointmentsApi(String date) async {
+
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
     final doctorId = prefs.getString('doctor_id') ?? '';
@@ -429,6 +458,13 @@ class UpcomingSchedulesController extends GetxController {
   }
 
   Future<void> fetchCustomUpComingAppointmentsApi(String date) async {
+
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
     final doctorId = prefs.getString('doctor_id') ?? '';

@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import '../model/login_model.dart';
 import '../widgets/Constants.dart';
+import 'auth/AuthController.dart';
 
 class EditProfileController extends GetxController {
 
@@ -26,6 +27,13 @@ class EditProfileController extends GetxController {
 
   Future<void> updateDoctor(String id, String name, String email,
       String contact, String address,) async {
+
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/doctors/profile/$id');
     final url = Uri.parse('${Constants.baseUrl}doctors/profile/$id');
@@ -74,7 +82,6 @@ class EditProfileController extends GetxController {
       isLoading.value = false;
     }
   }
-
 
   void setDoctor(Doctor model) {
     doctor.value = model;

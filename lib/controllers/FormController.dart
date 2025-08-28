@@ -6,12 +6,13 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../widgets/Constants.dart';
+import 'auth/AuthController.dart';
 
 class FormController extends GetxController {
   final formKey = GlobalKey<FormState>();
 
   final nameController = TextEditingController();
-  final brandNamesController = TextEditingController();
+  // final brandNamesController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
   final addressController = TextEditingController();
@@ -42,14 +43,14 @@ class FormController extends GetxController {
     return true;
   }
 
-  bool validateBrandName() {
+  /*bool validateBrandName() {
     if (brandNamesController.text.trim().isEmpty) {
       brandNameError.value = 'Enter a value for this field.';
       return false;
     }
     brandNameError.value = '';
     return true;
-  }
+  }*/
 
   bool validateEmail() {
     if (emailController.text.trim().isEmpty) {
@@ -111,14 +112,14 @@ class FormController extends GetxController {
 
   void submitForm() {
     final isNameValid = validateName();
-    final isBrandNameValid = validateBrandName();
+    // final isBrandNameValid = validateBrandName();
     final isEmailValid = validateEmail();
     final isPhoneValid = validatePhone();
     final isAddressValid = validateAddress();
     final isFormValid = formKey.currentState?.validate() ?? false;
     final isCheckboxValid = validateCheckboxSelection();
 
-    if (isNameValid && isBrandNameValid && isEmailValid && isPhoneValid && isAddressValid && isCheckboxValid && isFormValid) {
+    if (isNameValid && /*isBrandNameValid &&*/ isEmailValid && isPhoneValid && isAddressValid && isCheckboxValid && isFormValid) {
       isLoading.value = true;
 
       Future.delayed(Duration(seconds: 2), () {
@@ -129,6 +130,14 @@ class FormController extends GetxController {
   }
 
   Future<void> doctorRequestApi() async {
+
+
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     isLoading.value = true;
@@ -140,7 +149,7 @@ class FormController extends GetxController {
       "email": emailController.text.trim().toString(),
       "contactNumber": phoneController.text.trim().toString(),
       "address": addressController.text.trim().toString(),
-      "brandNames": brandNamesController.text.trim().toString(),
+      // "brandNames": brandNamesController.text.trim().toString(),
       "partnerPreferences": selectedConcerns,
     };
 
@@ -158,7 +167,7 @@ class FormController extends GetxController {
         emailController.clear();
         phoneController.clear();
         addressController.clear();
-        brandNamesController.clear();
+        // brandNamesController.clear();
         clearAllCheckboxes();
         // Get.snackbar("Submitted", "Form submitted successfully!");
       } else {
@@ -184,7 +193,7 @@ class FormController extends GetxController {
   @override
   void onClose() {
     nameController.dispose();
-    brandNamesController.dispose();
+    // brandNamesController.dispose();
     emailController.dispose();
     phoneController.dispose();
     addressController.dispose();

@@ -4,6 +4,7 @@ import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../widgets/ColorCodes.dart';
 import '../widgets/TextStyles.dart';
@@ -25,11 +26,14 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   @override
   void initState() {
     super.initState();
-    controller.fetchAllAppointmentsApi(widget.doctorId);
+    // controller.fetchAllAppointmentsApi(widget.doctorId);
+    handleRefresh();
   }
 
   Future<void> handleRefresh() async {
-    controller.fetchAllAppointmentsApi(widget.doctorId);
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString("access_token");
+    if (token != null) controller.fetchAllAppointmentsApi(widget.doctorId);
   }
 
   @override
@@ -149,15 +153,13 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                               context: context,
                               barrierDismissible: false,
                               builder:
-                                  (context) =>
-                                  AppointmentDetailsDialog(
+                                  (context) => AppointmentDetailsDialog(
                                     title: item.patientFullName.toString(),
                                     image: 'assets/ic_user.png',
                                     //'https://randomuser.me/api/portraits/women/1.jpg',
                                     date: formattedDate,
                                     time:
-                                    '${Constants.formatTimeToAmPm(item.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(
-                                        item.timeSlot?.endTime ?? '')}',
+                                        '${Constants.formatTimeToAmPm(item.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(item.timeSlot?.endTime ?? '')}',
                                     concern: item.concerns?.join(", ") ?? '',
                                     medicineNames: medicineNames,
                                   ),
@@ -212,7 +214,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                                     children: [
                                       Text(item.patientFullName.toString(), style: TextStyles.textStyle3),
                                       SizedBox(height: 2),
-                                      SizedBox(width: width / 3, child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1)),
+                                      SizedBox(
+                                        width: width / 3,
+                                        child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1),
+                                      ),
                                       SizedBox(height: 2),
                                       Text(item.concerns?.join(", ") ?? '', style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis),
                                       SizedBox(height: 5),

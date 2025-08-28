@@ -1,10 +1,12 @@
 import 'package:Doctor/screens/AuthScreen.dart';
 import 'package:Doctor/screens/MainScreen.dart';
 import 'package:Doctor/widgets/CallService.dart';
+import 'package:Doctor/widgets/ColorCodes.dart';
 import 'package:Doctor/widgets/Constants.dart';
 import 'package:Doctor/zegocloud/common.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'controllers/NetworkController.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -54,6 +56,14 @@ void main() async {
   ZegoUIKit().initLog().then((value) {
     ZegoUIKitPrebuiltCallInvitationService().useSystemCallingUI([ZegoUIKitSignalingPlugin()]);
 
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: ColorCodes.colorBlue1, // transparent or any color
+        statusBarIconBrightness: Brightness.dark, // dark icons for light background
+        statusBarBrightness: Brightness.light, // for iOS
+      ),
+    );
+
     runApp(
       GetMaterialApp(
         debugShowCheckedModeBanner: false,
@@ -66,6 +76,7 @@ void main() async {
     );
   });
 
+  Get.put(NetworkController());
   // onUserLogin();
 }
 

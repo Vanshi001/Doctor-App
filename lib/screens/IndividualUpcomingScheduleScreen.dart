@@ -47,6 +47,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
     super.initState();
     print('item ---- ${widget.item.id}');
     controller.fetchAppointmentByIdApi(widget.item.id.toString());
+    // controller.fetchAppointmentByIdApiWithoutCallHistory(widget.item.id.toString());
   }
 
   @override
@@ -71,7 +72,18 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
             return CircularProgressIndicator(color: ColorCodes.black);
           }
 
-          final data = controller.appointmentData.value!;
+          var data = controller.appointmentData.value;
+          if (data == null) {
+            return const Text("No appointment data");
+          }
+          // return Text(data.appointmentDate ?? "-");
+          /*if (controller.appointmentData.value != null) {
+            data = controller.appointmentData.value;
+          } else if (controller.appointmentDataWithoutCallHistory.value != null) {
+            data = controller.appointmentDataWithoutCallHistory.value;
+          } else {
+            data = widget.item;
+          }*/
 
           final parsedDate = DateTime.parse(data.appointmentDate.toString());
           final formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
@@ -649,14 +661,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
               // Scrollable Content (excluding the button)
               Obx(() {
                 if (controller.isLoading.value) {
-                  return Expanded(
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: ColorCodes.colorBlue1,
-                        backgroundColor: ColorCodes.white,
-                      ),
-                    ),
-                  );
+                  return Expanded(child: Center(child: CircularProgressIndicator(color: ColorCodes.colorBlue1, backgroundColor: ColorCodes.white)));
                 }
 
                 return Expanded(

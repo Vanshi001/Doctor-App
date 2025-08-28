@@ -1,7 +1,12 @@
+import 'dart:async';
+
+import 'package:Doctor/widgets/Constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 
+import '../controllers/NetworkController.dart';
 import '../controllers/auth/LoginController.dart';
 import '../controllers/auth/SignUpController.dart';
 import '../widgets/ColorCodes.dart';
@@ -19,19 +24,33 @@ class AuthScreen extends StatefulWidget {
   State createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State {
+class _AuthScreenState extends State<AuthScreen> with WidgetsBindingObserver {
   SignUpController registrationController = Get.put(SignUpController());
+  final NetworkController networkController = Get.find();
   LoginController loginController = Get.put(LoginController());
   var isLogin = true.obs;
 
   @override
   void initState() {
     super.initState();
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(statusBarColor: ColorCodes.colorBlue1, statusBarIconBrightness: Brightness.light));
+    WidgetsBinding.instance.addObserver(this);
+    networkController.checkActiveInternetConnection();
+
+    InternetConnectionChecker.instance.onStatusChange.listen((status) {
+      if (status == InternetConnectionStatus.connected) {
+        networkController.connectionStatus.value = Constants.connected;
+        print('networkController.connectionStatus.value ---- ${networkController.connectionStatus.value}');
+      } else {
+        networkController.connectionStatus.value = Constants.notConnected;
+        print('networkController.connectionStatus.value --==-- ${networkController.connectionStatus.value}');
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(statusBarColor: ColorCodes.colorBlue1, statusBarIconBrightness: Brightness.light));
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: ColorCodes.colorBlue1,
@@ -99,191 +118,7 @@ class _AuthScreenState extends State {
         ],
       ),
     );
-
-    /*return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: ColorCodes.colorBlue1,
-      body: Stack(
-        children: [
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: MediaQuery.of(context).size.height * 0.45,
-            child: Image.asset('assets/ic_login_bg.png', fit: BoxFit.contain),
-          ),
-
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.4,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: SingleChildScrollView(
-              child: Container(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height * 0.6,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 4,
-                      margin: EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(color: ColorCodes.colorBlack2, borderRadius: BorderRadius.circular(2)),
-                    ),
-                    Text('Log in or Sign up', style: TextStyles.textStyle1),
-                    Text(Texts.welcome, style: TextStyles.textStyle2_3),
-                    SizedBox(height: 10),
-                    loginWidget(context),
-                    SizedBox(height: 20),
-                    GestureDetector(
-                      onTap: () {
-                        Get.to(() => RegistrationScreen());
-                      },
-                      child: Text('Want to become a Doctor Partner?', style: TextStyles.textStyle),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );*/
-
-    /*return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(36),
-          child: Center(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: 30),
-                Text(Texts.welcome, style: TextStyles.welcomeTextStyle),
-                SizedBox(height: 60),
-                loginWidget(context),
-                SizedBox(height: 20),
-                GestureDetector(
-                  onTap: () {
-                    Get.to(() => RegistrationScreen());
-                  },
-                  child: Text('Want to became Doctor Partner?', style: TextStyles.textStyle),
-                ),
-                */ /*Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      MaterialButton(
-                        color:
-                            !isLogin.value ? ColorCodes.darkPurple : Colors.white,
-                        onPressed: () {
-                          isLogin.value = false;
-                        },
-                        child: Text(
-                          Texts.register,
-                          style:
-                              !isLogin.value
-                                  ? TextStyles.profileTextStyle
-                                  : TextStyles.textStyle,
-                        ),
-                      ),
-                      MaterialButton(
-                        color:
-                            isLogin.value ? ColorCodes.darkPurple : Colors.white,
-                        onPressed: () {
-                          isLogin.value = true;
-                        },
-                        child: Text(
-                          Texts.login,
-                          style:
-                              !isLogin.value
-                                  ? TextStyles.textStyle
-                                  : TextStyles.profileTextStyle,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 60),
-                  isLogin.value ? loginWidget() : registerWidget(),*/ /*
-              ],
-            ),
-          ),
-        ),
-      ),
-    );*/
   }
-
-  /*Widget registerWidget() {
-    return Column(
-      children: [
-        InputTextFieldWidget(
-          registrationController.firstNameController,
-          'first name',
-          inputAction: TextInputAction.next,
-          keyboardType: TextInputType.name,
-        ),
-        SizedBox(height: 20),
-        InputTextFieldWidget(
-          registrationController.lastNameController,
-          'last name',
-          inputAction: TextInputAction.next,
-          keyboardType: TextInputType.name,
-        ),
-        SizedBox(height: 20),
-        InputTextFieldWidget(
-          registrationController.emailController,
-          'email address',
-          inputAction: TextInputAction.next,
-          keyboardType: TextInputType.emailAddress,
-        ),
-        SizedBox(height: 20),
-        InputTextFieldWidget(
-          registrationController.passwordController,
-          'password',
-          inputAction: TextInputAction.next,
-          keyboardType: TextInputType.visiblePassword,
-        ),
-        SizedBox(height: 20),
-        InputTextFieldWidget(
-          registrationController.phoneController,
-          'phone',
-          inputAction: TextInputAction.go,
-          keyboardType: TextInputType.phone,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(10),
-          ],
-        ),
-        SizedBox(height: 20),
-        Obx(
-          () => SubmitButton(
-            onPressed: () {
-              if (registrationController.validateFields()) {
-                registrationController.createCustomer();
-              }
-            },
-            titleWidget:
-                registrationController.isLoading.value
-                    ? SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                    : Text(Texts.register, style: TextStyles.buttonNameStyle),
-          ),
-        ),
-      ],
-    );
-  }*/
 
   Widget registerWidget() {
     return Column(
@@ -367,9 +202,14 @@ class _AuthScreenState extends State {
                 padding: EdgeInsets.symmetric(vertical: 14),
               ),
               // onPressed: controller.isLoading.value ? null : controller.submitForm,
-              onPressed: () {
+              onPressed: () async {
                 if (loginController.validateFields()) {
-                  loginController.loginApi();
+                  if (networkController.connectionStatus.value == Constants.notConnected) {
+                    Constants.noInternetError();
+                    return;
+                  } else {
+                    loginController.loginApi();
+                  }
                 }
               },
               child:
@@ -391,10 +231,10 @@ class _AuthScreenState extends State {
     );
   }
 
-  @override
+  /* @override
   void dispose() {
     // Reset to default or app-wide style
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(statusBarColor: Colors.white, statusBarIconBrightness: Brightness.dark));
     super.dispose();
-  }
+  }*/
 }

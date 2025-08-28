@@ -2,8 +2,11 @@ import 'package:Doctor/widgets/ColorCodes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 import '../controllers/FormController.dart';
+import '../controllers/NetworkController.dart';
+import '../widgets/Constants.dart';
 import '../widgets/TextStyles.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -13,13 +16,43 @@ class RegistrationScreen extends StatefulWidget {
   State<RegistrationScreen> createState() => _RegistrationScreenState();
 }
 
-class _RegistrationScreenState extends State<RegistrationScreen> {
+class _RegistrationScreenState extends State<RegistrationScreen> with WidgetsBindingObserver {
   final controller = Get.put(FormController());
-  final ScrollController brandNameScrollController = ScrollController();
+
+  // final ScrollController brandNameScrollController = ScrollController();
+  final NetworkController networkController = Get.find();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    _setWhiteStatusBar();
+
+    networkController.checkActiveInternetConnection();
+
+    InternetConnectionChecker.instance.onStatusChange.listen((status) {
+      if (status == InternetConnectionStatus.connected) {
+        networkController.connectionStatus.value = Constants.connected;
+        print('networkController.connectionStatus.value ---- ${networkController.connectionStatus.value}');
+      } else {
+        networkController.connectionStatus.value = Constants.notConnected;
+        print('networkController.connectionStatus.value --==-- ${networkController.connectionStatus.value}');
+      }
+    });
+  }
+
+  void _setWhiteStatusBar() {
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: ColorCodes.colorBlue1,
+        statusBarIconBrightness: Brightness.light, // dark icons for white bar
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-
     return SafeArea(
       child: Scaffold(
         backgroundColor: ColorCodes.white,
@@ -30,7 +63,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 10,),
+              SizedBox(height: 10),
               Row(
                 children: [
                   IconButton(
@@ -39,8 +72,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       Get.back();
                     },
                   ),
-                  SizedBox(width: 10,),
-                  Text("Doctor Partner", style: TextStyles.textStyle2)
+                  SizedBox(width: 10),
+                  Text("Doctor Partner", style: TextStyles.textStyle2),
                 ],
               ),
               Text('Join our community top Doctors.', style: TextStyles.textStyle1, textAlign: TextAlign.center),
@@ -77,7 +110,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           ],
                         ),
                       ),
-                      Obx(
+                      /*Obx(
                         () => Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -109,7 +142,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               ),
                           ],
                         ),
-                      ),
+                      ),*/
                       Container(
                         margin: EdgeInsets.symmetric(vertical: 4),
                         padding: EdgeInsets.symmetric(horizontal: 10),
@@ -240,7 +273,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             padding: EdgeInsets.symmetric(vertical: 14),
                           ),
-                          onPressed: controller.isLoading.value ? null : controller.submitForm,
+                          onPressed:
+                              controller.isLoading.value
+                                  ? null
+                                  : () {
+                                    if (networkController.connectionStatus.value == Constants.notConnected) {
+                                      Constants.noInternetError();
+                                      return;
+                                    } else
+                                      controller.submitForm();
+                                  },
                           child:
                               controller.isLoading.value
                                   ? SizedBox(
@@ -265,11 +307,5 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    brandNameScrollController.dispose();
-    super.dispose();
   }
 }

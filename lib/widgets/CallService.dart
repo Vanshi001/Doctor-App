@@ -66,6 +66,9 @@ class CallService {
           /// defaultAction to return to the previous page
           Future<bool> Function() defaultAction,
         ) async {
+          var config = ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall();
+          _setupCallDurationTracking(config, context, appointmentId);
+
           return await showDialog(
             context: event.context,
             barrierDismissible: false,
@@ -76,13 +79,18 @@ class CallService {
                 content: Text("Are you sure want to hang up the call?", style: TextStyles.textStyle5_2),
                 actions: [
                   ElevatedButton(child: const Text("Cancel", style: TextStyles.textStyle4), onPressed: () => Navigator.of(context).pop(false)),
-                  ElevatedButton(child: const Text("Exit", style: TextStyles.textStyle4), onPressed: () => {
-                    Navigator.of(context).pop(true),
-                    print('EXIT'),
-                  CallDurationTracker.endCall(),
-                  _saveCallLog(finalDuration, appointmentId),
+                  ElevatedButton(
+                    child: const Text("Exit", style: TextStyles.textStyle4),
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                      print('EXIT');
+                      CallDurationTracker.endCall();
 
-                  }),
+                      final currentTimeStr = formatCurrentTime();
+                      finalDuration = parseDuration(currentTimeStr);
+                      _saveCallLog(finalDuration, appointmentId);
+                    },
+                  ),
                 ],
               );
             },
@@ -107,6 +115,7 @@ class CallService {
           print('invitationEvents onOutgoingCallDeclined callID -- $callID');
           print('invitationEvents onOutgoingCallDeclined callee name-- ${callee.name}');
           ZegoUIKitPrebuiltCallInvitationService().reject(causeByPopScope: true);
+          // ZegoUIKitPrebuiltCallController().hangUp(context);
           Constants.showError('${callee.name} has rejected the appointment call.');
         },
 
@@ -155,6 +164,25 @@ class CallService {
     );*/
   }
 
+  static Duration parseDuration(String time) {
+    final parts = time.split(':');
+    if (parts.length != 3) return Duration.zero; // fallback if invalid
+
+    final hours = int.tryParse(parts[0]) ?? 0;
+    final minutes = int.tryParse(parts[1]) ?? 0;
+    final seconds = int.tryParse(parts[2]) ?? 0;
+
+    return Duration(hours: hours, minutes: minutes, seconds: seconds);
+  }
+
+  static String formatCurrentTime() {
+    final now = DateTime.now();
+    final hours = now.hour.toString().padLeft(2, '0');
+    final minutes = now.minute.toString().padLeft(2, '0');
+    final seconds = now.second.toString().padLeft(2, '0');
+    return '$hours:$minutes:$seconds';
+  }
+
   static void _setupCallDurationTracking(ZegoUIKitPrebuiltCallConfig config, BuildContext context, String? appointmentId) {
     // Use duration callback for timing (this is available)
     config.duration = ZegoCallDurationConfig(
@@ -177,6 +205,7 @@ class CallService {
           CallDurationTracker.endCall();
           ZegoUIKitPrebuiltCallController().hangUp(context);
           finalDuration = duration;
+          print('finalDuration ---- $finalDuration');
           _saveCallLog(finalDuration, appointmentId);
         }
       },
