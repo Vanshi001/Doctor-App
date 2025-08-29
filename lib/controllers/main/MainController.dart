@@ -188,7 +188,7 @@ class MainController extends GetxController {
       print('fetchAllAppointments');
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       var token = prefs.getString("access_token");
-      if (token != null) appointmentsController.fetchAllAppointmentsApi(doctorId);
+      if (token != null && token.isNotEmpty) appointmentsController.fetchAllAppointmentsApi(doctorId);
     } catch (e) {
       print('Error fetchAllAppointments:- $e');
       Constants.showError("Error fetchAllAppointments -- $e");
@@ -373,4 +373,8 @@ class MainController extends GetxController {
       });
     }
   }
+
+  final RxList<dynamic> searchResults = <dynamic>[].obs;
+  final RxString searchText = "".obs;
+
 }

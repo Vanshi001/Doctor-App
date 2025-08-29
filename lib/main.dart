@@ -76,7 +76,6 @@ void main() async {
     );
   });
 
-  Get.put(NetworkController());
   // onUserLogin();
 }
 

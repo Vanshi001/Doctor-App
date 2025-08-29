@@ -209,7 +209,7 @@ class UpcomingSchedulesController extends GetxController {
   final todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now()).obs;
   final tomorrowDate = DateFormat('yyyy-MM-dd').format(DateTime.now().add(Duration(days: 1))).obs;
 
-  Future<void> fetchAllUpComingAppointmentsApi() async {
+  Future<void> fetchAllUpComingAppointmentsApi({String? searchQuery}) async {
 
     // ✅ Don't call API if user is logged out
     // if (AuthController.isLoggedIn.value) {
@@ -224,7 +224,12 @@ class UpcomingSchedulesController extends GetxController {
 
     isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
-    final url = Uri.parse('${Constants.baseUrl}appointments?status=all&doctorId=$doctorId');
+    // final url = Uri.parse('${Constants.baseUrl}appointments?status=all&doctorId=$doctorId');
+    final url = Uri.parse(
+      searchQuery != null && searchQuery.isNotEmpty
+          ? '${Constants.baseUrl}appointments?status=all&doctorId=$doctorId?search=$searchQuery'
+          : '${Constants.baseUrl}appointments?status=all&doctorId=$doctorId',
+    );
 
     try {
       final response = await http.get(
@@ -240,25 +245,6 @@ class UpcomingSchedulesController extends GetxController {
         allUpcomingAppointmentResponse.value = AppointmentResponse.fromJson(responseData);
 
         final appointments = allUpcomingAppointmentResponse.value?.data ?? [];
-
-        /*final List<AppointmentResponse> mappedList =
-            appointments.map((appointment) {
-              final id = appointment.id;
-              final patientName = appointment.patientFullName;
-              final concerns = appointment.concerns?.join(", ");
-              final date = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
-              final startTime = appointment.timeSlot?.startTime;
-              final endTime = appointment.timeSlot?.endTime;
-
-              return AppointmentResponse(
-                id: id.toString(),
-                image: 'https://randomuser.me/api/portraits/women/1.jpg',
-                clinic: patientName.toString(),
-                concern: concerns.toString(),
-                date: date,
-                time: '$startTime - $endTime',
-              );
-            }).toList();*/
 
         allList.assignAll(appointments);
       } else {

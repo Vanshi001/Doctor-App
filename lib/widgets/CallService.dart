@@ -24,15 +24,15 @@ import 'ColorCodes.dart';
 import 'TextStyles.dart';
 
 class CallService {
-  static DateTime? callStartTime;
-  static DateTime? callEndTime;
+  // static DateTime? callStartTime;
+  // static DateTime? callEndTime;
   static Duration? finalDuration;
 
   static final ZegoUIKitPrebuiltCallInvitationService invitationService = ZegoUIKitPrebuiltCallInvitationService();
   static final navigatorKey = GlobalKey<NavigatorState>();
 
   static Future<void> initializeCallService(String callerUserName, BuildContext context, String? appointmentId) async {
-    callStartTime = null;
+    CallDurationTracker.callStartTime = null;
     final prefs = await SharedPreferences.getInstance();
     final doctorId = prefs.getString('doctor_id') ?? '';
     final doctorName = prefs.getString('doctor_name') ?? 'Doctor';
@@ -191,17 +191,17 @@ class CallService {
         print('VANSHI Elapsed time: ${CallDurationTracker.formatDuration(duration)}');
 
         // Track start time on first duration update
-        if (callStartTime == null) {
-          callStartTime = DateTime.now().subtract(duration);
+        if (CallDurationTracker.callStartTime == null) {
+          CallDurationTracker.callStartTime = DateTime.now().subtract(duration);
           CallDurationTracker.startCall();
-          print('VANSHI Call started at: $callStartTime');
+          print('VANSHI Call started at: ${CallDurationTracker.callStartTime}');
         }
 
         // Check for 15-minute limit (900 seconds)
         if (duration.inSeconds >= 900) {
           print('VANSHI 15-minute time limit reached - ending call');
           // You can add logic to end the call here if needed
-          callEndTime = DateTime.now();
+          CallDurationTracker.callEndTime = DateTime.now();
           CallDurationTracker.endCall();
           ZegoUIKitPrebuiltCallController().hangUp(context);
           finalDuration = duration;
@@ -229,7 +229,7 @@ class CallService {
   static void _saveCallLog(Duration? duration, String? appointmentId) {
     // Save to shared preferences or send to your backend
 
-    final callLog = {'startTime': callStartTime?.toIso8601String(), 'endTime': callEndTime?.toIso8601String()};
+    final callLog = {'startTime': CallDurationTracker.callStartTime?.toIso8601String(), 'endTime': CallDurationTracker.callEndTime?.toIso8601String()};
 
     print('VANSHI Call log: $callLog');
     // Save to controller
@@ -239,7 +239,15 @@ class CallService {
 
     // Also save to shared preferences for persistence
     controller.callHistoryApi(callLog, appointmentId);
-    Get.back();
+    // Get.back();
+    // Close safely
+    if (Get.isSnackbarOpen) {
+      Get.closeCurrentSnackbar();
+    } else if (Get.isDialogOpen ?? false) {
+      Get.back(); // close dialog if open
+    } else if (Get.key.currentState?.canPop() ?? false) {
+      Get.back(); // close current page if possible
+    }
     // saveCallLogToPrefs(callLog);
   }
 

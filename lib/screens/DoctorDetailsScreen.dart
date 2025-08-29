@@ -38,7 +38,8 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             leading: IconButton(
               icon: Icon(Icons.close, color: ColorCodes.white, size: 20),
               onPressed: () {
-                Get.back();
+                // Get.back();
+                Navigator.pop(context);
               },
             ),
           ),

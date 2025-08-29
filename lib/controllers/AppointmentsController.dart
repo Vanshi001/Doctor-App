@@ -188,7 +188,7 @@ class AppointmentsController extends GetxController {
   RxBool isFirstLoadAllAppointment = true.obs; // Show loader only for first fetch
   Timer? _refreshAllAppointmentTimer;
 
-  Future<void> fetchAllAppointmentsApi(String? doctorId) async {
+  Future<void> fetchAllAppointmentsApi(String? doctorId, {String? searchQuery}) async {
     // ✅ Don't call API if user is logged out
     // if (AuthController.isLoggedIn.value) {
     //   print("User logged out. API not called.");
@@ -218,8 +218,14 @@ class AppointmentsController extends GetxController {
         statusParam = 'all';
     }
 
-    final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId/appointment?status=all');
-    // print('url ---- $url');
+    // final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId/appointment?status=all');
+
+    final url = Uri.parse(
+      searchQuery != null && searchQuery.isNotEmpty
+          ? '${Constants.baseUrl}doctors/$doctorId/appointment?status=all?search=$searchQuery'
+          : '${Constants.baseUrl}doctors/$doctorId/appointment?status=all',
+    );
+    print('url ---- $url');
 
     try {
       final response = await http.get(
@@ -228,7 +234,7 @@ class AppointmentsController extends GetxController {
       );
 
       // print('response.statusCode -- ${response.statusCode}');
-      // print('response.body -- ${response.body}');
+      print('response.body -- ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);

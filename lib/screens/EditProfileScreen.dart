@@ -72,7 +72,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             leading: IconButton(
               icon: Icon(Icons.close, color: ColorCodes.white, size: 20),
               onPressed: () {
-                Get.back();
+                // Get.back();
+                Navigator.pop(context);
               },
             ),
           ),
@@ -116,7 +117,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     controller.contactController.text,
                     controller.addressController.text,
                   );
-                  Get.back(); // Go back to previous screen
+                  // Get.back(); // Go back to previous screen
+                  Navigator.pop(context);
                 },
                 titleWidget: Text("Save", style: TextStyles.buttonNameStyle,),
               ),

@@ -2,8 +2,8 @@
 import 'dart:async';
 
 class CallDurationTracker {
-  static DateTime? _callStartTime;
-  static DateTime? _callEndTime;
+  static DateTime? callStartTime;
+  static DateTime? callEndTime;
   static Timer? _durationTimer;
   static Duration _currentDuration = Duration.zero;
   static bool _isCallActive = false;
@@ -14,7 +14,7 @@ class CallDurationTracker {
       return;
     }
 
-    _callStartTime = DateTime.now();
+    callStartTime = DateTime.now();
     _currentDuration = Duration.zero;
     _isCallActive = true;
 
@@ -27,7 +27,7 @@ class CallDurationTracker {
       }
     });
 
-    print('VANSHI CallDurationTracker Call started at: $_callStartTime');
+    print('VANSHI CallDurationTracker Call started at: $callStartTime');
   }
 
   static void endCall() {
@@ -36,12 +36,12 @@ class CallDurationTracker {
       return;
     }
 
-    _callEndTime = DateTime.now();
+    callEndTime = DateTime.now();
     _isCallActive = false;
     _durationTimer?.cancel();
     _durationTimer = null;
 
-    print('VANSHI CallDurationTracker Call ended at: $_callEndTime');
+    print('VANSHI CallDurationTracker Call ended at: $callEndTime');
     print('VANSHI CallDurationTracker Total call duration: ${getFormattedDuration()}');
   }
 
@@ -65,8 +65,8 @@ class CallDurationTracker {
   }
 
   static Duration? get totalDuration {
-    if (_callStartTime != null && _callEndTime != null) {
-      return _callEndTime!.difference(_callStartTime!);
+    if (callStartTime != null && callEndTime != null) {
+      return callEndTime!.difference(callStartTime!);
     }
     return null;
   }
@@ -95,8 +95,8 @@ class CallDurationTracker {
     _isCallActive = false;
     _durationTimer?.cancel();
     _durationTimer = null;
-    _callStartTime = null;
-    _callEndTime = null;
+    callStartTime = null;
+    callEndTime = null;
     _currentDuration = Duration.zero;
     _currentDuration = Duration.zero;
     print('VANSHI CallDurationTracker: Reset complete');

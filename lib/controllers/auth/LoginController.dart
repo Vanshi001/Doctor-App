@@ -90,13 +90,14 @@ class LoginController extends GetxController {
     // final doctorId = prefs.getString('doctor_id') ?? '';
     print('doctorId -- $doctorId');
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
-    // print('fetchDoctorDetailsApi url -- $url');
+    print('fetchDoctorDetailsApi url -- $url');
 
     try {
       final response = await http.get(
         url,
         headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
       );
+      print('response -- ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);

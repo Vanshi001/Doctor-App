@@ -26,7 +26,7 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> with WidgetsBindingObserver {
   SignUpController registrationController = Get.put(SignUpController());
-  final NetworkController networkController = Get.find();
+  final NetworkController networkController = Get.put(NetworkController());
   LoginController loginController = Get.put(LoginController());
   var isLogin = true.obs;
 

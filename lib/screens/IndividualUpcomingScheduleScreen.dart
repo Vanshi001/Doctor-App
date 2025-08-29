@@ -63,7 +63,8 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: ColorCodes.colorBlack1),
             onPressed: () {
-              Get.back();
+              // Get.back();
+              Navigator.pop(context);
             },
           ),
         ),
@@ -513,7 +514,8 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                     Text("Add Medicine", style: TextStyles.textStyle2_2),
                     GestureDetector(
                       onTap: () {
-                        Get.back();
+                        // Get.back();
+                        Navigator.pop(context);
                       },
                       child: Image.asset('assets/ic_close.png', height: 24, width: 24),
                     ),
@@ -616,7 +618,8 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                 ElevatedButton(
                   onPressed: () {
                     controller.addMedicine();
-                    Get.back();
+                    // Get.back();
+                    Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ColorCodes.colorBlue1,
@@ -653,7 +656,9 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text("Add Medicine", style: TextStyles.textStyle2_2),
-                  GestureDetector(onTap: () => Get.back(), child: Image.asset('assets/ic_close.png', height: 24, width: 24)),
+                  GestureDetector(onTap: () =>
+                      /*Get.back()*/
+                  Navigator.pop(context), child: Image.asset('assets/ic_close.png', height: 24, width: 24)),
                 ],
               ),
               SizedBox(height: 16),
@@ -788,7 +793,8 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                       Constants.showError('Enter description');
                     } else {
                       controller.addMedicine();
-                      Get.back();
+                      // Get.back();
+                      Navigator.pop(context);
                     }
                   },
                   style: ElevatedButton.styleFrom(

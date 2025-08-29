@@ -41,7 +41,8 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: ColorCodes.colorBlack1),
             onPressed: () {
-              Get.back();
+              // Get.back();
+              Navigator.pop(context);
             },
           ),
         ),
@@ -317,7 +318,10 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text("Add Medicine", style: TextStyles.textStyle2_2),
-                  GestureDetector(onTap: () => Get.back(), child: Image.asset('assets/ic_close.png', height: 24, width: 24)),
+                  GestureDetector(
+                    onTap: () => /*Get.back()*/ Navigator.pop(context),
+                    child: Image.asset('assets/ic_close.png', height: 24, width: 24),
+                  ),
                 ],
               ),
               SizedBox(height: 16),
@@ -446,7 +450,8 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                       Constants.showError('Enter description');
                     } else {
                       controller.addMedicine();
-                      Get.back();
+                      // Get.back();
+                      Navigator.pop(context);
                     }
                   },
                   style: ElevatedButton.styleFrom(

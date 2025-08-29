@@ -85,14 +85,23 @@ class _MainScreenState extends State<MainScreen> {
 
   final PermissionController permissionController = Get.put(PermissionController());
 
-  final NetworkController networkController = Get.find();
+  final NetworkController networkController = Get.put(NetworkController());
 
   @override
   void initState() {
+    super.initState();
+
     // getDoctorDetails();
     // mainController.fetchAppointmentsApi();
     // permissionController.requestAllPermissions();
     networkController.checkActiveInternetConnection();
+
+    if (networkController.hasConnection) {
+      mainController.fetchDoctorDetailsApi();
+      getDoctorDetails();
+    } else {
+      Constants.noInternetError();
+    }
 
     InternetConnectionChecker.instance.onStatusChange.listen((status) {
       if (status == InternetConnectionStatus.connected) {
@@ -108,10 +117,7 @@ class _MainScreenState extends State<MainScreen> {
     });
 
     // mainController.startAutoFetch();
-    super.initState();
     // checkAppVersion(context);
-
-    // Listen to connection changes
   }
 
   Future<void> checkAppVersion(BuildContext context) async {
@@ -143,6 +149,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void getDoctorDetails() async {
+    print('getDoctorDetails -- called');
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     var doctorId = prefs.getString('doctor_id');
     print('doctorId -- ${doctorId}');
@@ -179,12 +186,34 @@ class _MainScreenState extends State<MainScreen> {
           key: _scaffoldKey,
           backgroundColor: ColorCodes.white,
           body: Obx(() {
-            // check internet connection
+            // 1) No internet
             if (networkController.connectionStatus.value == Constants.notConnected) {
               return _noInternetUI();
-            } else {
-              return dashboardUI(width, height);
             }
+
+            // 2) Any API loading? (add more flags if you have them)
+            final bool isFetching =
+                (appointmentsController.isLoading.value) ||
+                    (mainController.isLoading.value) ||
+                    (mainController.isLoadingAppointmentWithoutDescription.value);
+
+            if (isFetching) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            // 3) After loading, check data
+            final curr = appointmentsController.currentList; // RxList
+            final all = mainController.allList;              // RxList
+            final pending = mainController.withoutDescriptionAppointmentResponse.value?.data ?? <dynamic>[];
+
+            final bool isAllEmpty = curr.isEmpty && all.isEmpty && pending.isEmpty;
+
+            if (isAllEmpty) {
+              return emptyDashboardUI();
+            }
+
+            // 4) Otherwise show dashboard
+            return dashboardUI(width, height);
           }),
         ),
       ),
@@ -196,15 +225,11 @@ class _MainScreenState extends State<MainScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Image.asset("assets/ic_no_internet.png", width: 205, height: 186,),
-          ),
+          Padding(padding: const EdgeInsets.all(15.0), child: Image.asset("assets/ic_no_internet.png", width: 205, height: 186)),
           const SizedBox(height: 20),
           Text("No Internet Connection", style: TextStyles.textStyle3),
           const SizedBox(height: 10),
-          Text("Please check your connection and try again.",
-              style: TextStyles.textStyle5_1),
+          Text("Please check your connection and try again.", style: TextStyles.textStyle5_1),
           const SizedBox(height: 20),
           // ElevatedButton(
           //   style: ElevatedButton.styleFrom(
@@ -232,7 +257,6 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-
   Widget dashboardUI(double width, double height) {
     return RefreshIndicator(
       onRefresh: () async {
@@ -258,7 +282,7 @@ class _MainScreenState extends State<MainScreen> {
                 children: [
                   // Image.asset("assets/ic_profile.png", height: 45, width: 45),
                   Obx(
-                        () => Container(
+                    () => Container(
                       height: 50,
                       width: 50,
                       decoration: BoxDecoration(
@@ -272,7 +296,7 @@ class _MainScreenState extends State<MainScreen> {
                   SizedBox(width: 5),
                   Expanded(
                     child: Obx(
-                          () => Column(
+                      () => Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Hello', style: TextStyles.textStyle1),
@@ -293,29 +317,29 @@ class _MainScreenState extends State<MainScreen> {
                         barrierDismissible: false,
                         builder:
                             (context) => AlertDialog(
-                          backgroundColor: ColorCodes.white,
-                          title: Column(
-                            children: [
-                              Align(alignment: Alignment.topLeft, child: Text('Logout', style: TextStyles.textStyle2)),
-                              SizedBox(height: 10),
-                              Divider(height: 2, thickness: 1, color: ColorCodes.colorGrey4),
-                            ],
-                          ),
-                          content: Text('Are you sure you want to logout?', style: TextStyles.textStyle1),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context), // dismiss dialog
-                              child: Text('Cancel', style: TextStyles.textStyle4_3),
+                              backgroundColor: ColorCodes.white,
+                              title: Column(
+                                children: [
+                                  Align(alignment: Alignment.topLeft, child: Text('Logout', style: TextStyles.textStyle2)),
+                                  SizedBox(height: 10),
+                                  Divider(height: 2, thickness: 1, color: ColorCodes.colorGrey4),
+                                ],
+                              ),
+                              content: Text('Are you sure you want to logout?', style: TextStyles.textStyle1),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context), // dismiss dialog
+                                  child: Text('Cancel', style: TextStyles.textStyle4_3),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    logout();
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text('Logout', style: TextStyles.textStyle4_3),
+                                ),
+                              ],
                             ),
-                            TextButton(
-                              onPressed: () async {
-                                logout();
-                                Navigator.pop(context);
-                              },
-                              child: Text('Logout', style: TextStyles.textStyle4_3),
-                            ),
-                          ],
-                        ),
                       );
                     },
                     child: Image.asset('assets/ic_arrow_right.png', height: 24, width: 24),
@@ -324,31 +348,35 @@ class _MainScreenState extends State<MainScreen> {
                 ],
               ),
             ),
-            GestureDetector(
-              onTap:
-                  () => {
-                // Get.to(() => ShowShopByCategoryScreen(title: 'Products', data: 'search'))
-              },
-              child: Container(
-                height: 50,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.white,
-                  border: Border.all(color: ColorCodes.colorGrey4, width: 1),
-                ),
-                child: Row(
-                  children: [
-                    Image.asset('assets/ic_search.png', height: 20, width: 20),
-                    SizedBox(width: 10),
-                    Expanded(child: Text("Search", style: TextStyles.textStyle5_1)),
-                    // Image.asset('assets/ic_vertical_line.png', height: 20, width: 20),
-                    // Image.asset('assets/ic_microphone.png', height: 20, width: 20),
-                  ],
+            /*Container(
+              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              child: TextField(
+                onChanged: (value) {
+                  // updateSearchText(value);
+                },
+                controller: editingController,
+                cursorColor: ColorCodes.colorBlack1,
+                decoration: InputDecoration(
+                  hintText: 'Search',
+                  hintStyle: TextStyles.textStyle5_1,
+                  prefixIcon: Padding(padding: EdgeInsets.all(15), child: Image.asset('assets/ic_search.png')),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(4)),
+                    borderSide: BorderSide(color: ColorCodes.colorGrey3),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(4)),
+                    borderSide: BorderSide(color: ColorCodes.colorGrey3),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(4)),
+                    borderSide: BorderSide(color: ColorCodes.colorGrey3, width: 1),
+                  ),
                 ),
               ),
-            ),
+            ),*/
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
               child: Row(
@@ -391,31 +419,31 @@ class _MainScreenState extends State<MainScreen> {
 
                 return CarouselSlider(
                   items:
-                  todayAppointments.map((appointment) {
-                    final patientName = appointment.patientFullName ?? 'N/A';
-                    final concerns = appointment.concerns?.join(", ");
-                    final date = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
-                    final startTime = appointment.timeSlot?.startTime;
-                    final endTime = appointment.timeSlot?.endTime;
+                      todayAppointments.map((appointment) {
+                        final patientName = appointment.patientFullName ?? 'N/A';
+                        final concerns = appointment.concerns?.join(", ");
+                        final date = DateFormat('dd MMM yyyy').format(DateTime.parse(appointment.appointmentDate.toString()));
+                        final startTime = appointment.timeSlot?.startTime;
+                        final endTime = appointment.timeSlot?.endTime;
 
-                    return GestureDetector(
-                      onTap: () {
-                        final id = appointment.id;
-                        print('Tapped appointment ID: $id');
-                        Get.to(() => IndividualUpcomingScheduleScreen(item: appointment, name: mainController.doctorName.value));
-                      },
-                      child: Container(
-                        height: height / 5,
-                        decoration: BoxDecoration(color: ColorCodes.colorBlue1, borderRadius: BorderRadius.circular(20)),
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8.0, top: 10, right: 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  /*ClipRRect(
+                        return GestureDetector(
+                          onTap: () {
+                            final id = appointment.id;
+                            print('Tapped appointment ID: $id');
+                            Get.to(() => IndividualUpcomingScheduleScreen(item: appointment, name: mainController.doctorName.value));
+                          },
+                          child: Container(
+                            height: height / 5,
+                            decoration: BoxDecoration(color: ColorCodes.colorBlue1, borderRadius: BorderRadius.circular(20)),
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8.0, top: 10, right: 8),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      /*ClipRRect(
                                               borderRadius: BorderRadius.circular(50),
                                               child: Image.network(
                                                 'https://randomuser.me/api/portraits/women/1.jpg',
@@ -425,69 +453,69 @@ class _MainScreenState extends State<MainScreen> {
                                               ),
                                               // Image.asset(url, height: 50, width: 50, fit: BoxFit.cover),
                                             ),*/
-                                  Container(
-                                    height: 50,
-                                    width: 50,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: ColorCodes.colorBlack2, // Background color for the circle
-                                      border: Border.all(color: ColorCodes.white, width: 3),
-                                    ),
-                                    child: Center(child: Text(mainController.getInitials(patientName), style: TextStyles.textStyle6_1)),
-                                  ),
-                                  SizedBox(width: 5),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(patientName, style: TextStyles.textStyle6_1),
-                                        SizedBox(height: 2),
-                                        SizedBox(
-                                          width: width / 3,
-                                          child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey4),
+                                      Container(
+                                        height: 50,
+                                        width: 50,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: ColorCodes.colorBlack2, // Background color for the circle
+                                          border: Border.all(color: ColorCodes.white, width: 3),
                                         ),
-                                        SizedBox(height: 2),
-                                        Text(concerns.toString(), style: TextStyles.textStyle5_2, overflow: TextOverflow.ellipsis),
-                                      ],
-                                    ),
+                                        child: Center(child: Text(mainController.getInitials(patientName), style: TextStyles.textStyle6_1)),
+                                      ),
+                                      SizedBox(width: 5),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(patientName, style: TextStyles.textStyle6_1),
+                                            SizedBox(height: 2),
+                                            SizedBox(
+                                              width: width / 3,
+                                              child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey4),
+                                            ),
+                                            SizedBox(height: 2),
+                                            Text(concerns.toString(), style: TextStyles.textStyle5_2, overflow: TextOverflow.ellipsis),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.fromLTRB(0, 0, 5, 10),
+                                        child: Image.asset('assets/ic_video_call2.png', height: 40, width: 40),
+                                      ),
+                                    ],
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.fromLTRB(0, 0, 5, 10),
-                                    child: Image.asset('assets/ic_video_call2.png', height: 40, width: 40),
+                                ),
+                                SizedBox(height: 5),
+                                Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(100),
+                                    border: Border.all(color: Colors.grey.shade300),
                                   ),
-                                ],
-                              ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Image.asset('assets/ic_calendar.png', width: 12, height: 12),
+                                      SizedBox(width: 2),
+                                      Text(date, style: TextStyles.textStyle4),
+                                      Image.asset('assets/ic_vertical_line.png', height: 20, width: 10),
+                                      Image.asset('assets/ic_clock.png', width: 12, height: 12),
+                                      SizedBox(width: 2),
+                                      Text(
+                                        '${Constants.formatTimeToAmPm(startTime.toString())} - ${Constants.formatTimeToAmPm(endTime.toString())}',
+                                        style: TextStyles.textStyle4,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                            SizedBox(height: 5),
-                            Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(100),
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image.asset('assets/ic_calendar.png', width: 12, height: 12),
-                                  SizedBox(width: 2),
-                                  Text(date, style: TextStyles.textStyle4),
-                                  Image.asset('assets/ic_vertical_line.png', height: 20, width: 10),
-                                  Image.asset('assets/ic_clock.png', width: 12, height: 12),
-                                  SizedBox(width: 2),
-                                  Text(
-                                    '${Constants.formatTimeToAmPm(startTime.toString())} - ${Constants.formatTimeToAmPm(endTime.toString())}',
-                                    style: TextStyles.textStyle4,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                          ),
+                        );
+                      }).toList(),
                   options: CarouselOptions(
                     autoPlay: isMultiple,
                     aspectRatio: 2.8,
@@ -729,10 +757,7 @@ class _MainScreenState extends State<MainScreen> {
                                   children: [
                                     Text(patientName, style: TextStyles.textStyle3),
                                     SizedBox(height: 2),
-                                    SizedBox(
-                                      width: width / 3,
-                                      child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1),
-                                    ),
+                                    SizedBox(width: width / 3, child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1)),
                                     SizedBox(height: 2),
                                     Text(concerns, style: TextStyles.textStyle5, overflow: TextOverflow.ellipsis),
                                     SizedBox(height: 5),
@@ -861,6 +886,22 @@ class _MainScreenState extends State<MainScreen> {
             // ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget emptyDashboardUI() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Padding(padding: const EdgeInsets.all(15.0), child: Image.asset("assets/ic_no_data.png", width: 205, height: 186)),
+          const SizedBox(height: 20),
+          Text("No Appointments Yet", style: TextStyles.textStyle3),
+          const SizedBox(height: 10),
+          Text("You're all caught up. New appointments will show up here once patients book them.", style: TextStyles.textStyle5_1),
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }

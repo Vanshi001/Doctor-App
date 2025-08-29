@@ -69,7 +69,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> with WidgetsBin
                   IconButton(
                     icon: Icon(Icons.close, color: ColorCodes.colorBlack1, size: 20),
                     onPressed: () {
-                      Get.back();
+                      // Get.back();
+                      Navigator.pop(context);
                     },
                   ),
                   SizedBox(width: 10),
