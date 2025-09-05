@@ -23,27 +23,32 @@ class AppointmentsScreen extends StatefulWidget {
 class _AppointmentsScreenState extends State<AppointmentsScreen> {
   final AppointmentsController controller = Get.put(AppointmentsController());
   List<String> medicineNames = [];
-  RxList<Appointment> filteredList = RxList<Appointment>();
+  // RxList<Appointment> filteredList = RxList<Appointment>();
 
   @override
   void initState() {
     super.initState();
     // controller.fetchAllAppointmentsApi(widget.doctorId);
     handleRefresh();
-    filteredList.addAll(controller.currentList);
+    // filteredList.addAll(controller.currentList);
     _searchController.addListener(_filterAppointments);
+
+    // 👇 Add this listener
+    /*ever(controller.currentList, (_) {
+      _filterAppointments(); // keep search + tab sync
+    });*/
   }
 
   void _filterAppointments() {
-    final query = _searchController.text.toLowerCase();
-    if (query.isEmpty) {
-      filteredList.assignAll(controller.currentList);
-    } else {
-      filteredList.assignAll(controller.currentList.where((appointment) {
-        return appointment.patientFullName.toString().toLowerCase().contains(query) ||
-            appointment.concerns!.any((concern) => concern.toLowerCase().contains(query));
-      }).toList());
-    }
+    // final query = _searchController.text.toLowerCase();
+    // if (query.isEmpty) {
+    //   filteredList.assignAll(controller.currentList);
+    // } else {
+    //   filteredList.assignAll(controller.currentList.where((appointment) {
+    //     return appointment.patientFullName.toString().toLowerCase().contains(query) ||
+    //         appointment.concerns!.any((concern) => concern.toLowerCase().contains(query));
+    //   }).toList());
+    // }
   }
 
   final TextEditingController _searchController = TextEditingController();
@@ -91,6 +96,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     icon: Icon(Icons.close, size: 20),
                     onPressed: () {
                       _searchController.clear();
+                      handleRefresh();
                     },
                   )
                       : null,
@@ -168,7 +174,14 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     // List Display
                     Expanded(
                       child: Obx(() {
-                        final list = filteredList; //controller.currentList;
+                        final query = _searchController.text.toLowerCase();
+
+                        final list =  query.isEmpty
+                            ? controller.currentList
+                            : controller.currentList.where((appointment) {
+                          return appointment.patientFullName.toString().toLowerCase().contains(query) ||
+                              appointment.concerns!.any((c) => c.toLowerCase().contains(query));
+                        }).toList();//filteredList; //controller.currentList;
                         medicineNames.clear();
 
                         if (list.isEmpty) {

@@ -341,9 +341,12 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                                   final notes = medicine['notes']?.trim();
                                   final variantId = medicine['variantId']?.trim() /*.split('/').last*/;
                                   final productId = medicine['productId']?.trim() /*.split('/').last*/;
-                                  final price = medicine['price']?.trim() /*.split('/').last*/;
+                                  final priceString = medicine['price']?.trim() /*.split('/').last*/;
                                   final compareAtPrice = medicine['compareAtPrice']?.trim() /*.split('/').last*/;
                                   final image = medicine['image']?.trim() /*.split('/').last*/;
+
+                                  final price = int.tryParse(priceString ?? '') ?? 0;
+
                                   print(
                                     "\n prescriptions name ---- $name, "
                                     "\n notes - $notes, "
@@ -361,7 +364,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                                     productId: productId ?? '',
                                     compareAtPrice: compareAtPrice ?? '',
                                     image: image ?? '',
-                                    price: price ?? '',
+                                    price: price,
                                   );
                                 })
                                 .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)

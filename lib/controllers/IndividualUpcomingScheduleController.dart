@@ -65,7 +65,7 @@ class IndividualUpcomingScheduleController extends GetxController {
   Future<void> addMedicineApi({required String id, required dynamic prescriptions}) async {
     isLoading.value = true;
     final url = Uri.parse('${Constants.baseUrl}appointments/$id/prescription');
-    print("add medicine url == $url");
+    print("add medicine url === $url");
 
     try {
       final prescriptionList = prescriptions is PrescriptionItem ? [prescriptions] : prescriptions as List<PrescriptionItem>;

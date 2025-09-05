@@ -61,6 +61,7 @@ class LoginController extends GetxController {
       } else {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'] ?? "Login failed";
+        print('errorMessage -=-=-= $errorMessage');
         Constants.showError(errorMessage);
       }
     } catch (e) {

@@ -63,9 +63,21 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Profile Image
-                        ClipRRect(
+                        /*ClipRRect(
                           borderRadius: BorderRadius.circular(50),
                           child: Image.network('https://randomuser.me/api/portraits/women/1.jpg', height: 50, width: 50, fit: BoxFit.cover),
+                        ),*/
+                        Container(
+                          height: 50,
+                          width: 50,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: ColorCodes.colorBlack2, // Background color for the circle
+                            border: Border.all(color: ColorCodes.colorBlue1, width: 3),
+                          ),
+                          child: Center(
+                            child: Text(controller.getInitials(widget.appointmentData.patientFullName.toString()), style: TextStyles.textStyle4),
+                          ),
                         ),
                         const SizedBox(width: 5),
                         Expanded(
@@ -237,9 +249,12 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                                 final notes = medicine['notes']?.trim();
                                 final variantId = medicine['variantId']?.trim() /*.split('/').last*/;
                                 final productId = medicine['productId']?.trim() /*.split('/').last*/;
-                                final price = medicine['price']?.trim() /*.split('/').last*/;
+                                final priceString = medicine['price']?.trim() /*.split('/').last*/;
                                 final compareAtPrice = medicine['compareAtPrice']?.trim() /*.split('/').last*/;
                                 final image = medicine['image']?.trim() /*.split('/').last*/;
+
+                                final price = int.tryParse(priceString ?? '') ?? 0;
+
                                 print(
                                   "\n prescriptions name ---- $name, "
                                   "\n notes - $notes, "
@@ -257,7 +272,7 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                                   productId: productId ?? '',
                                   compareAtPrice: compareAtPrice ?? '',
                                   image: image ?? '',
-                                  price: price ?? '',
+                                  price: price,
                                 );
                               })
                               .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
@@ -327,117 +342,123 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
               SizedBox(height: 16),
 
               // Scrollable Content (excluding the button)
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom, // Keyboard padding
-                  ),
-                  child: Column(
-                    children: [
-                      // Autocomplete Search
-                      Obx(() {
-                        final _ = controller.searchQuery.value;
-                        final __ = controller.shopifyProducts.length;
-                        return Autocomplete<ProductModel>(
-                          optionsBuilder: (textEditingValue) {
-                            controller.searchQuery.value = textEditingValue.text;
-                            if (controller.searchQuery.isEmpty) {
-                              return const Iterable<ProductModel>.empty();
-                            }
-                            return controller.shopifyProducts.where(
-                              (product) => product.title.toLowerCase().contains(controller.searchQuery.value.toLowerCase()),
-                            );
-                          },
-                          displayStringForOption: (option) => option.title,
-                          onSelected: controller.selectProduct,
-                          optionsViewBuilder: (context, onSelected, options) {
-                            return Container(
-                              height: 400,
-                              width: MediaQuery.of(context).size.width,
-                              decoration: BoxDecoration(
-                                color: ColorCodes.colorGrey1,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(width: 1, color: ColorCodes.colorBlack2),
-                              ),
-                              child:
-                                  controller.isLoading.value
-                                      ? Container(
-                                        color: ColorCodes.white,
-                                        height: 20,
-                                        width: 20,
-                                        child: Center(
-                                          child: CircularProgressIndicator(color: ColorCodes.colorBlue1, backgroundColor: ColorCodes.white),
-                                        ),
-                                      )
-                                      : ListView.builder(
-                                        padding: EdgeInsets.zero,
-                                        shrinkWrap: true,
-                                        itemCount: options.length,
-                                        itemBuilder: (context, index) {
-                                          final option = options.elementAt(index);
-                                          return Container(
-                                            color: ColorCodes.white,
-                                            child: ListTile(
-                                              leading: option.image != null ? Image.network(option.image!, width: 40) : Icon(Icons.image),
-                                              title: Text(option.title, style: TextStyles.textStyle1),
-                                              subtitle: Text('\Rs.${option.price.toStringAsFixed(2)}'),
-                                              onTap: () => onSelected(option),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                            );
-                          },
-                          fieldViewBuilder: (context, controller, focusNode, onSubmitted) {
-                            return TextField(
-                              controller: controller,
-                              focusNode: focusNode,
-                              decoration: InputDecoration(
-                                hintText: 'Search products...',
-                                prefixIcon: Icon(Icons.search),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      }),
-                      SizedBox(height: 16),
+              Obx(() {
+                if (controller.isLoading.value) {
+                  return Expanded(child: Center(child: CircularProgressIndicator(color: ColorCodes.colorBlue1, backgroundColor: ColorCodes.white)));
+                }
 
-                      // Description Field
-                      Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: ColorCodes.colorGrey4),
-                        ),
-                        child: TextField(
-                          controller: controller.descriptionController,
-                          maxLines: null,
-                          minLines: 5, // Set a minimum height
-                          decoration: InputDecoration(
-                            hintText: "Describes Your Medicine .........",
-                            hintStyle: TextStyles.textStyle5,
-                            border: InputBorder.none,
+                return Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom, // Keyboard padding
+                    ),
+                    child: Column(
+                      children: [
+                        // Autocomplete Search
+                        Obx(() {
+                          final _ = controller.searchQuery.value;
+                          final __ = controller.shopifyProducts.length;
+                          return Autocomplete<ProductModel>(
+                            optionsBuilder: (textEditingValue) {
+                              controller.searchQuery.value = textEditingValue.text;
+                              if (controller.searchQuery.isEmpty) {
+                                return const Iterable<ProductModel>.empty();
+                              }
+                              return controller.shopifyProducts.where(
+                                (product) => product.title.toLowerCase().contains(controller.searchQuery.value.toLowerCase()),
+                              );
+                            },
+                            displayStringForOption: (option) => option.title,
+                            onSelected: controller.selectProduct,
+                            optionsViewBuilder: (context, onSelected, options) {
+                              return Container(
+                                height: 400,
+                                width: MediaQuery.of(context).size.width,
+                                decoration: BoxDecoration(
+                                  color: ColorCodes.colorGrey1,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(width: 1, color: ColorCodes.colorBlack2),
+                                ),
+                                child:
+                                    controller.isLoading.value
+                                        ? Container(
+                                          color: ColorCodes.white,
+                                          height: 20,
+                                          width: 20,
+                                          child: Center(
+                                            child: CircularProgressIndicator(color: ColorCodes.colorBlue1, backgroundColor: ColorCodes.white),
+                                          ),
+                                        )
+                                        : ListView.builder(
+                                          padding: EdgeInsets.zero,
+                                          shrinkWrap: true,
+                                          itemCount: options.length,
+                                          itemBuilder: (context, index) {
+                                            final option = options.elementAt(index);
+                                            return Container(
+                                              color: ColorCodes.white,
+                                              child: ListTile(
+                                                leading: option.image != null ? Image.network(option.image!, width: 40) : Icon(Icons.image),
+                                                title: Text(option.title, style: TextStyles.textStyle1),
+                                                subtitle: Text('\Rs.${option.price.toStringAsFixed(2)}'),
+                                                onTap: () => onSelected(option),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                              );
+                            },
+                            fieldViewBuilder: (context, controller, focusNode, onSubmitted) {
+                              return TextField(
+                                controller: controller,
+                                focusNode: focusNode,
+                                decoration: InputDecoration(
+                                  hintText: 'Search products...',
+                                  prefixIcon: Icon(Icons.search),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        }),
+                        SizedBox(height: 16),
+
+                        // Description Field
+                        Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: ColorCodes.colorGrey4),
+                          ),
+                          child: TextField(
+                            controller: controller.descriptionController,
+                            maxLines: null,
+                            minLines: 5, // Set a minimum height
+                            decoration: InputDecoration(
+                              hintText: "Describes Your Medicine .........",
+                              hintStyle: TextStyles.textStyle5,
+                              border: InputBorder.none,
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(height: 16),
-                    ],
+                        SizedBox(height: 16),
+                      ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              }),
 
               // Fixed Bottom Button (won't move with keyboard)
               Padding(

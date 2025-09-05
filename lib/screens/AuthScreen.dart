@@ -203,6 +203,8 @@ class _AuthScreenState extends State<AuthScreen> with WidgetsBindingObserver {
               ),
               // onPressed: controller.isLoading.value ? null : controller.submitForm,
               onPressed: () async {
+                FocusScope.of(context).unfocus();
+
                 if (loginController.validateFields()) {
                   if (networkController.connectionStatus.value == Constants.notConnected) {
                     Constants.noInternetError();
