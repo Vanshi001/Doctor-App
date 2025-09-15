@@ -74,8 +74,12 @@ class IndividualUpcomingScheduleController extends GetxController {
 
       final body = jsonEncode(prescriptionRequest.toJson());
 
-      final response = await http.post(url, headers: {'Content-Type': 'application/json', 'accept': 'application/json'}, body: body);
-      print('response.body -- ${response.body}');
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token');
+      print('token =====~~~~ $token');
+
+      final response = await http.post(url, headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'}, body: body);
+      // print('response.body -- ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -85,11 +89,29 @@ class IndividualUpcomingScheduleController extends GetxController {
 
         // Submit draft order with medicines
         // await _submitDraftOrder();
-        Get.back();
+        // Get.back();
+
+        // 🚀 No need to close manually, new snackbar overrides old one
+        Get.snackbar(
+          "Success",
+          "Medicine added successfully",
+          snackPosition: SnackPosition.BOTTOM,
+        );
+
+        if (Get.isDialogOpen == true) {
+          Navigator.of(Get.context!).pop(true);
+        } else if (Get.isBottomSheetOpen == true) {
+          Navigator.of(Get.context!).pop(true);
+        } else if (Get.key.currentState?.canPop() ?? false) {
+          Navigator.of(Get.context!).pop(true);
+        }
+
       } else {
+        print('token =====~~~~ ELSE ----> $token');
+
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'];
-        print('errorMessage --$errorMessage');
+        print('errorMessage --> $errorMessage');
       }
     } catch (e) {
       print('Error: $e');

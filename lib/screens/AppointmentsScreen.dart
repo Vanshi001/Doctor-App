@@ -22,7 +22,7 @@ class AppointmentsScreen extends StatefulWidget {
 
 class _AppointmentsScreenState extends State<AppointmentsScreen> {
   final AppointmentsController controller = Get.put(AppointmentsController());
-  List<String> medicineNames = [];
+  // List<String> medicineNames = [];
   // RxList<Appointment> filteredList = RxList<Appointment>();
 
   @override
@@ -182,7 +182,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                           return appointment.patientFullName.toString().toLowerCase().contains(query) ||
                               appointment.concerns!.any((c) => c.toLowerCase().contains(query));
                         }).toList();//filteredList; //controller.currentList;
-                        medicineNames.clear();
+                        // medicineNames.clear();
 
                         if (list.isEmpty) {
                           return Center(
@@ -199,6 +199,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                           itemCount: list.length,
                           itemBuilder: (context, index) {
                             final item = list[index];
+
+                            final List<String> medicineNames = [];
+
                             for (var medicine in item.prescription!) {
                               medicineNames.add(medicine.medicineName);
                             }
@@ -212,8 +215,8 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                             final parsedDate = DateTime.parse(item.appointmentDate.toString());
                             final formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
 
-                            print('selected tab -- ${controller.selectedTab.value}');
-                            print('item.status -- ${item.status}');
+                            // print('medicineNames -- ${medicineNames}');
+                            // print('item.status -- ${item.status}');
 
                             return GestureDetector(
                               onTap: () {

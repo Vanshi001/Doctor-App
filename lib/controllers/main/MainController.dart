@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../model/DoctorProfileResponse.dart';
 import '../../model/PendingAppointmentsWithoutDescriptionResponse.dart';
+import '../../screens/AuthScreen.dart';
 import '../../widgets/Constants.dart';
 import '../AppointmentsController.dart';
 import '../auth/AuthController.dart';
@@ -50,7 +51,7 @@ class MainController extends GetxController {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
     final doctorId = prefs.getString('doctor_id') ?? '';
-    print('doctorId -- $doctorId');
+    // print('doctorId -- $doctorId');
 
     isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments');
@@ -114,7 +115,7 @@ class MainController extends GetxController {
 
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
     doctorId = prefs.getString('doctor_id') ?? '';
-    print('doctorId -- $doctorId');
+    // print('doctorId -- $doctorId');
 
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
     // print('fetchDoctorDetailsApi url -- $url');
@@ -144,7 +145,15 @@ class MainController extends GetxController {
         if (token != null && token.isNotEmpty && errorMessage == "Unauthorized") {
           print('errorMessage main fetchDoctorDetailsApi -- $errorMessage');
           Constants.showError(errorMessage);
-          }
+        } else if (errorMessage == "Session expired. Please log in again.") {
+          final SharedPreferences prefs = await SharedPreferences.getInstance();
+          var token = prefs.getString('access_token');
+          print('while logout -> $token');
+          prefs.setString("access_token", '');
+          print('after logout -> ${prefs.getString('access_token')}');
+          Constants.showSuccess('Session expired. Please log in again.');
+          Get.offAll(() => AuthScreen());
+        }
       }
     } catch (e) {
       print('Error:- $e');
@@ -233,7 +242,7 @@ class MainController extends GetxController {
     // isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
     // final doctorId = prefs.getString('doctor_id') ?? '';
-    print('doctorId -~- $doctorId');
+    print('doctorId -~- fetchTodayAppointmentsApi -~- MainController -~- $doctorId');
     final url = Uri.parse('${Constants.baseUrl}appointments?status=today&date=$currentDate&doctorId=$doctorId');
     // print('fetchTodayAppointmentsApi url -- $url');
 
@@ -324,7 +333,7 @@ class MainController extends GetxController {
 
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
     // final doctorId = prefs.getString('doctor_id') ?? '';
-    print('doctorId -~~- $doctorId');
+    // print('doctorId -~~- $doctorId');
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId/appointments/no-prescription');
     // print('fetchPendingAppointmentsWithoutPrescriptionApi url -- $url');
 
@@ -376,5 +385,4 @@ class MainController extends GetxController {
 
   final RxList<dynamic> searchResults = <dynamic>[].obs;
   final RxString searchText = "".obs;
-
 }

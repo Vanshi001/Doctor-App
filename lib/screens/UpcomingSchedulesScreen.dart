@@ -31,20 +31,66 @@ class _UpcomingSchedulesScreenState extends State<UpcomingSchedulesScreen> {
     controller.fetchAllUpComingAppointmentsApi();
     controller.fetchTodayUpComingAppointmentsApi(controller.todayDate.value);
     controller.fetchTomorrowUpComingAppointmentsApi(controller.tomorrowDate.value);
+    // print('controller.currentList -==- ${controller.currentList.length}');
 
-    filteredList.addAll(controller.currentList);
+    filteredList.addAll(controller.todayList);
     _searchController.addListener(_filterAppointments);
+
+    // Reactively update filteredList whenever tab or list changes
+    ever(controller.selectedTab, (_) => _updateFilteredListByTab());
+    ever(controller.todayList, (_) => _updateFilteredListByTab());
+    ever(controller.tomorrowList, (_) => _updateFilteredListByTab());
+    ever(controller.customList, (_) => _updateFilteredListByTab());
+  }
+
+  void _updateFilteredListByTab() {
+    List<Appointment> listToFilter;
+
+    switch (controller.selectedTab.value) {
+      case TabType.today:
+        listToFilter = controller.todayList;
+        break;
+      case TabType.tomorrow:
+        listToFilter = controller.tomorrowList;
+        break;
+      case TabType.custom:
+        listToFilter = controller.customList;
+        break;
+      case TabType.all:
+        listToFilter = controller.allList;
+        break;
+      default:
+        listToFilter = [];
+    }
+
+    // Apply search filter if any
+    final query = _searchController.text.toLowerCase();
+    if (query.isNotEmpty) {
+      listToFilter =
+          listToFilter.where((appointment) {
+            return appointment.patientFullName.toString().toLowerCase().contains(query) ||
+                appointment.concerns!.any((c) => c.toLowerCase().contains(query));
+          }).toList();
+    }
+
+    filteredList.assignAll(listToFilter);
   }
 
   void _filterAppointments() {
     final query = _searchController.text.toLowerCase();
+    // print('controller.currentList -~~- ${controller.currentList.length}');
+
     if (query.isEmpty) {
       filteredList.assignAll(controller.currentList);
     } else {
-      filteredList.assignAll(controller.currentList.where((appointment) {
-        return appointment.patientFullName.toString().toLowerCase().contains(query) ||
-            appointment.concerns!.any((concern) => concern.toLowerCase().contains(query));
-      }).toList());
+      // print('controller.currentList -- ${controller.currentList.length}');
+
+      filteredList.assignAll(
+        controller.currentList.where((appointment) {
+          return appointment.patientFullName.toString().toLowerCase().contains(query) ||
+              appointment.concerns!.any((concern) => concern.toLowerCase().contains(query));
+        }).toList(),
+      );
     }
   }
 
@@ -104,14 +150,15 @@ class _UpcomingSchedulesScreenState extends State<UpcomingSchedulesScreen> {
                           hintText: "Search",
                           hintStyle: TextStyles.textStyle3,
                           prefixIcon: Padding(padding: EdgeInsets.all(12), child: Image.asset('assets/ic_search.png', height: 20, width: 20)),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                            icon: Icon(Icons.close, size: 20),
-                            onPressed: () {
-                              _searchController.clear();
-                            },
-                          )
-                              : null,
+                          suffixIcon:
+                              _searchController.text.isNotEmpty
+                                  ? IconButton(
+                                    icon: Icon(Icons.close, size: 20),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                    },
+                                  )
+                                  : null,
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(8)),
                             borderSide: BorderSide(color: ColorCodes.colorGrey4),
@@ -167,6 +214,7 @@ class _UpcomingSchedulesScreenState extends State<UpcomingSchedulesScreen> {
               SliverFillRemaining(
                 child: Obx(() {
                   final list = filteredList.reversed.toList(); //controller.currentList.reversed.toList();
+                  print('list -- ${list.length}');
 
                   if (controller.isLoading.value) {
                     return const Center(child: CircularProgressIndicator());

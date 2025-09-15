@@ -225,7 +225,7 @@ class AppointmentsController extends GetxController {
           ? '${Constants.baseUrl}doctors/$doctorId/appointment?status=all?search=$searchQuery'
           : '${Constants.baseUrl}doctors/$doctorId/appointment?status=all',
     );
-    print('url ---- $url');
+    // print('url ---- $url');
 
     try {
       final response = await http.get(
@@ -234,7 +234,7 @@ class AppointmentsController extends GetxController {
       );
 
       // print('response.statusCode -- ${response.statusCode}');
-      print('response.body -- ${response.body}');
+      // print('response.body -- ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);

@@ -240,14 +240,15 @@ class CallService {
     // Also save to shared preferences for persistence
     controller.callHistoryApi(callLog, appointmentId);
     // Get.back();
+    // Navigator.of(Get.context!).pop(true);
     // Close safely
-    if (Get.isSnackbarOpen) {
-      Get.closeCurrentSnackbar();
-    } else if (Get.isDialogOpen ?? false) {
-      Get.back(); // close dialog if open
+    /*if (Get.isDialogOpen == true) {
+      Navigator.of(Get.context!).pop(true);
+    } else if (Get.isBottomSheetOpen == true) {
+      Navigator.of(Get.context!).pop(true);
     } else if (Get.key.currentState?.canPop() ?? false) {
-      Get.back(); // close current page if possible
-    }
+      Navigator.of(Get.context!).pop(true);
+    }*/
     // saveCallLogToPrefs(callLog);
   }
 
@@ -260,7 +261,7 @@ class CallService {
 
   static Future<void> sendCallInvitation(String targetUserId, String targetUserName, {bool isVideo = true}) async {
     try {
-      await ZegoUIKitPrebuiltCallInvitationService().send(invitees: [ZegoCallUser(targetUserId, targetUserName)], isVideoCall: isVideo);
+      await ZegoUIKitPrebuiltCallInvitationService().send(invitees: [ZegoCallUser(targetUserId, targetUserName)], isVideoCall: isVideo, resourceID: 'zego_call');
       print("Invitation sent to $targetUserId - $targetUserName");
     } catch (e) {
       print("Error sending call invitation: $e");
@@ -353,7 +354,7 @@ class CallService {
         return ZegoSendCallInvitationButton(
           isVideoCall: isVideoCall,
           invitees: invitees,
-          resourceID: 'zego_data',
+          resourceID: 'zego_call',
           iconSize: const Size(40, 40),
           buttonSize: const Size(50, 50),
           onPressed: onCallFinished,

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:Doctor/screens/MainScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -11,7 +12,6 @@ import '../widgets/Constants.dart';
 import 'auth/AuthController.dart';
 
 class AddPendingMedicineController extends GetxController {
-
   final medicineNameController = TextEditingController();
   final descriptionController = TextEditingController();
   String? variantId;
@@ -81,8 +81,12 @@ class AddPendingMedicineController extends GetxController {
       final token = prefs.getString('access_token');
       print('token =====~~~~ $token');
 
-      final response = await http.post(url, headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'}, body: body);
-      print('response.body -- ${response.body}');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
+        body: body,
+      );
+      // print('response.body -- ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -92,8 +96,20 @@ class AddPendingMedicineController extends GetxController {
 
         // Submit draft order with medicines
         // await _submitDraftOrder();
-        Get.back();
+        // ✅ close in right order
+        Get.snackbar("Success", "Medicine added successfully", snackPosition: SnackPosition.BOTTOM);
+
+        /*if (Get.isDialogOpen == true) {
+          Navigator.of(Get.context!).pop(true);
+        } else if (Get.isBottomSheetOpen == true) {
+          Navigator.of(Get.context!).pop(true);
+        } else if (Get.key.currentState?.canPop() ?? false) {
+          Navigator.of(Get.context!).pop(true);
+        }*/
+
+        Get.offAll(() => const MainScreen());
       } else {
+        // print('token =====~~~~ ELSE ----> $token');
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'];
         print('errorMessage --$errorMessage');
@@ -131,7 +147,6 @@ class AddPendingMedicineController extends GetxController {
   }
 
   Future<void> fetchShopifyProducts() async {
-
     // ✅ Don't call API if user is logged out
     // if (AuthController.isLoggedIn.value) {
     //   print("User logged out. API not called.");
@@ -242,5 +257,4 @@ query GetProducts(\$cursor: String) {
     } while (true);
     shopifyProducts.assignAll(allProducts);
   }
-
 }

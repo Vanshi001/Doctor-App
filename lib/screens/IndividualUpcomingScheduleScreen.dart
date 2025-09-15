@@ -344,8 +344,9 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                                   final priceString = medicine['price']?.trim() /*.split('/').last*/;
                                   final compareAtPrice = medicine['compareAtPrice']?.trim() /*.split('/').last*/;
                                   final image = medicine['image']?.trim() /*.split('/').last*/;
+                                  print('priceString -- $priceString');
 
-                                  final price = int.tryParse(priceString ?? '') ?? 0;
+                                  final price = double.tryParse(priceString ?? "0.0") ?? 0.0;
 
                                   print(
                                     "\n prescriptions name ---- $name, "
@@ -370,7 +371,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                                 .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
                                 .toList();
 
-                        controller.selectedCustomerId.value = '8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
+                        // controller.selectedCustomerId.value = '8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
                         controller.addMedicineApi(id: data.id.toString(), prescriptions: prescriptions);
                       },
                       child: Container(
@@ -921,7 +922,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
     return ZegoSendCallInvitationButton(
       isVideoCall: isVideoCall,
       invitees: invitees,
-      resourceID: 'zego_data',
+      resourceID: 'zego_call',
       iconSize: const Size(40, 40),
       buttonSize: const Size(50, 50),
       onPressed: onCallFinished,

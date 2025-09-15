@@ -220,7 +220,7 @@ class UpcomingSchedulesController extends GetxController {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
     final doctorId = prefs.getString('doctor_id') ?? '';
-    print('doctorId -- $doctorId');
+    // print('doctorId -- $doctorId');
 
     isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
@@ -279,7 +279,7 @@ class UpcomingSchedulesController extends GetxController {
     isFirstLoad.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
     doctorId = prefs.getString('doctor_id') ?? '';
-    print('doctorId -- $doctorId');
+    // print('doctorId -- $doctorId');
 
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
     // print('fetchDoctorDetailsApi url -- $url');
@@ -324,7 +324,8 @@ class UpcomingSchedulesController extends GetxController {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
     final doctorId = prefs.getString('doctor_id') ?? '';
-    print('doctorId -- $doctorId');
+    // print('doctorId -- $doctorId');
+    print('fetchTodayUpComingAppointmentsApi');
 
     isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
@@ -389,7 +390,8 @@ class UpcomingSchedulesController extends GetxController {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
     final doctorId = prefs.getString('doctor_id') ?? '';
-    print('doctorId -- $doctorId');
+    // print('doctorId -- $doctorId');
+    print('fetchTomorrowUpComingAppointmentsApi');
 
     isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
@@ -454,7 +456,7 @@ class UpcomingSchedulesController extends GetxController {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
     final doctorId = prefs.getString('doctor_id') ?? '';
-    print('doctorId -- $doctorId');
+    // print('doctorId -- $doctorId');
 
     isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');

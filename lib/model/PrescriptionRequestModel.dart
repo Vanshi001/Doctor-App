@@ -14,7 +14,7 @@ class PrescriptionItem {
   final String variantId;
   final String productId;
   final String compareAtPrice;
-  final int price;
+  final double price;
   final String image;
 
   PrescriptionItem({

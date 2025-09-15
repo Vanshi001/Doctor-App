@@ -49,7 +49,7 @@ class _AllPendingMedicineUserListScreenState extends State<AllPendingMedicineUse
   Future<void> handleRefresh() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     var doctorId = prefs.getString('doctor_id');
-    print('doctorId -- ${doctorId}');
+    // print('doctorId -- ${doctorId}');
     mainController.fetchPendingAppointmentsWithoutPrescriptionApi(doctorId);
   }
 
@@ -157,7 +157,10 @@ class _AllPendingMedicineUserListScreenState extends State<AllPendingMedicineUse
 
                       return GestureDetector(
                         onTap: () {
-                          Get.to(() => AddPendingMedicinesScreen(appointmentData: appointment), transition: Transition.rightToLeft);
+                          final result = Get.to(() => AddPendingMedicinesScreen(appointmentData: appointment), transition: Transition.rightToLeft);
+                          if (result == true) {
+                            handleRefresh();
+                          }
                         },
                         child: Card(
                           color: ColorCodes.white,
