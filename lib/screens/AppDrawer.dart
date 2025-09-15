@@ -9,6 +9,7 @@ import '../widgets/ColorCodes.dart';
 import '../widgets/Constants.dart';
 import '../widgets/TextStyles.dart';
 import 'AddCustomNotesScreen.dart';
+import 'AllCustomNotesScreen.dart';
 import 'AuthScreen.dart';
 
 class AppDrawer extends StatefulWidget {
@@ -32,17 +33,17 @@ class _AppDrawerState extends State<AppDrawer> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: ColorCodes.colorBlue1),
+              decoration: BoxDecoration(color: ColorCodes.white),
               child: SizedBox(
                 width: width,
-                child: Row(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // const CircleAvatar(radius: 30, backgroundColor: Colors.white),
                     Obx(
                           () => Container(
-                        height: 50,
-                        width: 50,
+                        height: 60,
+                        width: 60,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: ColorCodes.colorBlue1, // Background color for the circle
@@ -51,16 +52,15 @@ class _AppDrawerState extends State<AppDrawer> {
                         child: Center(child: Text(mainController.getInitials(mainController.doctorName.value), style: TextStyles.textStyle6_1)),
                       ),
                     ),
-                    const SizedBox(width: 10),
                     Obx(() =>
                       Container(
                         height: 50,
-                        alignment: Alignment.center,
+                        alignment: Alignment.centerLeft,
                         child: SizedBox(
                           width: width * 0.5,
                           child: Text(
                             mainController.doctorName.value.isNotEmpty ? mainController.doctorName.value : 'Dr. Dermatics',
-                            style: TextStyles.textStyle2_4,
+                            style: TextStyles.textStyle2,
                             softWrap: true,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -74,7 +74,7 @@ class _AppDrawerState extends State<AppDrawer> {
             ),
             ListTile(
               leading: Icon(Icons.dashboard, color: ColorCodes.black,),
-              title: Text("Dashboard"),
+              title: Text("Dashboard", style: TextStyles.textStyle4_3),
               onTap: () {
                 // Get.back(); // Close drawer
                 Navigator.of(context).pop();
@@ -83,10 +83,10 @@ class _AppDrawerState extends State<AppDrawer> {
             ),
             ListTile(
               leading: Icon(Icons.notes, color: ColorCodes.black,),
-              title: Text("Notes"),
+              title: Text("My Notes", style: TextStyles.textStyle4_3),
               onTap: () {
                 Navigator.of(context).pop();
-                Get.to(() => AddCustomNotesScreen());
+                Get.to(() => AllCustomNotesScreen());
               },
             ),
             /*ListTile(
@@ -98,8 +98,8 @@ class _AppDrawerState extends State<AppDrawer> {
             ),*/
             Spacer(),
             ListTile(
-              leading: Icon(Icons.logout, color: ColorCodes.black),
-              title: Text("Logout", style: TextStyles.textStyle4_3),
+              leading: Icon(Icons.logout, color: ColorCodes.colorRed1),
+              title: Text("Logout", style: TextStyles.textStyle4_4),
               onTap: () {
                 showDialog(
                   context: context,

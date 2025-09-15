@@ -128,6 +128,13 @@ class TextStyles {
     fontFamily: 'Figtree',
   );
 
+  static const TextStyle textStyle1_1 = TextStyle(
+    fontSize: 12,
+    color: ColorCodes.white,
+    fontWeight: FontWeight.w500,
+    fontFamily: 'Figtree',
+  );
+
   static const TextStyle textStyle2 = TextStyle(
     fontSize: 16,
     color: ColorCodes.colorBlack1,
@@ -194,6 +201,13 @@ class TextStyles {
   static const TextStyle textStyle4_3 = TextStyle(
     fontSize: 14,
     color: ColorCodes.colorBlack1,
+    fontWeight: FontWeight.w700,
+    fontFamily: 'Figtree',
+  );
+
+  static const TextStyle textStyle4_4 = TextStyle(
+    fontSize: 14,
+    color: ColorCodes.colorRed1,
     fontWeight: FontWeight.w700,
     fontFamily: 'Figtree',
   );
