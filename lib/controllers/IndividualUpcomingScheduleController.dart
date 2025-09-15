@@ -11,7 +11,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../model/ProductModel.dart';
-import '../model/ShopifyService.dart';
 import '../model/SingleAppointmentDetailModel.dart';
 import '../widgets/Constants.dart';
 import 'auth/AuthController.dart';
@@ -78,7 +77,11 @@ class IndividualUpcomingScheduleController extends GetxController {
       final token = prefs.getString('access_token');
       print('token =====~~~~ $token');
 
-      final response = await http.post(url, headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'}, body: body);
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
+        body: body,
+      );
       // print('response.body -- ${response.body}');
 
       if (response.statusCode == 200) {
@@ -92,11 +95,7 @@ class IndividualUpcomingScheduleController extends GetxController {
         // Get.back();
 
         // 🚀 No need to close manually, new snackbar overrides old one
-        Get.snackbar(
-          "Success",
-          "Medicine added successfully",
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        Get.snackbar("Success", "Medicine added successfully", snackPosition: SnackPosition.BOTTOM);
 
         if (Get.isDialogOpen == true) {
           Navigator.of(Get.context!).pop(true);
@@ -105,7 +104,6 @@ class IndividualUpcomingScheduleController extends GetxController {
         } else if (Get.key.currentState?.canPop() ?? false) {
           Navigator.of(Get.context!).pop(true);
         }
-
       } else {
         print('token =====~~~~ ELSE ----> $token');
 
@@ -262,9 +260,9 @@ query GetProducts(\$cursor: String) {
   final selectedDraftItems = <Map<String, dynamic>>[].obs;
 
   // final isLoading = false.obs;
-  final ShopifyService _shopifyService = Get.put(ShopifyService());
+  // final ShopifyService _shopifyService = Get.put(ShopifyService());
 
-  Future<void> submitDraftOrder(/*{String? note}*/) async {
+  /*Future<void> submitDraftOrder(*/ /*{String? note}*/ /*) async {
     print('selectedCustomerId -- $selectedCustomerId');
     if (selectedCustomerId.isEmpty) {
       Get.snackbar('Error', 'Please select a customer');
@@ -295,7 +293,7 @@ query GetProducts(\$cursor: String) {
     } finally {
       isLoading(false);
     }
-  }
+  }*/
 
   Future<void> _addPrescriptionsToDraft(List<PrescriptionItem> prescriptions) async {
     selectedDraftItems.clear(); // Clear existing items
@@ -369,7 +367,7 @@ query GetProducts(\$cursor: String) {
   //   }
 
   // Method to manually submit draft with current medicines
-  Future<void> submitMedicinesDraft() async {
+  /*Future<void> submitMedicinesDraft() async {
     if (selectedCustomerId.isEmpty) {
       Get.snackbar('Error', 'Customer ID is required');
       return;
@@ -381,7 +379,7 @@ query GetProducts(\$cursor: String) {
     }
 
     await submitDraftOrder();
-  }
+  }*/
 
   // Clear draft items (call this after successful submission or when needed)
   void clearDraftItems() {
@@ -391,7 +389,7 @@ query GetProducts(\$cursor: String) {
   }
 
   // Updated submitDraftOrder method with better error handling
-  Future<void> _submitDraftOrder() async {
+  /*Future<void> _submitDraftOrder() async {
     print('selectedCustomerId -- $selectedCustomerId');
     if (selectedCustomerId.isEmpty) {
       Get.snackbar('Error', 'Please select a customer');
@@ -419,7 +417,7 @@ query GetProducts(\$cursor: String) {
 
         final customerCartId = await createCustomerCart(
           customerAccessToken: 'fe4e37203ac97bf9a33ec556b5eeba88',
-          /* vanshi user */
+          */ /* vanshi user */ /*
           lineItems: selectedDraftItems.toList(),
         );
 
@@ -439,7 +437,7 @@ query GetProducts(\$cursor: String) {
     } finally {
       isLoading(false);
     }
-  }
+  }*/
 
   Future<String?> createCustomerCart({required String customerAccessToken, required List<Map<String, dynamic>> lineItems}) async {
     try {
@@ -590,12 +588,12 @@ query GetProducts(\$cursor: String) {
 
   var isLoadingAppointmentData = false.obs;
   Rxn<AppointmentDetailData> appointmentData = Rxn<AppointmentDetailData>();
+
   // Rxn<AppointmentDetailDataWithoutCallHistory> appointmentDataWithoutCallHistory = Rxn<AppointmentDetailDataWithoutCallHistory>();
 
   var callDuration = 0.obs;
 
   Future<void> callHistoryApi(Map<String, String?> callLog, String? appointmentId) async {
-
     // ✅ Don't call API if user is logged out
     // if (AuthController.isLoggedIn.value) {
     //   print("User logged out. API not called.");
@@ -617,7 +615,11 @@ query GetProducts(\$cursor: String) {
     print(data);
 
     try {
-      final response = await http.post(url, headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'}, body: jsonEncode(data));
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
+        body: jsonEncode(data),
+      );
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -658,7 +660,6 @@ query GetProducts(\$cursor: String) {
   }
 
   Future<void> fetchAppointmentByIdApi(String appointmentId) async {
-
     // ✅ Don't call API if user is logged out
     // if (AuthController.isLoggedIn.value) {
     //   print("User logged out. API not called.");
