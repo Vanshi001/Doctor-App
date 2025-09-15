@@ -17,7 +17,6 @@ import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 import '../controllers/IndividualUpcomingScheduleController.dart';
 import '../model/PrescriptionRequestModel.dart';
 import '../model/ProductModel.dart';
-import '../model/ShopifyService.dart';
 import '../widgets/CallDurationTracker.dart';
 import '../widgets/CallService.dart';
 import '../widgets/ColorCodes.dart';
