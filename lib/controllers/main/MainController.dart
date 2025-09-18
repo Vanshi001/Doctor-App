@@ -115,7 +115,7 @@ class MainController extends GetxController {
 
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
     doctorId = prefs.getString('doctor_id') ?? '';
-    // print('doctorId -- $doctorId');
+    print('doctorId -- $doctorId');
 
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
     // print('fetchDoctorDetailsApi url -- $url');
@@ -194,7 +194,7 @@ class MainController extends GetxController {
       isLoadingAllAppointment.value = true; // only first time loader
     }
     try {
-      print('fetchAllAppointments');
+      // print('fetchAllAppointments');
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       var token = prefs.getString("access_token");
       if (token != null && token.isNotEmpty) appointmentsController.fetchAllAppointmentsApi(doctorId);
@@ -242,7 +242,7 @@ class MainController extends GetxController {
     // isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
     // final doctorId = prefs.getString('doctor_id') ?? '';
-    print('doctorId -~- fetchTodayAppointmentsApi -~- MainController -~- $doctorId');
+    // print('doctorId -~- fetchTodayAppointmentsApi -~- MainController -~- $doctorId');
     final url = Uri.parse('${Constants.baseUrl}appointments?status=today&date=$currentDate&doctorId=$doctorId');
     // print('fetchTodayAppointmentsApi url -- $url');
 
@@ -351,7 +351,7 @@ class MainController extends GetxController {
         withoutDescriptionAppointmentResponse.value = PendingAppointmentsWithoutDescriptionResponse.fromJson(responseData);
         final appointments = withoutDescriptionAppointmentResponse.value!.data;
 
-        print("Pending Appointment Without Description List's: ${appointments.length}");
+        // print("Pending Appointment Without Description List's: ${appointments.length}");
         pendingAppointmentWithoutDescriptionList.assignAll(appointments);
         // final message = responseData['message'] ?? 'Success';
         // Constants.showSuccess(message);

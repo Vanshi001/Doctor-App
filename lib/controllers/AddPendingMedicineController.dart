@@ -6,14 +6,17 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../model/NoteResponseModel.dart';
 import '../model/PrescriptionRequestModel.dart';
 import '../model/ProductModel.dart';
+import '../screens/AuthScreen.dart';
 import '../widgets/Constants.dart';
 import 'auth/AuthController.dart';
 
 class AddPendingMedicineController extends GetxController {
   final medicineNameController = TextEditingController();
-  final descriptionController = TextEditingController();
+
+  // final descriptionController = TextEditingController();
   String? variantId;
   String? productId;
   String? compareAtPrice;
@@ -26,7 +29,7 @@ class AddPendingMedicineController extends GetxController {
 
   void addMedicine() {
     final name = medicineNameController.text.trim();
-    final description = descriptionController.text.trim();
+    final description = selectedNotes.toString().trim();
 
     if (name.isNotEmpty && description.isNotEmpty) {
       medicines.add({
@@ -39,7 +42,7 @@ class AddPendingMedicineController extends GetxController {
         "image": image.toString(),
       });
       medicineNameController.clear();
-      descriptionController.clear();
+      selectedNotes.clear();
       itemKeys.add(GlobalKey());
     }
   }
@@ -124,6 +127,17 @@ class AddPendingMedicineController extends GetxController {
   final shopifyProducts = <ProductModel>[].obs;
   final selectedProduct = Rx<ProductModel?>(null);
   var searchQuery = ''.obs;
+  var searchNote = ''.obs;
+  RxSet<String> selectedNotes = <String>{}.obs;
+
+  /// get selected note objects if needed
+  List<NoteData> get selectedNoteObjects => notesList.where((note) => selectedNotes.contains(note.id)).toList();
+
+  void selectNote(NoteData note) {
+    if (!selectedNotes.contains(note.id)) {
+      selectedNotes.add(note.id);
+    }
+  }
 
   void selectProduct(ProductModel product) {
     selectedProduct.value = product;
@@ -135,14 +149,17 @@ class AddPendingMedicineController extends GetxController {
     image = product.image;
   }
 
+  var isLoadingProducts = false.obs;
+
   Future<void> loadProducts() async {
-    isLoading(true);
+    isLoadingProducts.value = true;
     try {
       await fetchShopifyProducts();
+      await fetchNotesApi();
     } catch (e) {
       print('Error loading products: $e');
     } finally {
-      isLoading(false);
+      isLoadingProducts.value = false;
     }
   }
 
@@ -256,5 +273,59 @@ query GetProducts(\$cursor: String) {
       }
     } while (true);
     shopifyProducts.assignAll(allProducts);
+  }
+
+  final noteDetail = Rxn<NoteResponseModel>();
+
+  // RxBool isLoadingNotes = false.obs;
+  var notesList = <NoteData>[].obs;
+
+  Future<void> fetchNotesApi() async {
+    try {
+      // isLoadingNotes.value = true;
+      notesList.clear();
+
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+
+      // doctorId = prefs.getString('doctor_id') ?? '';
+
+      final url = Uri.parse('${Constants.baseUrl}doctors/notes');
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        // print("doctorDetail: $responseData");
+
+        final noteResponse = NoteResponseModel.fromJson(responseData);
+        // print('noteResponse ----> ${noteResponse.data}');
+        notesList.assignAll(noteResponse.data);
+      } else {
+        final errorData = jsonDecode(response.body);
+        final errorMessage = errorData['message'] ?? "Failed to get doctor profile";
+        if (token != null && token.isNotEmpty && errorMessage == "Unauthorized") {
+          print('errorMessage main fetchDoctorDetailsApi -- $errorMessage');
+          Constants.showError(errorMessage);
+        } else if (errorMessage == "Session expired. Please log in again.") {
+          final SharedPreferences prefs = await SharedPreferences.getInstance();
+          var token = prefs.getString('access_token');
+          print('while logout -> $token');
+          prefs.setString("access_token", '');
+          print('after logout -> ${prefs.getString('access_token')}');
+          Constants.showSuccess('Session expired. Please log in again.');
+          Get.offAll(() => AuthScreen());
+        }
+      }
+    } catch (e) {
+      print('Error:- $e');
+      Constants.showError("Error -- $e");
+    } finally {
+      // isLoadingNotes.value = false; // hide loader after first load
+    }
   }
 }

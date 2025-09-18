@@ -23,6 +23,7 @@ import '../widgets/ColorCodes.dart';
 import '../widgets/Constants.dart';
 import '../widgets/PushNotificationService.dart';
 import '../widgets/TextStyles.dart';
+import 'AddMedicineScreen.dart';
 
 class IndividualUpcomingScheduleScreen extends StatefulWidget {
   final Appointment item;
@@ -232,7 +233,8 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                             GestureDetector(
                               onTap: () {
                                 // print('controller.callHistoryStatus.value -- ${data.callHistory?.duration}');
-                                _showAddMedicineSheet(context);
+                                // _showAddMedicineSheet(context);
+                                Get.to(() => AddMedicineScreen(), transition: Transition.downToUp);
                               },
                               child: Container(
                                 decoration: BoxDecoration(
@@ -282,7 +284,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                                                 const SizedBox(height: 2),
                                                 Text(item["medicineName"] ?? '', style: TextStyles.textStyle4_3),
                                                 Text(
-                                                  item["notes"] ?? '',
+                                                  item['notes'].toString().replaceAll(RegExp(r'[\{\}]'), ''),
                                                   overflow: TextOverflow.ellipsis,
                                                   maxLines: 1,
                                                   style: TextStyles.textStyle5_1,
@@ -291,7 +293,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                                               ],
                                             ),
                                           ),
-                                          SizedBox(width: 25),
+                                          /*SizedBox(width: 25),
                                           GestureDetector(
                                             onTap: () {
                                               // controller.editMedicine(index);
@@ -300,7 +302,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                                             },
                                             child: Image.asset('assets/ic_edit.png', width: 24, height: 24),
                                           ),
-                                          SizedBox(width: 10),
+                                          SizedBox(width: 10),*/
                                         ],
                                       ),
                                     ),
@@ -668,7 +670,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
 
               // Scrollable Content (excluding the button)
               Obx(() {
-                if (controller.isLoading.value) {
+                if (controller.isLoadingProducts.value) {
                   return Expanded(child: Center(child: CircularProgressIndicator(color: ColorCodes.colorBlue1, backgroundColor: ColorCodes.white)));
                 }
 
@@ -705,7 +707,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                                   border: Border.all(width: 1, color: ColorCodes.colorBlack2),
                                 ),
                                 child:
-                                    controller.isLoading.value
+                                    controller.isLoadingProducts.value
                                         ? Container(
                                           color: ColorCodes.white,
                                           height: 20,
@@ -757,10 +759,110 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                             },
                           );
                         }),
-                        SizedBox(height: 16),
+                        SizedBox(height: 20),
+                        Align(alignment: Alignment.centerLeft, child: Text('Select Note', style: TextStyles.textStyle2_1)),
+                        SizedBox(height: 5),
+                        Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: ColorCodes.colorGrey4),
+                          ),
+                          child: Obx(() {
+                            /*final searchText = controller.searchNote.value.toLowerCase();
+                              final filteredNotes =
+                                  searchText.isEmpty
+                                      ? <NoteData>[]
+                                      : controller.notesList.where((note) => note.text.toLowerCase().contains(searchText)).toList();*/
+
+                            final searchText = controller.searchNote.value.toLowerCase();
+                            final filteredNotes =
+                            searchText.isEmpty
+                                ? controller.notesList
+                                : controller.notesList.where((note) => note.text.toLowerCase().contains(searchText)).toList();
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // 🔍 Search TextField
+                                TextField(
+                                  onChanged: (value) {
+                                    controller.searchNote.value = value;
+                                  },
+                                  style: TextStyles.textStyle1,
+                                  decoration: InputDecoration(
+                                    hintText: 'Search notes...',
+                                    prefixIcon: Icon(Icons.search),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                // 📋 Suggestions inside the same container
+                                if (controller.isLoadingProducts.value)
+                                  Center(child: CircularProgressIndicator(color: ColorCodes.colorBlue1, backgroundColor: ColorCodes.white))
+                                else
+                                  Container(
+                                    height: 300,
+                                    width: MediaQuery.of(context).size.width,
+                                    decoration: BoxDecoration(
+                                      color: ColorCodes.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(width: 1, color: ColorCodes.colorBlack2),
+                                    ),
+                                    child:
+                                    filteredNotes.isEmpty
+                                        ? Center(child: Text("No notes found", style: TextStyles.textStyle2))
+                                        : ListView.builder(
+                                      shrinkWrap: true,
+                                      physics: AlwaysScrollableScrollPhysics(),
+                                      itemCount: filteredNotes.length,
+                                      itemBuilder: (context, index) {
+                                        final note = filteredNotes[index];
+                                        return Obx(() {
+                                          final isChecked = controller.selectedNotes.contains(note.text);
+
+                                          return CheckboxListTile(
+                                            value: isChecked,
+                                            onChanged: (checked) {
+                                              if (checked == true) {
+                                                controller.selectedNotes.add(note.text);
+                                              } else {
+                                                controller.selectedNotes.remove(note.text);
+                                              }
+                                            },
+                                            title: Text(note.text, style: TextStyles.textStyle1),
+                                            controlAffinity: ListTileControlAffinity.leading,
+                                          );
+                                        });
+                                      },
+                                    ),
+                                  ),
+
+                                const SizedBox(height: 12),
+                                // ✅ Show selected values below
+                                Obx(() => Text("Selected Notes: ${controller.selectedNotes.join(', ')}", style: TextStyles.textStyle1)),
+                              ],
+                            );
+                          }),
+                        ),
 
                         // Description Field
-                        Container(
+
+                        /*Container(
                           padding: EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -778,7 +880,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
                             ),
                           ),
                         ),
-                        SizedBox(height: 16),
+                        SizedBox(height: 16),*/
                       ],
                     ),
                   ),

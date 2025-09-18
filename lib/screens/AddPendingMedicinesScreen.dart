@@ -1,6 +1,7 @@
 import 'package:Doctor/model/PendingAppointmentsWithoutDescriptionResponse.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -12,6 +13,7 @@ import '../model/ProductModel.dart';
 import '../widgets/ColorCodes.dart';
 import '../widgets/Constants.dart';
 import '../widgets/TextStyles.dart';
+import 'AddMedicineScreen.dart';
 
 class AddPendingMedicinesScreen extends StatefulWidget {
   final WithoutDescriptionAppointment appointmentData;
@@ -32,280 +34,288 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
     final parsedDate = DateTime.parse(widget.appointmentData.appointmentDate.toString());
     final formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
 
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: ColorCodes.white,
-        appBar: AppBar(
-          title: Text("Add Prescription", style: TextStyles.textStyle2_1),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(statusBarColor: ColorCodes.colorBlue1, statusBarIconBrightness: Brightness.light),
+      child: SafeArea(
+        child: Scaffold(
           backgroundColor: ColorCodes.white,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: ColorCodes.colorBlack1),
-            onPressed: () {
-              // Get.back();
-              Navigator.pop(context);
-            },
+          appBar: AppBar(
+            title: Text("Add Prescription", style: TextStyles.textStyle2_1),
+            backgroundColor: ColorCodes.white,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: ColorCodes.colorBlack1),
+              onPressed: () {
+                // Get.back();
+                Navigator.pop(context);
+              },
+            ),
           ),
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: ColorCodes.colorGrey4, width: 1.5),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Profile Image
-                        /*ClipRRect(
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: ColorCodes.colorGrey4, width: 1.5),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Profile Image
+                          /*ClipRRect(
                           borderRadius: BorderRadius.circular(50),
                           child: Image.network('https://randomuser.me/api/portraits/women/1.jpg', height: 50, width: 50, fit: BoxFit.cover),
                         ),*/
-                        Container(
-                          height: 50,
-                          width: 50,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: ColorCodes.colorBlack2, // Background color for the circle
-                            border: Border.all(color: ColorCodes.colorBlue1, width: 3),
-                          ),
-                          child: Center(
-                            child: Text(controller.getInitials(widget.appointmentData.patientFullName.toString()), style: TextStyles.textStyle4),
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Expanded(
-                          child: Container(
-                            padding: EdgeInsets.only(left: 5, right: 5),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(widget.appointmentData.patientFullName.toString(), style: TextStyles.textStyle3),
-                                SizedBox(height: 2),
-                                SizedBox(width: width / 3, child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1)),
-                                SizedBox(height: 2),
-                                Text(
-                                  widget.appointmentData.concerns?.join(", ") ?? '',
-                                  style: TextStyles.textStyle5,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                ),
-                                SizedBox(height: 5),
-                              ],
+                          Container(
+                            height: 50,
+                            width: 50,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: ColorCodes.colorBlack2, // Background color for the circle
+                              border: Border.all(color: ColorCodes.colorBlue1, width: 3),
+                            ),
+                            child: Center(
+                              child: Text(controller.getInitials(widget.appointmentData.patientFullName.toString()), style: TextStyles.textStyle4),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 12),
-                    Container(
-                      padding: EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(100)),
-                        border: Border.all(color: ColorCodes.colorGrey4),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset('assets/ic_calendar.png', width: 16, height: 16),
-                          SizedBox(width: 5),
-                          Text(formattedDate, style: TextStyles.textStyle4),
-                          SizedBox(width: 20),
-                          Image.asset('assets/ic_vertical_line.png', height: 30, width: 1),
-                          SizedBox(width: 20),
-                          Image.asset('assets/ic_clock.png', width: 16, height: 16),
-                          SizedBox(width: 5),
-                          Text(
-                            '${Constants.formatTimeToAmPm(widget.appointmentData.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(widget.appointmentData.timeSlot?.endTime ?? '')}',
-                            style: TextStyles.textStyle4,
+                          const SizedBox(width: 5),
+                          Expanded(
+                            child: Container(
+                              padding: EdgeInsets.only(left: 5, right: 5),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(widget.appointmentData.patientFullName.toString(), style: TextStyles.textStyle3),
+                                  SizedBox(height: 2),
+                                  SizedBox(width: width / 3, child: DottedLine(dashLength: 3, dashGapLength: 2, dashColor: ColorCodes.colorGrey1)),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    widget.appointmentData.concerns?.join(", ") ?? '',
+                                    style: TextStyles.textStyle5,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                  ),
+                                  SizedBox(height: 5),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: ColorCodes.colorGrey4, width: 1.5),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Add Medicine', style: TextStyles.textStyle3),
-                        GestureDetector(
-                          onTap: () {
-                            _showAddMedicineSheet(context);
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(10)),
-                              border: Border.all(color: ColorCodes.colorBlue1, width: 1),
-                              color: ColorCodes.white,
-                            ),
-                            alignment: Alignment.center,
-                            height: 40,
-                            padding: EdgeInsets.only(left: 15, top: 5, right: 15, bottom: 5),
-                            child: Obx(() => Text(controller.medicines.isEmpty ? 'Add Medicine' : 'Add', style: TextStyles.textStyle4_2)),
-                          ),
+                      SizedBox(height: 12),
+                      Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(100)),
+                          border: Border.all(color: ColorCodes.colorGrey4),
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 5),
-                    Obx(
-                      () => ListView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: controller.medicines.length,
-                        itemBuilder: (context, index) {
-                          final item = controller.medicines[index];
-
-                          if (controller.itemKeys.length <= index) {
-                            controller.itemKeys.add(GlobalKey());
-                          }
-
-                          return Row(
-                            children: [
-                              Flexible(
-                                child: Container(
-                                  key: controller.itemKeys[index],
-                                  margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: ColorCodes.colorGrey4),
-                                    borderRadius: BorderRadius.circular(12),
-                                    color: ColorCodes.white,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            const SizedBox(height: 2),
-                                            Text(item["medicineName"] ?? '', style: TextStyles.textStyle4_3),
-                                            Text(item["notes"] ?? '', overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyles.textStyle5_1),
-                                            const SizedBox(height: 2),
-                                          ],
-                                        ),
-                                      ),
-                                      SizedBox(width: 25),
-                                      GestureDetector(
-                                        onTap: () {
-                                          // controller.editMedicine(index);
-                                          print("Clicked item $index");
-                                          showEditMedicinePopup(context, index, controller);
-                                        },
-                                        child: Image.asset('assets/ic_edit.png', width: 24, height: 24),
-                                      ),
-                                      SizedBox(width: 10),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  controller.removeMedicine(index);
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: ColorCodes.colorGrey4),
-                                    borderRadius: BorderRadius.circular(12),
-                                    color: ColorCodes.white,
-                                  ),
-                                  child: Image.asset('assets/ic_trash.png', width: 24, height: 24),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset('assets/ic_calendar.png', width: 16, height: 16),
+                            SizedBox(width: 5),
+                            Text(formattedDate, style: TextStyles.textStyle4),
+                            SizedBox(width: 20),
+                            Image.asset('assets/ic_vertical_line.png', height: 30, width: 1),
+                            SizedBox(width: 20),
+                            Image.asset('assets/ic_clock.png', width: 16, height: 16),
+                            SizedBox(width: 5),
+                            Text(
+                              '${Constants.formatTimeToAmPm(widget.appointmentData.timeSlot?.startTime ?? '')} - ${Constants.formatTimeToAmPm(widget.appointmentData.timeSlot?.endTime ?? '')}',
+                              style: TextStyles.textStyle4,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Obx(() {
-                if (controller.medicines.isNotEmpty) {
-                  return GestureDetector(
-                    onTap: () {
-                      final prescriptions =
-                          controller.medicines
-                              .map((medicine) {
-                                final name = medicine['medicineName']?.trim();
-                                final notes = medicine['notes']?.trim();
-                                final variantId = medicine['variantId']?.trim() .split('/').last;
-                                final productId = medicine['productId']?.trim() .split('/').last;
-                                final priceString = medicine['price']?.trim() .split('/').last;
-                                final compareAtPrice = medicine['compareAtPrice']?.trim() .split('/').last;
-                                final image = medicine['image']?.trim() .split('/').last;
-
-                                final price = double.tryParse(priceString ?? "0.0") ?? 0.0;
-
-                                print(
-                                  "\n prescriptions name ---- $name, "
-                                  "\n notes - $notes, "
-                                  "\n variantId - $variantId, "
-                                  "\n productId - $productId, "
-                                  "\n price - $price "
-                                  "\n compareAtPrice - $compareAtPrice, "
-                                  "\n image - $image",
-                                );
-
-                                return PrescriptionItem(
-                                  medicineName: name ?? '',
-                                  notes: notes ?? '',
-                                  variantId: variantId ?? '',
-                                  productId: productId ?? '',
-                                  compareAtPrice: compareAtPrice ?? '',
-                                  image: image ?? '',
-                                  price: price,
-                                );
-                              })
-                              .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
-                              .toList();
-
-                      // controller.selectedCustomerId.value = '8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
-                      controller.addMedicineApi(id: widget.appointmentData.id.toString(), prescriptions: prescriptions);
-                    },
-                    child: Container(
-                      margin: EdgeInsets.only(left: 15, top: 10, right: 15, bottom: 10),
-                      height: 40,
-                      decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(6)), color: ColorCodes.colorBlue1),
-                      child: Center(
-                        child:
-                            controller.isLoading.value
-                                ? SizedBox(
-                                  height: 23,
-                                  width: 23,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    backgroundColor: ColorCodes.darkPurple1,
-                                    valueColor: AlwaysStoppedAnimation<Color>(ColorCodes.white),
-                                  ),
-                                )
-                                : Text('Save', style: TextStyles.textStyle6_1),
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: ColorCodes.colorGrey4, width: 1.5),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Add Medicine', style: TextStyles.textStyle3),
+                          GestureDetector(
+                            onTap: () {
+                              // _showAddMedicineSheet(context);
+                              Get.to(() => AddMedicineScreen(), transition: Transition.downToUp);
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(10)),
+                                border: Border.all(color: ColorCodes.colorBlue1, width: 1),
+                                color: ColorCodes.white,
+                              ),
+                              alignment: Alignment.center,
+                              height: 40,
+                              padding: EdgeInsets.only(left: 15, top: 5, right: 15, bottom: 5),
+                              child: Obx(() => Text(controller.medicines.isEmpty ? 'Add Medicine' : 'Add', style: TextStyles.textStyle4_2)),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  );
-                } else {
-                  return SizedBox.shrink();
-                }
-              }),
-            ],
+                      SizedBox(height: 5),
+                      Obx(
+                        () => ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: controller.medicines.length,
+                          itemBuilder: (context, index) {
+                            final item = controller.medicines[index];
+                            if (controller.itemKeys.length <= index) {
+                              controller.itemKeys.add(GlobalKey());
+                            }
+
+                            return Row(
+                              children: [
+                                Flexible(
+                                  child: Container(
+                                    key: controller.itemKeys[index],
+                                    margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: ColorCodes.colorGrey4),
+                                      borderRadius: BorderRadius.circular(12),
+                                      color: ColorCodes.white,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              const SizedBox(height: 2),
+                                              Text(item["medicineName"] ?? '', style: TextStyles.textStyle4_3),
+                                              Text(
+                                                item['notes'].toString().replaceAll(RegExp(r'[\{\}]'), ''),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                                style: TextStyles.textStyle5_1,
+                                              ),
+                                              const SizedBox(height: 2),
+                                            ],
+                                          ),
+                                        ),
+                                        // SizedBox(width: 25),
+                                        /*GestureDetector(
+                                          onTap: () {
+                                            // controller.editMedicine(index);
+                                            print("Clicked item $index");
+                                            showEditMedicinePopup(context, index, controller);
+                                          },
+                                          child: Image.asset('assets/ic_edit.png', width: 24, height: 24),
+                                        ),*/
+                                        // SizedBox(width: 10),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    controller.removeMedicine(index);
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: ColorCodes.colorGrey4),
+                                      borderRadius: BorderRadius.circular(12),
+                                      color: ColorCodes.white,
+                                    ),
+                                    child: Image.asset('assets/ic_trash.png', width: 24, height: 24),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Obx(() {
+                  if (controller.medicines.isNotEmpty) {
+                    return GestureDetector(
+                      onTap: () {
+                        final prescriptions =
+                            controller.medicines
+                                .map((medicine) {
+                                  final name = medicine['medicineName']?.trim();
+                                  final notes = medicine['notes']?.trim();
+                                  final variantId = medicine['variantId']?.trim().split('/').last;
+                                  final productId = medicine['productId']?.trim().split('/').last;
+                                  final priceString = medicine['price']?.trim().split('/').last;
+                                  final compareAtPrice = medicine['compareAtPrice']?.trim().split('/').last;
+                                  final image = medicine['image']?.trim().split('/').last;
+
+                                  final price = double.tryParse(priceString ?? "0.0") ?? 0.0;
+
+                                  print(
+                                    "\n prescriptions name ---- $name, "
+                                    "\n notes - $notes, "
+                                    "\n variantId - $variantId, "
+                                    "\n productId - $productId, "
+                                    "\n price - $price "
+                                    "\n compareAtPrice - $compareAtPrice, "
+                                    "\n image - $image",
+                                  );
+
+                                  return PrescriptionItem(
+                                    medicineName: name ?? '',
+                                    notes: notes ?? '',
+                                    variantId: variantId ?? '',
+                                    productId: productId ?? '',
+                                    compareAtPrice: compareAtPrice ?? '',
+                                    image: image ?? '',
+                                    price: price,
+                                  );
+                                })
+                                .where((item) => item.medicineName.isNotEmpty && item.notes.isNotEmpty)
+                                .toList();
+
+                        // controller.selectedCustomerId.value = '8466775113981'; /* Vanshi user -> vanshi1@yopmail.com */
+                        controller.addMedicineApi(id: widget.appointmentData.id.toString(), prescriptions: prescriptions);
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(left: 15, top: 10, right: 15, bottom: 10),
+                        height: 40,
+                        decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(6)), color: ColorCodes.colorBlue1),
+                        child: Center(
+                          child:
+                              controller.isLoading.value
+                                  ? SizedBox(
+                                    height: 23,
+                                    width: 23,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      backgroundColor: ColorCodes.darkPurple1,
+                                      valueColor: AlwaysStoppedAnimation<Color>(ColorCodes.white),
+                                    ),
+                                  )
+                                  : Text('Save', style: TextStyles.textStyle6_1),
+                        ),
+                      ),
+                    );
+                  } else {
+                    return SizedBox.shrink();
+                  }
+                }),
+              ],
+            ),
           ),
         ),
       ),
@@ -343,7 +353,7 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
 
               // Scrollable Content (excluding the button)
               Obx(() {
-                if (controller.isLoading.value) {
+                if (controller.isLoadingProducts.value) {
                   return Expanded(child: Center(child: CircularProgressIndicator(color: ColorCodes.colorBlue1, backgroundColor: ColorCodes.white)));
                 }
 
@@ -380,7 +390,7 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                                   border: Border.all(width: 1, color: ColorCodes.colorBlack2),
                                 ),
                                 child:
-                                    controller.isLoading.value
+                                    controller.isLoadingProducts.value
                                         ? Container(
                                           color: ColorCodes.white,
                                           height: 20,
@@ -412,6 +422,7 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                               return TextField(
                                 controller: controller,
                                 focusNode: focusNode,
+                                style: TextStyles.textStyle1,
                                 decoration: InputDecoration(
                                   hintText: 'Search products...',
                                   prefixIcon: Icon(Icons.search),
@@ -432,10 +443,108 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                             },
                           );
                         }),
-                        SizedBox(height: 16),
-
+                        SizedBox(height: 20),
+                        Align(alignment: Alignment.centerLeft, child: Text('Select Note', style: TextStyles.textStyle2_1)),
+                        SizedBox(height: 5),
                         // Description Field
                         Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: ColorCodes.colorGrey4),
+                          ),
+                          child: Obx(() {
+                            /*final searchText = controller.searchNote.value.toLowerCase();
+                              final filteredNotes =
+                                  searchText.isEmpty
+                                      ? <NoteData>[]
+                                      : controller.notesList.where((note) => note.text.toLowerCase().contains(searchText)).toList();*/
+
+                            final searchText = controller.searchNote.value.toLowerCase();
+                            final filteredNotes =
+                                searchText.isEmpty
+                                    ? controller.notesList
+                                    : controller.notesList.where((note) => note.text.toLowerCase().contains(searchText)).toList();
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // 🔍 Search TextField
+                                TextField(
+                                  onChanged: (value) {
+                                    controller.searchNote.value = value;
+                                  },
+                                  style: TextStyles.textStyle1,
+                                  decoration: InputDecoration(
+                                    hintText: 'Search notes...',
+                                    prefixIcon: Icon(Icons.search),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(width: 1, color: ColorCodes.colorGrey4),
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                // 📋 Suggestions inside the same container
+                                if (controller.isLoadingProducts.value)
+                                  Center(child: CircularProgressIndicator(color: ColorCodes.colorBlue1, backgroundColor: ColorCodes.white))
+                                else
+                                  Container(
+                                    height: 300,
+                                    width: MediaQuery.of(context).size.width,
+                                    decoration: BoxDecoration(
+                                      color: ColorCodes.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(width: 1, color: ColorCodes.colorBlack2),
+                                    ),
+                                    child:
+                                        filteredNotes.isEmpty
+                                            ? Center(child: Text("No notes found", style: TextStyles.textStyle2))
+                                            : ListView.builder(
+                                              shrinkWrap: true,
+                                              physics: AlwaysScrollableScrollPhysics(),
+                                              itemCount: filteredNotes.length,
+                                              itemBuilder: (context, index) {
+                                                final note = filteredNotes[index];
+                                                return Obx(() {
+                                                  final isChecked = controller.selectedNotes.contains(note.text);
+
+                                                  return CheckboxListTile(
+                                                    value: isChecked,
+                                                    onChanged: (checked) {
+                                                      if (checked == true) {
+                                                        controller.selectedNotes.add(note.text);
+                                                      } else {
+                                                        controller.selectedNotes.remove(note.text);
+                                                      }
+                                                    },
+                                                    title: Text(note.text, style: TextStyles.textStyle1),
+                                                    controlAffinity: ListTileControlAffinity.leading,
+                                                  );
+                                                });
+                                              },
+                                            ),
+                                  ),
+
+                                const SizedBox(height: 12),
+                                // ✅ Show selected values below
+                                Obx(() => Text("Selected Notes: ${controller.selectedNotes.join(', ')}", style: TextStyles.textStyle1)),
+                              ],
+                            );
+                          }),
+                        ),
+                        /*Container(
                           padding: EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -453,7 +562,7 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 16),
+                        SizedBox(height: 16),*/
                       ],
                     ),
                   ),
@@ -467,8 +576,8 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                   onPressed: () {
                     if (controller.medicineNameController.text.isEmpty) {
                       Constants.showError('Select Medicine');
-                    } else if (controller.descriptionController.text.isEmpty) {
-                      Constants.showError('Enter description');
+                    } else if (controller.selectedNotes.toString().isEmpty) {
+                      Constants.showError('Select description');
                     } else {
                       controller.addMedicine();
                       // Get.back();
@@ -513,7 +622,7 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                     children: [
                       Flexible(child: Text(nameController.text, style: TextStyles.textStyle2_2, overflow: TextOverflow.ellipsis, maxLines: 2)),
                       SizedBox(width: 2),
-                      GestureDetector(onTap: () => Get.back(), child: Image.asset('assets/ic_close.png', width: 24, height: 24)),
+                      GestureDetector(onTap: () => Navigator.pop(context), child: Image.asset('assets/ic_close.png', width: 24, height: 24)),
                     ],
                   ),
                 ),

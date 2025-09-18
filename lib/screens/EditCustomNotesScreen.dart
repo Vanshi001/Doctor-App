@@ -5,15 +5,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class AddCustomNotesScreen extends StatefulWidget {
-  const AddCustomNotesScreen({super.key});
+class EditCustomNotesScreen extends StatefulWidget {
+  final String existingNote;
+  final String noteId;
+
+  EditCustomNotesScreen({super.key, required this.existingNote, required this.noteId});
 
   @override
-  State<AddCustomNotesScreen> createState() => _AddCustomNotesScreenState();
+  State<EditCustomNotesScreen> createState() => _EditCustomNotesScreenState();
 }
 
-class _AddCustomNotesScreenState extends State<AddCustomNotesScreen> with SingleTickerProviderStateMixin {
+class _EditCustomNotesScreenState extends State<EditCustomNotesScreen> with SingleTickerProviderStateMixin {
   final CustomNotesController controller = Get.put(CustomNotesController());
+
+  @override
+  void initState() {
+    super.initState();
+    controller.textController.text = widget.existingNote;
+    controller.noteText.value = widget.existingNote;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +41,7 @@ class _AddCustomNotesScreenState extends State<AddCustomNotesScreen> with Single
           child: Scaffold(
             backgroundColor: ColorCodes.white,
             appBar: AppBar(
-              title: Text("Add Notes", style: TextStyles.textStyle2_1),
+              title: Text("Edit Note", style: TextStyles.textStyle2_1),
               backgroundColor: ColorCodes.white,
               leading: IconButton(
                 icon: Icon(Icons.arrow_back, color: ColorCodes.colorBlack1),
@@ -58,7 +68,6 @@ class _AddCustomNotesScreenState extends State<AddCustomNotesScreen> with Single
                       keyboardType: TextInputType.multiline,
                       style: TextStyles.textStyle4_5,
                       textInputAction: TextInputAction.done,
-                      textCapitalization: TextCapitalization.sentences,
                       onChanged: (value) {
                         if (value.length <= controller.maxChars) {
                           controller.noteText.value = value;
@@ -132,16 +141,15 @@ class _AddCustomNotesScreenState extends State<AddCustomNotesScreen> with Single
                   ),
                   onPressed: () {
                     if (controller.noteText.value.trim().isNotEmpty) {
-                      print("Note added: ${controller.noteText.value}");
-                      controller.addNoteApi(controller.noteText.value, context);
+                      print('controller.noteText.value -- ${controller.noteText.value}');
+                      print('widget.existingNote -- ${widget.existingNote}');
+                      // controller.updateNoteAt(widget.noteId, controller.noteText.value.trim());
+                      controller.updateNoteApi(widget.noteId, controller.noteText.value.trim(), context);
                     } else {
-                      Get.snackbar("Error", "Please write something before adding a note");
+                      Get.snackbar("Error", "Please write something before saving the note");
                     }
                   },
-                  child:
-                      controller.isLoadingAddNotes.value
-                          ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: ColorCodes.black))
-                          : Text("Add Note", style: TextStyles.textStyle6_1.copyWith(color: Colors.white)),
+                  child: Text("Save", style: TextStyles.textStyle6_1.copyWith(color: Colors.white)),
                 ),
               ),
             ),

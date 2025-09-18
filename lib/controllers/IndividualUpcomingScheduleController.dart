@@ -10,8 +10,10 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../model/NoteResponseModel.dart';
 import '../model/ProductModel.dart';
 import '../model/SingleAppointmentDetailModel.dart';
+import '../screens/AuthScreen.dart';
 import '../widgets/Constants.dart';
 import 'auth/AuthController.dart';
 
@@ -121,6 +123,68 @@ class IndividualUpcomingScheduleController extends GetxController {
   final shopifyProducts = <ProductModel>[].obs;
   final selectedProduct = Rx<ProductModel?>(null);
   var searchQuery = ''.obs;
+  var searchNote = ''.obs;
+  RxSet<String> selectedNotes = <String>{}.obs;
+
+  var notesList = <NoteData>[].obs;
+
+  /// get selected note objects if needed
+  List<NoteData> get selectedNoteObjects => notesList.where((note) => selectedNotes.contains(note.id)).toList();
+
+  Future<void> fetchNotesApi() async {
+    try {
+      // isLoadingNotes.value = true;
+      notesList.clear();
+
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+
+      // doctorId = prefs.getString('doctor_id') ?? '';
+
+      final url = Uri.parse('${Constants.baseUrl}doctors/notes');
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        // print("doctorDetail: $responseData");
+
+        final noteResponse = NoteResponseModel.fromJson(responseData);
+        // print('noteResponse ----> ${noteResponse.data}');
+        notesList.assignAll(noteResponse.data);
+      } else {
+        final errorData = jsonDecode(response.body);
+        final errorMessage = errorData['message'] ?? "Failed to get doctor profile";
+        if (token != null && token.isNotEmpty && errorMessage == "Unauthorized") {
+          print('errorMessage main fetchDoctorDetailsApi -- $errorMessage');
+          Constants.showError(errorMessage);
+        } else if (errorMessage == "Session expired. Please log in again.") {
+          final SharedPreferences prefs = await SharedPreferences.getInstance();
+          var token = prefs.getString('access_token');
+          print('while logout -> $token');
+          prefs.setString("access_token", '');
+          print('after logout -> ${prefs.getString('access_token')}');
+          Constants.showSuccess('Session expired. Please log in again.');
+          Get.offAll(() => AuthScreen());
+        }
+      }
+    } catch (e) {
+      print('Error:- $e');
+      Constants.showError("Error -- $e");
+    } finally {
+      // isLoadingNotes.value = false; // hide loader after first load
+    }
+  }
+
+  void selectNote(NoteData note) {
+    if (!selectedNotes.contains(note.id)) {
+      selectedNotes.add(note.id);
+    }
+  }
 
   // final shopByCategoryList = <Map<String, dynamic>>[].obs;
   Future<void> fetchShopifyProducts() async {
@@ -239,14 +303,17 @@ query GetProducts(\$cursor: String) {
     image = product.image;
   }
 
+  var isLoadingProducts = false.obs;
+
   Future<void> loadProducts() async {
-    isLoading(true);
+    isLoadingProducts.value = true;
     try {
       await fetchShopifyProducts();
+      await fetchNotesApi();
     } catch (e) {
       print('Error loading products: $e');
     } finally {
-      isLoading(false);
+      isLoadingProducts.value = false;
     }
   }
 

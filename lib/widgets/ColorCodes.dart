@@ -24,6 +24,9 @@ class ColorCodes {
   static const Color colorGrey4 = Color(0x60B6B6B6);
   static const Color colorYellow1 = Color(0xFFFFC300);
   static const Color colorGreen1 = Color(0xFF44FF00);
+  static const Color colorGreen2 = Color(0xFF27C840);
   static const Color colorRed1 = Color(0xFFFF0004);
+  static const Color colorRed2 = Color(0xFFFF383C);
+  static const Color colorOrange1 = Color(0xFFFF8D28);
 
 }

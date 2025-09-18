@@ -201,7 +201,7 @@ class AppointmentsController extends GetxController {
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
-    print('token =====~~~~~~~~~~~~~~~~~~ $token');
+    // print('token =====~~~~~~~~~~~~~~~~~~ $token');
 
     // isLoading.value = true;
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments');
@@ -295,10 +295,10 @@ class AppointmentsController extends GetxController {
 
       if (token != null && token.isNotEmpty) {
         _refreshAllAppointmentTimer = Timer(const Duration(seconds: 10), () async {
-          print('_refreshAllAppointmentTimer');
+          // print('_refreshAllAppointmentTimer');
           // final SharedPreferences prefs = await SharedPreferences.getInstance();
           // var token = prefs.getString('access_token');
-          print('token ............................... $token');
+          // print('token ............................... $token');
           if (token != null && token.isNotEmpty) fetchAllAppointmentsApi(doctorId);
         });
       } else {

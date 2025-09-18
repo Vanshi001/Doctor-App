@@ -43,7 +43,6 @@ void main() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final Widget initialScreen = await getInitialScreen(prefs);
 
-  final navigatorKey = GlobalKey<NavigatorState>();
   // Initialize call service if user is logged in
   if (prefs.getString('access_token') != null) {
     // print('CallService.initializeCallService main');
@@ -51,7 +50,7 @@ void main() async {
   }
 
   /// 2/5: set navigator key to ZegoUIKitPrebuiltCallInvitationService
-  ZegoUIKitPrebuiltCallInvitationService().setNavigatorKey(navigatorKey);
+  ZegoUIKitPrebuiltCallInvitationService().setNavigatorKey(Constants.navigatorKey);
 
   ZegoUIKit().initLog().then((value) {
     ZegoUIKitPrebuiltCallInvitationService().useSystemCallingUI([ZegoUIKitSignalingPlugin()]);
@@ -67,7 +66,7 @@ void main() async {
     runApp(
       GetMaterialApp(
         debugShowCheckedModeBanner: false,
-        navigatorKey: navigatorKey,
+        navigatorKey: Constants.navigatorKey,
         home: initialScreen,
         // builder: (context, child) {
         //   return Stack(children: [child!, ZegoUIKitPrebuiltCallMiniOverlayPage(contextQuery: () => navigatorKey.currentState!.context)]);

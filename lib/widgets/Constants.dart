@@ -4,25 +4,67 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:zego_uikit/zego_uikit.dart';
 
+import 'TextStyles.dart';
+
 class Constants {
   // static String baseUrl = "https://dermatics-backend.onrender.com/api/";
   // static String baseUrl = "http://192.168.1.7:5000/api/";
   static String baseUrl = "http://ec2-13-126-77-72.ap-south-1.compute.amazonaws.com/api/";
 
+  static final navigatorKey = GlobalKey<NavigatorState>();
+
   static void showError(String message) {
     Get.snackbar("Validation Error", message, backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, duration: const Duration(seconds: 2),);
+    /*final context = navigatorKey.currentContext;
+    print('context -- $context');
+    if (context != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message, style: TextStyles.textStyle1_1), backgroundColor: Colors.redAccent, duration: Duration(seconds: 2)));
+    }*/
   }
 
   static void showCallHistoryError(String message) {
-    Get.snackbar("Error", message, backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, duration: const Duration(seconds: 2),);
+    Get.snackbar(
+      "Error",
+      message,
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+    );
+    /*final context = navigatorKey.currentContext;
+    if (context != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $message", style: TextStyles.textStyle1_1), backgroundColor: Colors.redAccent, duration: Duration(seconds: 2)));
+    }*/
   }
 
   static void noInternetError() {
-    Get.snackbar("No Internet", "Please check your connection and try again.", backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, duration: const Duration(seconds: 2),);
+    Get.snackbar(
+      "No Internet",
+      "Please check your connection and try again.",
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+    );
+    /*final context = navigatorKey.currentContext;
+    if (context != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("No Internet: Please check your connection and try again.", style: TextStyles.textStyle1_1,), backgroundColor: Colors.redAccent, duration: Duration(seconds: 2)));
+    }*/
   }
 
   static void showSuccess(String message) {
-    Get.snackbar("Successful!", message, backgroundColor: Colors.green, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, duration: const Duration(seconds: 2),);
+    Get.snackbar(
+      "Successful!",
+      message,
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+    );
+    /*final context = navigatorKey.currentContext;
+    if (context != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Successful: $message", style: TextStyles.textStyle1_1,), backgroundColor: Colors.green, duration: Duration(seconds: 2)));
+    }*/
   }
 
   static String formatTimeToAmPm(String? timeString) {
