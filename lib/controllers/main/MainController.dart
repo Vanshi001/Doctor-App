@@ -118,13 +118,16 @@ class MainController extends GetxController {
     print('doctorId -- $doctorId');
 
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
-    // print('fetchDoctorDetailsApi url -- $url');
+    print('fetchDoctorDetailsApi url -- $url');
 
     try {
       final response = await http.get(
         url,
         headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
       );
+
+      print("doctorDetail statusCode: ${response.statusCode}");
+      print("doctorDetail body: ${response.body}");
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -134,7 +137,7 @@ class MainController extends GetxController {
         doctorDetail.value = DoctorProfileResponse.fromJson(responseData);
         // print("doctor id:==== ${doctorDetail.value?.data?.id}");
         doctorName.value = doctorDetail.value?.data?.name ?? 'Dr. Dermatics';
-        // print("doctor name:==== ${doctorDetail.value?.data?.name}");
+        print("doctor name:==== ${doctorDetail.value?.data?.name}");
 
         // fetchTodayAppointmentsApi(currentDate.value, doctorDetail.value?.data?.id);
         // fetchPendingAppointmentsWithoutPrescriptionApi(doctorDetail.value?.data?.id);
@@ -145,7 +148,7 @@ class MainController extends GetxController {
         if (token != null && token.isNotEmpty && errorMessage == "Unauthorized") {
           print('errorMessage main fetchDoctorDetailsApi -- $errorMessage');
           Constants.showError(errorMessage);
-        } else if (errorMessage == "Session expired. Please log in again.") {
+        } else if (errorMessage == "Session expired. Please log in again." || errorMessage == "Invalid token") {
           final SharedPreferences prefs = await SharedPreferences.getInstance();
           var token = prefs.getString('access_token');
           print('while logout -> $token');

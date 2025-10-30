@@ -67,12 +67,12 @@ class _AllCustomNotesScreenState extends State<AllCustomNotesScreen> {
               ),
             ),
             body: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 🔍 Search Bar
-                  TextField(
+                  /*TextField(
                     autofocus: false,
                     decoration: InputDecoration(
                       hintText: "Search",
@@ -84,10 +84,9 @@ class _AllCustomNotesScreenState extends State<AllCustomNotesScreen> {
                       contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                     ),
-                  ),
+                  ),*/
 
-                  const SizedBox(height: 16),
-
+                  // const SizedBox(height: 16),
                   Text("All Notes", style: TextStyles.textStyle2_1),
 
                   const SizedBox(height: 20),

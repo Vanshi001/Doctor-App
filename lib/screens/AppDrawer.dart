@@ -1,3 +1,4 @@
+import 'package:Doctor/screens/AllTimeSlotScreen.dart';
 import 'package:Doctor/screens/MainScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -74,7 +75,7 @@ class _AppDrawerState extends State<AppDrawer> {
             ),
             ListTile(
               leading: Icon(Icons.dashboard, color: ColorCodes.black,),
-              title: Text("Dashboard", style: TextStyles.textStyle4_3),
+              title: Text("Home", style: TextStyles.textStyle4_3),
               onTap: () {
                 // Get.back(); // Close drawer
                 Navigator.of(context).pop();
@@ -82,20 +83,20 @@ class _AppDrawerState extends State<AppDrawer> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.notes, color: ColorCodes.black,),
+              leading: Image.asset("assets/ic_note.png", height: 24, width: 24,),
               title: Text("My Notes", style: TextStyles.textStyle4_3),
               onTap: () {
                 Navigator.of(context).pop();
                 Get.to(() => AllCustomNotesScreen());
               },
             ),
-            /*ListTile(
-              leading: Icon(Icons.settings),
-              title: Text("Settings"),
+            ListTile(
+              leading: Image.asset("assets/ic_calendar_white.png", height: 24, width: 24,),
+              title: Text("Time Slots", style: TextStyles.textStyle4_3),
               onTap: () {
-                Get.to(() => YourSettingsScreen());
+                Get.to(() => AllTimeSlotScreen());
               },
-            ),*/
+            ),
             Spacer(),
             ListTile(
               leading: Icon(Icons.logout, color: ColorCodes.colorRed1),

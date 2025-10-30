@@ -191,6 +191,7 @@ class CustomNotesController extends GetxController with GetSingleTickerProviderS
   }
 
   RxBool isLoadingDeleteNotes = false.obs;
+
   Future<void> deleteNoteApi(String noteId, BuildContext context) async {
     try {
       isLoadingDeleteNotes.value = true;
@@ -241,7 +242,8 @@ class CustomNotesController extends GetxController with GetSingleTickerProviderS
   }
 
   RxBool isLoadingUpdateNotes = false.obs;
-    Future<void> updateNoteApi(String noteId, String text, BuildContext context) async {
+
+  Future<void> updateNoteApi(String noteId, String text, BuildContext context) async {
     try {
       isLoadingUpdateNotes.value = true;
 

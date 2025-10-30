@@ -260,4 +260,11 @@ class TextStyles {
     fontWeight: FontWeight.w400,
     fontFamily: 'Figtree',
   );
+
+  static const TextStyle textStyle7 = TextStyle(
+    fontSize: 12,
+    color: ColorCodes.colorRed2,
+    fontWeight: FontWeight.w500,
+    fontFamily: 'Figtree',
+  );
 }

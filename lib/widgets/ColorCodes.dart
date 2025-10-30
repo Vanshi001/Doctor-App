@@ -18,11 +18,14 @@ class ColorCodes {
   static const Color colorBlack1 = Color(0xFF111111);
   static const Color colorBlack2 = Color(0x10000000);
   static const Color colorBlue1 = Color(0xFF0057A5);
+  static const Color colorBlue2 = Color(0x4D0057A5);
+  static const Color colorBlue3 = Color(0xFF3E79F7);
   static const Color colorGrey1 = Color(0xFF8B8B8B);
   static const Color colorGrey2 = Color(0x25000000);
   static const Color colorGrey3 = Color(0x20B6B6B6);
   static const Color colorGrey4 = Color(0x60B6B6B6);
   static const Color colorYellow1 = Color(0xFFFFC300);
+  static const Color colorYellow2 = Color(0xFFFFDD47);
   static const Color colorGreen1 = Color(0xFF44FF00);
   static const Color colorGreen2 = Color(0xFF27C840);
   static const Color colorRed1 = Color(0xFFFF0004);
