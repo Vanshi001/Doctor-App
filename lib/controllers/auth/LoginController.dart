@@ -91,7 +91,7 @@ class LoginController extends GetxController {
     // final doctorId = prefs.getString('doctor_id') ?? '';
     print('doctorId -- $doctorId');
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
-    print('fetchDoctorDetailsApi url -- $url');
+    // print('fetchDoctorDetailsApi url -- $url');
 
     try {
       final response = await http.get(

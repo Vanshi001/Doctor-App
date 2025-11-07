@@ -14,7 +14,8 @@ import 'AllCustomNotesScreen.dart';
 import 'AuthScreen.dart';
 
 class AppDrawer extends StatefulWidget {
-  AppDrawer({super.key});
+  // final GlobalKey<ScaffoldState> scaffoldKey;
+  AppDrawer({super.key/*, required this.scaffoldKey*/});
 
   @override
   State<AppDrawer> createState() => _AppDrawerState();
@@ -42,7 +43,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   children: [
                     // const CircleAvatar(radius: 30, backgroundColor: Colors.white),
                     Obx(
-                          () => Container(
+                      () => Container(
                         height: 60,
                         width: 60,
                         decoration: BoxDecoration(
@@ -53,8 +54,8 @@ class _AppDrawerState extends State<AppDrawer> {
                         child: Center(child: Text(mainController.getInitials(mainController.doctorName.value), style: TextStyles.textStyle6_1)),
                       ),
                     ),
-                    Obx(() =>
-                      Container(
+                    Obx(
+                      () => Container(
                         height: 50,
                         alignment: Alignment.centerLeft,
                         child: SizedBox(
@@ -74,26 +75,35 @@ class _AppDrawerState extends State<AppDrawer> {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.dashboard, color: ColorCodes.black,),
+              leading: Icon(Icons.dashboard, color: ColorCodes.black),
               title: Text("Home", style: TextStyles.textStyle4_3),
               onTap: () {
                 // Get.back(); // Close drawer
                 Navigator.of(context).pop();
                 Get.off(() => MainScreen());
+                // widget.scaffoldKey.currentState!.closeDrawer(); // ✅ Properly closes drawer
+                // Future.delayed(const Duration(milliseconds: 250), () {
+                //   Get.off(() => MainScreen());
+                // });
               },
             ),
             ListTile(
-              leading: Image.asset("assets/ic_note.png", height: 24, width: 24,),
+              leading: Image.asset("assets/ic_note.png", height: 24, width: 24),
               title: Text("My Notes", style: TextStyles.textStyle4_3),
               onTap: () {
                 Navigator.of(context).pop();
                 Get.to(() => AllCustomNotesScreen());
+                // widget.scaffoldKey.currentState!.closeDrawer();
+                // Future.delayed(const Duration(milliseconds: 250), () {
+                //   Get.to(() => AllCustomNotesScreen());
+                // });
               },
             ),
             ListTile(
-              leading: Image.asset("assets/ic_calendar_white.png", height: 24, width: 24,),
+              leading: Image.asset("assets/ic_calendar_white.png", height: 24, width: 24),
               title: Text("Time Slots", style: TextStyles.textStyle4_3),
               onTap: () {
+                Navigator.of(context).pop();
                 Get.to(() => AllTimeSlotScreen());
               },
             ),

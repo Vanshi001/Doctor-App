@@ -12,6 +12,7 @@ import '../model/AddNoteResponseModel.dart';
 import '../model/AvailabilityResponse.dart';
 import '../model/DoctorProfileResponse.dart';
 import '../model/NoteResponseModel.dart';
+import '../model/SlotUpdateResponse.dart';
 import '../screens/AuthScreen.dart';
 import '../screens/EditCustomNotesScreen.dart';
 import '../widgets/Constants.dart';
@@ -417,10 +418,10 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
 
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
     doctorId = prefs.getString('doctor_id') ?? '';
-    print('doctorId ------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>> $doctorId');
+    // print('doctorId ------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>> $doctorId');
 
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
-    print('fetchDoctorDetailsApi url -- $url');
+    // print('fetchDoctorDetailsApi url -- $url');
 
     try {
       final response = await http.get(
@@ -428,8 +429,8 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
         headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
       );
 
-      print("doctorDetail statusCode: ${response.statusCode}");
-      print("doctorDetail body: ${response.body}");
+      // print("doctorDetail statusCode: ${response.statusCode}");
+      // print("doctorDetail body: ${response.body}");
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -501,7 +502,7 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
     print('📤 Request Body: $requestBody');
 
     try {
-      final response = await http.put(
+      final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
         body: jsonEncode(requestBody),
@@ -510,7 +511,7 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
       print('response.statusCode -- ${response.statusCode}');
       print('response.body -- ${response.body}');
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = jsonDecode(response.body);
 
         print('Appointments: $responseData');
@@ -524,11 +525,19 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
         final dates = availabilityResponse.value?.data?.map((e) => e.dateKey).toList() ?? [];
         print('✅ Extracted Dates: $dates');
         // allList.assignAll(dates);
+        Constants.showSuccess('Slots saved successfully');
+
+        // ✅ IMPORTANT: pop this screen and send a signal to refresh
+        Get.back(result: true); // or: Get.back(result: {'refresh': true});
+        return;
       } else {
         final errorData = jsonDecode(response.body);
-        final errorMessage = errorData['message'] ?? "Login failed";
+        final errorMessage = errorData['message'] ?? "failed";
         if (token != null && token.isNotEmpty && errorMessage == "Unauthorized") {
           print('addCustomDatesApi errorMessage ---- $errorMessage');
+          Constants.showError(errorMessage);
+        } else {
+          print('addCustomDatesApi errorMessage --~~-- $errorMessage');
           Constants.showError(errorMessage);
         }
       }
@@ -554,18 +563,86 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
     }
   }
 
+  var isDeleteLoading = false.obs;
+
+  Future<SlotUpdateResponse?> deleteCustomDateApi({required String? doctorId, required String? dateKey, required String? slotId}) async {
+    isDeleteLoading.value = true; // only first time loader
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token');
+    // print('token =====~~~~~~~~~~~~~~~~~~ $token');
+
+    final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId/date-availability/${dateKey}/slots/$slotId');
+    print('url ---- $url');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
+      );
+
+      print('response.statusCode -- ${response.statusCode}');
+      print('response.body -- ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        print('Date delete: $responseData');
+
+        final data = SlotUpdateResponse.fromJson(responseData);
+
+        // print('✅ Extracted Dates: ${data.data}');
+        print('✅ responseData[message]: ${responseData['message']}');
+        // Constants.showSuccess(responseData['message']);
+        getCustomDatesApi();
+        return data;
+      } else {
+        final errorData = jsonDecode(response.body);
+        final errorMessage = errorData['message'] ?? "failed";
+        if (token != null && token.isNotEmpty && errorMessage == "Unauthorized") {
+          print('deleteCustomDateApi errorMessage ---- $errorMessage');
+          Constants.showError(errorMessage);
+        } else {
+          print('deleteCustomDateApi errorMessage --~~-- $errorMessage');
+          Constants.showError(errorMessage);
+        }
+      }
+    } catch (e) {
+      print('Error: $e');
+      Constants.showError("Error -- $e");
+    } finally {
+      isDeleteLoading.value = false;
+
+      // Schedule next refresh
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token');
+
+      // if (token != null && token.isNotEmpty) {
+      // print('_refreshAllAppointmentTimer');
+      // final SharedPreferences prefs = await SharedPreferences.getInstance();
+      // var token = prefs.getString('access_token');
+      // print('token ............................... $token');
+      // if (token != null && token.isNotEmpty) addCustomDatesApi(doctorId);
+      // } else {
+      //   print("Skipping auto-refresh: token is null/empty");
+      // }
+    }
+    return null;
+  }
+
   var isLoadingAllDates = false.obs;
   Rxn<AvailabilityResponse> allDatesResponse = Rxn<AvailabilityResponse>();
-  RxBool isFirstLoadAllDates = true.obs; // Show loader only for first fetch
-  Timer? _refreshAllDatesTimer;
+
+  // RxBool isFirstLoadAllDates = true.obs; // Show loader only for first fetch
+  // Timer? _refreshAllDatesTimer;
   RxList<AvailabilityData> allDatesList = <AvailabilityData>[].obs;
 
   Future<void> getCustomDatesApi() async {
-    // allDatesList.clear();
+    allDatesList.clear();
 
-    if (isFirstLoadAllDates.value) {
-      isLoadingAllDates.value = true; // only first time loader
-    }
+    // if (isFirstLoadAllDates.value) {
+    isLoadingAllDates.value = true; // only first time loader
+    // }
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
@@ -603,6 +680,7 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
 
         // ✅ Assign full objects to observable list
         allDatesList.assignAll(allData);
+        print('allDatesList ----> ${allDatesList.length}');
 
         // allList.assignAll(dates);
       } else {
@@ -623,18 +701,18 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
       // final prefs = await SharedPreferences.getInstance();
       // final token = prefs.getString('access_token');
 
-      if (isFirstLoadAllDates.value) {
-        isLoading.value = false;
-        isFirstLoadAllDates.value = false;
-      }
+      // if (isFirstLoadAllDates.value) {
+      //   isLoading.value = false;
+      // isFirstLoadAllDates.value = false;
+      // }
 
       // Schedule next refresh
-      _refreshAllDatesTimer?.cancel();
+      /*_refreshAllDatesTimer?.cancel();
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('access_token');
 
       if (token != null && token.isNotEmpty) {
-        _refreshAllDatesTimer = Timer(const Duration(seconds: 10), () async {
+        _refreshAllDatesTimer = Timer(const Duration(seconds: 60), () async {
           // print('_refreshAllDatesTimer');
           // final SharedPreferences prefs = await SharedPreferences.getInstance();
           // var token = prefs.getString('access_token');
@@ -643,7 +721,7 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
         });
       } else {
         print("Skipping auto-refresh: token is null/empty");
-      }
+      }*/
     }
   }
 
@@ -660,7 +738,7 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
     print("editDateSlot");
   }
 
-  void deleteSpecificSlot(String dateKey, int slotIndex) {
+  void deleteSpecificSlot_(String dateKey, int slotIndex) {
     final dateItem = allDatesList.firstWhereOrNull((e) => e.dateKey == dateKey);
     if (dateItem != null && dateItem.slots != null) {
       dateItem.slots!.removeAt(slotIndex);
@@ -668,4 +746,81 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
     }
   }
 
+  final slotsByDate = <String, List<String>>{}.obs;
+
+  List<String> slotsFor(String dateKey) => slotsByDate[dateKey] ?? [];
+
+  void deleteAt(String dateKey, int index) {
+    final list = slotsFor(dateKey).toList();
+    if (index < 0 || index >= list.length) return;
+    list.removeAt(index);
+    slotsByDate[dateKey] = list; // triggers Obx rebuild
+  }
+
+  void updateAt(String dateKey, int index, String newValue) {
+    final list = slotsFor(dateKey).toList();
+    if (index < 0 || index >= list.length) return;
+    list[index] = newValue;
+    slotsByDate[dateKey] = list;
+  }
+
+  var filteredList = <DateSlots>[].obs;
+
+  void deleteDateByKey(String dateKey) {
+    final i = filteredList.indexWhere((e) => e.dateKey == dateKey);
+    if (i < 0) return;
+    filteredList.removeAt(i); // triggers Obx rebuild
+  }
+
+  void deleteSpecificSlot(String dateKey, int slotIndex) {
+    final i = filteredList.indexWhere((e) => e.dateKey == dateKey);
+    if (i < 0) return;
+
+    final item = filteredList[i];
+    if (slotIndex < 0 || slotIndex >= item.slots.length) return;
+
+    final newSlots = item.slots.toList()..removeAt(slotIndex);
+    if (newSlots.isEmpty) {
+      // remove the whole date row if no slots remain
+      filteredList.removeAt(i);
+    } else {
+      filteredList[i] = item.copyWith(slots: newSlots);
+    }
+    // filteredList.refresh(); // not needed after []= / removeAt
+  }
+
+  void removeSlotAt(String dateKey, String? slotId) {
+    final i = filteredList.indexWhere((d) => d.dateKey == dateKey);
+    if (i == -1) return;
+    final slots = filteredList[i].slots ?? [];
+    final si = slots.indexWhere((s) => s.id == slotId);
+    if (si == -1) return;
+    slots.removeAt(si);
+    filteredList.refresh(); // GetX: notify listeners
+  }
+
+  void removeDateIfEmpty(String dateKey) {
+    final i = filteredList.indexWhere((d) => d.dateKey == dateKey);
+    if (i == -1) return;
+    if ((filteredList[i].slots ?? []).isEmpty) {
+      filteredList.removeAt(i);
+    }
+  }
+}
+
+class DateSlots {
+  final String dateKey; // e.g. "2025-11-01"
+  final List<SlotModel> slots;
+
+  const DateSlots({required this.dateKey, required this.slots});
+
+  DateSlots copyWith({String? dateKey, List<SlotModel>? slots}) => DateSlots(dateKey: dateKey ?? this.dateKey, slots: slots ?? this.slots);
+}
+
+class SlotModel {
+  final String? id;
+  final String? start;
+  final String? end;
+
+  const SlotModel({this.id, this.start, this.end});
 }

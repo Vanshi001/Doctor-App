@@ -311,7 +311,8 @@ class _MainScreenState extends State<MainScreen> {
 
       // Else -> show available data UI wrapped with refresh behavior
       return Scaffold(
-        drawer: AppDrawer(),
+        // key: _scaffoldKey,
+        drawer: AppDrawer(/*scaffoldKey: _scaffoldKey*/),
         backgroundColor: ColorCodes.white,
         body: RefreshIndicator(
           onRefresh: () async {

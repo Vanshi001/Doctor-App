@@ -358,6 +358,7 @@ class _AddTimeScreenState extends State<AddTimeScreen> {
       ),*/ Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Divider(height: 1, thickness: 1, color: ColorCodes.colorGrey2),
           CalendarDatePicker2(
             config: config,
             value: rangeDatePickerValue,

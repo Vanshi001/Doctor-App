@@ -115,10 +115,10 @@ class MainController extends GetxController {
 
     // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
     doctorId = prefs.getString('doctor_id') ?? '';
-    print('doctorId -- $doctorId');
+    // print('doctorId -- $doctorId');
 
     final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId');
-    print('fetchDoctorDetailsApi url -- $url');
+    // print('fetchDoctorDetailsApi url -- $url');
 
     try {
       final response = await http.get(
@@ -126,8 +126,8 @@ class MainController extends GetxController {
         headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
       );
 
-      print("doctorDetail statusCode: ${response.statusCode}");
-      print("doctorDetail body: ${response.body}");
+      // print("doctorDetail statusCode: ${response.statusCode}");
+      // print("doctorDetail body: ${response.body}");
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -137,7 +137,7 @@ class MainController extends GetxController {
         doctorDetail.value = DoctorProfileResponse.fromJson(responseData);
         // print("doctor id:==== ${doctorDetail.value?.data?.id}");
         doctorName.value = doctorDetail.value?.data?.name ?? 'Dr. Dermatics';
-        print("doctor name:==== ${doctorDetail.value?.data?.name}");
+        // print("doctor name:==== ${doctorDetail.value?.data?.name}");
 
         // fetchTodayAppointmentsApi(currentDate.value, doctorDetail.value?.data?.id);
         // fetchPendingAppointmentsWithoutPrescriptionApi(doctorDetail.value?.data?.id);
