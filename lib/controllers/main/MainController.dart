@@ -13,6 +13,7 @@ import '../../screens/AuthScreen.dart';
 import '../../widgets/Constants.dart';
 import '../AppointmentsController.dart';
 import '../auth/AuthController.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class MainController extends GetxController {
   final RxList<Map<String, String>> appointmentList = <Map<String, String>>[].obs;
@@ -228,6 +229,9 @@ class MainController extends GetxController {
   RxBool isLoadingToday = false.obs;
   RxBool isFirstLoadToday = true.obs; // Show loader only for first fetch
   Timer? _refreshTodayTimer;
+  String formattedDate = '';
+
+  Set<String> notifiedAppointments = {};
 
   Future<void> fetchTodayAppointmentsApi(String currentDate, String? doctorId) async {
     // ✅ Don't call API if user is logged out
@@ -258,13 +262,46 @@ class MainController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        // print("Today's Appointments: $responseData");
+        print("Today's Appointments: $responseData");
 
         todayAppointmentResponse.value = AppointmentResponse.fromJson(responseData);
         final appointments = todayAppointmentResponse.value!.data;
 
+        /*for (var appt in appointments) {
+          if (appt.appointmentDate != null && appt.appointmentDate!.isNotEmpty) {
+            DateTime parsedDate = DateTime.parse(appt.appointmentDate!);
+            print("Parsed Appointment Date: $parsedDate");
+            formattedDate = DateFormat('EEEE, MMMM d, y').format(parsedDate);
+            print('formattedDate ------> $formattedDate');
+            sendAppointmentNotification(formattedDate, appt.timeSlot!.startTime);
+          }
+        }*/
+
         // print("Today's ALL Appointments: $appointments");
         allList.assignAll(appointments);
+
+        for (var appt in appointments) {
+          if (appt.appointmentDate != null && appt.appointmentDate!.isNotEmpty) {
+
+            // IDENTIFY UNIQUE APPOINTMENT
+            String apptKey = "${appt.id}-${appt.timeSlot?.startTime}";
+
+            // SKIP IF ALREADY NOTIFIED
+            if (notifiedAppointments.contains(apptKey)) {
+              continue;
+            }
+
+            // ADD TO TRACKING
+            notifiedAppointments.add(apptKey);
+
+            DateTime parsedDate = DateTime.parse(appt.appointmentDate!);
+
+            formattedDate = DateFormat('EEEE, MMMM d, y').format(parsedDate);
+
+            sendAppointmentNotification(formattedDate, appt.timeSlot!.startTime);
+          }
+        }
+
         // final message = responseData['message'] ?? 'Success';
         // Constants.showSuccess(message);
       } else {
@@ -293,6 +330,112 @@ class MainController extends GetxController {
         if (token != null) fetchTodayAppointmentsApi(currentDate, doctorId);
       });
     }
+  }
+
+  void sendAppointmentNotification(String formattedDate, String timeStr) async {
+    final DateTime appointmentTime = buildAppointment(formattedDate, timeStr);
+    print('FOR NOTIFICATION ----> formattedDate -- $formattedDate -- time -- $timeStr');
+    print('Appointment DateTime: $appointmentTime');
+
+    // final deviceState = await OneSignal.shared.getDeviceState();
+    final id = OneSignal.User.pushSubscription.id;
+    final playerId = id;
+    print('playerId: $playerId');
+    print(OneSignal.User.pushSubscription.optedIn);
+
+    if (playerId != null) {
+      await scheduleAppointmentNotification(appointmentTime: appointmentTime, playerId: playerId);
+    } else {
+      print("Player ID not found. Make sure OneSignal is initialized and the user is subscribed.");
+    }
+  }
+
+  DateTime buildAppointment(String formattedDate, String timeStr) {
+    // parse the date string
+    final date = DateFormat('EEEE, MMMM d, yyyy').parse(formattedDate.trim());
+
+    // parse time; try "HH:mm" then fallback to "h:mm a"
+    DateTime t;
+    try {
+      t = DateFormat('HH:mm').parseStrict(timeStr.trim()); // "10:00", "17:30"
+    } catch (_) {
+      t = DateFormat('h:mm a').parseStrict(timeStr.trim()); // "10:00 AM"
+    }
+
+    // compose local DateTime
+    return DateTime(date.year, date.month, date.day, t.hour, t.minute);
+  }
+
+  Future<void> scheduleAppointmentNotification({
+    required DateTime appointmentTime,
+    String deliveryOption = 'timezone', // 'timezone', 'last-active', or null
+    int? throttlePerMinute,
+    bool enableFrequencyCap = false,
+    required String playerId,
+  }) async {
+    // 5 minutes before appointment
+    final DateTime sendAt = appointmentTime.subtract(Duration(minutes: 5));
+    print("sendAt ----------------> $sendAt");
+    // final sendAfterStr = DateFormat("yyyy-MM-dd HH:mm:ss 'GMT'").format(sendAt.toUtc());
+    final sendAfterStr = formatSendAfter(sendAt);
+    print("sendAfterStr ----------------> $sendAfterStr");
+
+    final url = Uri.parse('https://api.onesignal.com/notifications?c=push');
+    final data = {
+      "app_id": "b0d7db1b-8cfa-4edf-9ce9-bf638f1530d9",
+      "target_channel": "push",
+      "headings": {"en": "Upcoming Appointment"},
+      "name": "Appointment Notification",
+      "contents": {"en": "Your appointment is at ${fmtTime(appointmentTime)}"},
+      // "included_segments": ["All"],
+      "include_player_ids": ["$playerId"],
+      "small_icon": "app_icon",
+      // "included_segments": [
+      //   "Subscribed Users"
+      // ],
+      "send_after": sendAfterStr, //sendAt.toUtc().toIso8601String(), // must be UTC
+      // Optional advanced delivery options
+      // if (deliveryOption.isNotEmpty) "delayed_option": deliveryOption, // 'timezone' or 'last-active'
+      // Optional throttling
+      // if (throttlePerMinute != null) "throttle_rate_per_minute": throttlePerMinute,
+
+      // Optional frequency capping
+      // "enable_frequency_cap": enableFrequencyCap,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'accept': 'application/json',
+          'Authorization': 'Key os_v2_app_wdl5wg4m7jhn7hhjx5ry6fjq3hjifvrxqxyea2mqdkbcwwpwhfc62p4mor5smajqrlxr2z3bcj2vrh6y53qygk3lix4pgsds4b4s5ma',
+        },
+        body: jsonEncode(data),
+      );
+
+      if (response.statusCode == 200) {
+        final res = jsonDecode(response.body);
+        print("Notification scheduled: $res");
+      } else {
+        print("Error scheduling notification: ${response.body}");
+      }
+    } catch (e) {
+      print("Exception: $e");
+    }
+  }
+
+  String fmtTime(DateTime dt) => DateFormat('h:mm a').format(dt); // e.g., 10:55 AM
+
+  String formatSendAfter(DateTime dt) {
+    // local time with offset
+    final offset = dt.timeZoneOffset;
+    final hours = offset.inHours.abs().toString().padLeft(2, '0');
+    final minutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+    final sign = offset.isNegative ? '-' : '+';
+
+    final formatted = DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(dt);
+    return "$formatted$sign$hours:$minutes";
   }
 
   void startAutoFetch() {

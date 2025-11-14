@@ -8,8 +8,8 @@ import 'TextStyles.dart';
 
 class Constants {
   // static String baseUrl = "https://dermatics-backend.onrender.com/api/";
-  static String baseUrl = "http://192.168.1.24:5000/api/";
-  // static String baseUrl = "http://ec2-13-126-77-72.ap-south-1.compute.amazonaws.com/api/";
+  // static String baseUrl = "http://192.168.1.24:5000/api/";
+  static String baseUrl = "http://ec2-13-126-77-72.ap-south-1.compute.amazonaws.com/api/";
 
   static final navigatorKey = GlobalKey<NavigatorState>();
 

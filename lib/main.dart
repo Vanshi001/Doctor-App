@@ -16,6 +16,7 @@ import 'package:zego_uikit/zego_uikit.dart';
 import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 // final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -49,6 +50,9 @@ void main() async {
     // print('CallService.initializeCallService main');
     // await CallService.initializeCallService();
   }
+
+  OneSignal.initialize("b0d7db1b-8cfa-4edf-9ce9-bf638f1530d9");
+  OneSignal.Notifications.requestPermission(true);
 
   /// 2/5: set navigator key to ZegoUIKitPrebuiltCallInvitationService
   ZegoUIKitPrebuiltCallInvitationService().setNavigatorKey(Constants.navigatorKey);
