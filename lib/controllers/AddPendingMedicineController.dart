@@ -224,7 +224,7 @@ query GetProducts(\$cursor: String) {
       final response = await http.post(
         url,
         headers: {
-          'X-Shopify-Storefront-Access-Token': '1e5f786dc58ad552b19a218ac59889d5',
+          'X-Shopify-Storefront-Access-Token': 'c59d446f452d2ea76086bd5eee801029',
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
@@ -268,7 +268,7 @@ query GetProducts(\$cursor: String) {
 
         shopifyProducts.assignAll(products);*/
       } else {
-        print("❌ Failed to fetch products: ${response.statusCode} ${response.body}");
+        print("❌ Failed to fetch products:- ${response.statusCode} ${response.body}");
         break;
       }
     } while (true);

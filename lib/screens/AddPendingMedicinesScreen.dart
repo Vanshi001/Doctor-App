@@ -256,13 +256,17 @@ class _AddPendingMedicinesScreenState extends State<AddPendingMedicinesScreen> {
                                 .map((medicine) {
                                   final name = medicine['medicineName']?.trim();
                                   final notes = medicine['notes']?.trim();
-                                  final variantId = medicine['variantId']?.trim().split('/').last;
-                                  final productId = medicine['productId']?.trim().split('/').last;
+                                  final variantId = medicine['variantId']?.trim()/*.split('/').last*/;
+                                  final productId = medicine['productId']?.trim()/*.split('/').last*/;
                                   final priceString = medicine['price']?.trim().split('/').last;
                                   final compareAtPrice = medicine['compareAtPrice']?.trim().split('/').last;
-                                  final image = medicine['image']?.trim().split('/').last;
+                                  final image = medicine['image']?.trim()/*.split('/').last*/;
 
                                   final price = double.tryParse(priceString ?? "0.0") ?? 0.0;
+
+                                  print('image ----> ${medicine['image']}');
+                                  print('variantId ----> ${medicine['variantId']}');
+                                  print('productId ----> ${medicine['productId']}');
 
                                   print(
                                     "\n prescriptions name ---- $name, "

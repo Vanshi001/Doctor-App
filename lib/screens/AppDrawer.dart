@@ -99,14 +99,14 @@ class _AppDrawerState extends State<AppDrawer> {
                 // });
               },
             ),
-            ListTile(
+            /*ListTile(
               leading: Image.asset("assets/ic_calendar_white.png", height: 24, width: 24),
               title: Text("Time Slots", style: TextStyles.textStyle4_3),
               onTap: () {
                 Navigator.of(context).pop();
                 Get.to(() => AllTimeSlotScreen());
               },
-            ),
+            )*/
             Spacer(),
             ListTile(
               leading: Icon(Icons.logout, color: ColorCodes.colorRed1),
