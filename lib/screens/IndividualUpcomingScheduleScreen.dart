@@ -457,6 +457,7 @@ class _IndividualUpcomingScheduleScreenState extends State<IndividualUpcomingSch
       userID: Constants.currentUser.id,
       userName: Constants.currentUser.name,
       plugins: [ZegoUIKitSignalingPlugin()],
+
       requireConfig: (ZegoCallInvitationData data) {
         final config = ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall();
 

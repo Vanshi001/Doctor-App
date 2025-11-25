@@ -22,7 +22,7 @@ class AppDrawer extends StatefulWidget {
 }
 
 class _AppDrawerState extends State<AppDrawer> {
-  final MainController mainController = Get.put(MainController());
+  final MainController mainController = Get.find<MainController>();
 
   @override
   Widget build(BuildContext context) {
@@ -90,8 +90,9 @@ class _AppDrawerState extends State<AppDrawer> {
             ListTile(
               leading: Image.asset("assets/ic_note.png", height: 24, width: 24),
               title: Text("My Notes", style: TextStyles.textStyle4_3),
-              onTap: () {
+              onTap: () async{
                 Navigator.of(context).pop();
+                // print("My Notes CLICKED");
                 Get.to(() => AllCustomNotesScreen());
                 // widget.scaffoldKey.currentState!.closeDrawer();
                 // Future.delayed(const Duration(milliseconds: 250), () {
@@ -99,14 +100,15 @@ class _AppDrawerState extends State<AppDrawer> {
                 // });
               },
             ),
-            /*ListTile(
+            ListTile(
               leading: Image.asset("assets/ic_calendar_white.png", height: 24, width: 24),
               title: Text("Time Slots", style: TextStyles.textStyle4_3),
               onTap: () {
                 Navigator.of(context).pop();
+                print('on TAP TIME SLOT ------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
                 Get.to(() => AllTimeSlotScreen());
               },
-            )*/
+            ),
             Spacer(),
             ListTile(
               leading: Icon(Icons.logout, color: ColorCodes.colorRed1),

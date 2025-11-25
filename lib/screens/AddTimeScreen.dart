@@ -227,7 +227,16 @@ class _AddTimeScreenState extends State<AddTimeScreen> {
                     final eveEndTime = controller.selectedEveningEndTime.value;
                     if (mrngStartTime.isNotEmpty && mrngEndTime.isNotEmpty && eveStartTime.isNotEmpty && eveEndTime.isNotEmpty) {
                       print('timing! ---> ${controller.doctorId}');
-                      controller.addCustomDatesApi(controller.doctorId, onlySelectedDates);
+                      final success = await controller.addCustomDatesApi(context, controller.doctorId, onlySelectedDates);
+                      if (success) {
+                        // if (Get.isSnackbarOpen!) {
+                        //   Get.closeCurrentSnackbar(); // CLOSE it safely
+                        // }
+
+                        // Future.delayed(Duration(milliseconds: 100), () {
+                        Navigator.pop(context, success); // THEN close the screen
+                        // });
+                      }
                     } else {
                       print('Select timing!');
                       Constants.showError('Select timing!');
@@ -239,7 +248,7 @@ class _AddTimeScreenState extends State<AddTimeScreen> {
                   ),
                   child:
                       controller.isLoading.value
-                          ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: ColorCodes.white))
+                          ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: ColorCodes.white, strokeWidth: 1))
                           : Text('Save', style: TextStyles.textStyle6_1.copyWith(color: Colors.white)),
                 ),
               ),

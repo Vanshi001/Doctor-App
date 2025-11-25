@@ -19,6 +19,7 @@ import 'package:intl/intl.dart';
 import 'package:new_version_plus/new_version_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zego_uikit/zego_uikit.dart';
 import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
 import '../controllers/AppointmentsController.dart';
@@ -313,6 +314,13 @@ class _MainScreenState extends State<MainScreen> {
       return Scaffold(
         // key: _scaffoldKey,
         drawer: AppDrawer(/*scaffoldKey: _scaffoldKey*/),
+        onDrawerChanged: (isOpen) {
+          if (isOpen) {
+            // Drawer opening → minimize Zego floating window so drawer gets taps
+            ZegoUIKitPrebuiltCallController().minimize;
+          }
+          // No maximize function exists in this version
+        },
         backgroundColor: ColorCodes.white,
         body: RefreshIndicator(
           onRefresh: () async {
@@ -364,7 +372,7 @@ class _MainScreenState extends State<MainScreen> {
                               child: Center(child: Text(mainController.getInitials(mainController.doctorName.value), style: TextStyles.textStyle6_1)),
                             ),
                           ),
-                          SizedBox(width: 10,),
+                          SizedBox(width: 10),
                           /*GestureDetector(
                             onTap: () {
                               showDialog(

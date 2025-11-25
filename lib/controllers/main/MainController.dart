@@ -262,7 +262,7 @@ class MainController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        print("Today's Appointments: $responseData");
+        // print("Today's Appointments: $responseData");
 
         todayAppointmentResponse.value = AppointmentResponse.fromJson(responseData);
         final appointments = todayAppointmentResponse.value!.data;

@@ -13,13 +13,28 @@ class Constants {
 
   static final navigatorKey = GlobalKey<NavigatorState>();
 
-  static void showError(String message) {
+  static void showError_(String message) {
     Get.snackbar("Validation Error", message, backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, duration: const Duration(seconds: 2),);
     /*final context = navigatorKey.currentContext;
     print('context -- $context');
     if (context != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message, style: TextStyles.textStyle1_1), backgroundColor: Colors.redAccent, duration: Duration(seconds: 2)));
     }*/
+  }
+
+  static void showError(String message) {
+    // Future.delayed(Duration(milliseconds: 100), () {
+    //   if (!Get.isSnackbarOpen!) {
+        Get.rawSnackbar(
+          message: message,
+          backgroundColor: Colors.redAccent,
+          margin: EdgeInsets.all(12),
+          borderRadius: 8,
+          duration: Duration(seconds: 3),
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      // }
+    // });
   }
 
   static void showCallHistoryError(String message) {

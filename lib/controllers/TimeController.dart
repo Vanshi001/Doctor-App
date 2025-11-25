@@ -15,7 +15,9 @@ import '../model/NoteResponseModel.dart';
 import '../model/SlotUpdateResponse.dart';
 import '../screens/AuthScreen.dart';
 import '../screens/EditCustomNotesScreen.dart';
+import '../widgets/ColorCodes.dart';
 import '../widgets/Constants.dart';
+import '../widgets/TextStyles.dart';
 
 class TimeController extends GetxController with GetSingleTickerProviderStateMixin {
   var isOpen = false.obs;
@@ -481,14 +483,14 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
     }
   }
 
-  Future<void> addCustomDatesApi(String? doctorId, List<String> onlySelectedDates) async {
+  Future<bool> addCustomDatesApi(BuildContext context, String? doctorId, List<String> onlySelectedDates) async {
     isLoading.value = true; // only first time loader
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
     // print('token =====~~~~~~~~~~~~~~~~~~ $token');
 
-    final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId/date-availability');
+    final url = Uri.parse('${Constants.baseUrl}doctors/date-availability');
     print('url ---- $url');
 
     final Map<String, dynamic> requestBody = {
@@ -528,18 +530,33 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
         Constants.showSuccess('Slots saved successfully');
 
         // ✅ IMPORTANT: pop this screen and send a signal to refresh
-        Get.back(result: true); // or: Get.back(result: {'refresh': true});
-        return;
+        // Get.back(result: true); // or: Get.back(result: {'refresh': true});
+        return true;
       } else {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'] ?? "failed";
         if (token != null && token.isNotEmpty && errorMessage == "Unauthorized") {
           print('addCustomDatesApi errorMessage ---- $errorMessage');
-          Constants.showError(errorMessage);
+          // Constants.showError(errorMessage);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage, style: TextStyles.textStyle6_1),
+              backgroundColor: ColorCodes.colorRed2,
+              duration: const Duration(seconds: 3),
+            ),
+          );
         } else {
           print('addCustomDatesApi errorMessage --~~-- $errorMessage');
-          Constants.showError(errorMessage);
+          // Constants.showError(errorMessage);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage, style: TextStyles.textStyle6_1),
+              backgroundColor: ColorCodes.colorRed2,
+              duration: const Duration(seconds: 3),
+            ),
+          );
         }
+        return false;
       }
     } catch (e) {
       print('Error: $e');
@@ -561,6 +578,7 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
       //   print("Skipping auto-refresh: token is null/empty");
       // }
     }
+    return false;
   }
 
   var isDeleteLoading = false.obs;
@@ -572,7 +590,7 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
     final token = prefs.getString('access_token');
     // print('token =====~~~~~~~~~~~~~~~~~~ $token');
 
-    final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId/date-availability/${dateKey}/slots/$slotId');
+    final url = Uri.parse('${Constants.baseUrl}doctors/date-availability/${dateKey}/slots/$slotId');
     print('url ---- $url');
 
     try {
@@ -648,7 +666,7 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
     final token = prefs.getString('access_token');
     // print('token =====~~~~~~~~~~~~~~~~~~ $token');
 
-    final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId/availability');
+    final url = Uri.parse('${Constants.baseUrl}doctors/availability');
     print('url ---->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> $url');
 
     try {
