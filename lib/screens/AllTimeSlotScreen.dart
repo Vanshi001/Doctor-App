@@ -274,7 +274,10 @@ class _AllTimeSlotScreenState extends State<AllTimeSlotScreen> {
                                                       data.slots!.asMap().entries.map((entry) {
                                                         final int slotIndex = entry.key; // 0, 1, ...
                                                         final slot = entry.value;
-                                                        final bool isMorning = slotIndex == 0;
+                                                        // final bool isMorning = slotIndex == 0;
+
+                                                        final bool isMorning = slot.start?.toUpperCase().contains("AM") ?? false;
+                                                        final bool isEvening = slot.start?.toUpperCase().contains("PM") ?? false;
 
                                                         // Helpful log: which date row + which slot
                                                         // (e.g., "date=2, slot=0 (Morning) start=09:00 end=12:00")
@@ -326,7 +329,7 @@ class _AllTimeSlotScreenState extends State<AllTimeSlotScreen> {
                                                                   print(
                                                                     'EDIT → dateIndex=$dateIndex, slotIndex=$slotIndex (${isMorning ? "Morning" : "Afternoon"})',
                                                                   );
-                                                                  Get.to(
+                                                                  final result = await Get.to(
                                                                     () => EditMorningTimeSlotScreen(),
                                                                     arguments: {
                                                                       "editDate": data.dateKey,
@@ -338,6 +341,17 @@ class _AllTimeSlotScreenState extends State<AllTimeSlotScreen> {
                                                                       "slotId": slot.id,
                                                                     },
                                                                   );
+
+                                                                  if (result == true) {
+                                                                    // print("result !~!!!!!!!!!!!!!!!!!> $result");
+                                                                    /*controller.updateEditedSlot(
+                                                                      dateKey: data.dateKey!,
+                                                                      slotId: slot.id!,
+                                                                      updatedSlot: slot,
+                                                                    );*/
+                                                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Slot Updated", style: TextStyles.textStyle1_1,), backgroundColor: ColorCodes.colorGreen2, duration: Duration(seconds: 2)));
+                                                                    controller.getCustomDatesApi();
+                                                                  }
                                                                   return false; // keep the tile after editing
                                                                 } else {
                                                                   // 👉 DELETE

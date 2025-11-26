@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,7 +50,7 @@ class SlotEditController extends GetxController {
 
   var isLoading = false.obs;
 
-  Future<SlotUpdateResponse?> editCustomDatesApi({
+  Future<bool> editCustomDatesApi({
     required String? doctorId,
     required String? dateKey,
     required String? slotId,
@@ -62,7 +63,7 @@ class SlotEditController extends GetxController {
     final token = prefs.getString('access_token');
     // print('token =====~~~~~~~~~~~~~~~~~~ $token');
 
-    final url = Uri.parse('${Constants.baseUrl}doctors/$doctorId/date-availability/$dateKey/slots/$slotId');
+    final url = Uri.parse('${Constants.baseUrl}doctors/date-availability/$dateKey/slots/$slotId');
     print('url ---- $url');
 
     final Map<String, dynamic> requestBody = {"start": startTime, "end": endTime};
@@ -90,9 +91,12 @@ class SlotEditController extends GetxController {
 
         // final dates = availabilityResponse.value?.data ?? [];
         // print('dates -------->>>>>> $dates');
-        Get.snackbar('Success', data.message);
-        print('✅ Extracted Dates: $data');
-        return data;
+        // Constants.showSuccess(data.message);
+        // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Select Medicine", style: TextStyles.textStyle1_1,), backgroundColor: Colors.redAccent, duration: Duration(seconds: 2)));
+
+        // print('✅ Extracted Dates: ${data}');
+        print('✅ Message: ${data.message}');
+        return true;
         // allList.assignAll(dates);
       } else {
         final errorData = jsonDecode(response.body);
@@ -101,10 +105,12 @@ class SlotEditController extends GetxController {
           print('addCustomDatesApi errorMessage ---- $errorMessage');
           Constants.showError(errorMessage);
         }
+        return false;
       }
     } catch (e) {
       print('Error: $e');
       Constants.showError("Error -- $e");
+      return false;
     } finally {
       isLoading.value = false;
 
@@ -122,6 +128,5 @@ class SlotEditController extends GetxController {
       //   print("Skipping auto-refresh: token is null/empty");
       // }
     }
-    return null;
   }
 }

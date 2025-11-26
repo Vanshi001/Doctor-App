@@ -225,7 +225,7 @@ class _AddTimeScreenState extends State<AddTimeScreen> {
 
                     final eveStartTime = controller.selectedEveningStartTime.value;
                     final eveEndTime = controller.selectedEveningEndTime.value;
-                    if (mrngStartTime.isNotEmpty && mrngEndTime.isNotEmpty && eveStartTime.isNotEmpty && eveEndTime.isNotEmpty) {
+                    if ((mrngStartTime.isNotEmpty && mrngEndTime.isNotEmpty) || (eveStartTime.isNotEmpty && eveEndTime.isNotEmpty)) {
                       print('timing! ---> ${controller.doctorId}');
                       final success = await controller.addCustomDatesApi(context, controller.doctorId, onlySelectedDates);
                       if (success) {

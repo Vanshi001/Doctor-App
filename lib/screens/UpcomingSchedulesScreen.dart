@@ -214,7 +214,7 @@ class _UpcomingSchedulesScreenState extends State<UpcomingSchedulesScreen> {
               SliverFillRemaining(
                 child: Obx(() {
                   final list = filteredList.reversed.toList(); //controller.currentList.reversed.toList();
-                  print('list -- ${list.length}');
+                  // print('list -- ${list.length}');
 
                   if (controller.isLoading.value) {
                     return const Center(child: CircularProgressIndicator());

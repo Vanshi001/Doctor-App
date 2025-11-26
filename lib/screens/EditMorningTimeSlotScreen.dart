@@ -187,15 +187,18 @@ class _EditMorningTimeSlotScreenState extends State<EditMorningTimeSlotScreen> {
                       return;
                     }*/
 
-                    var result = slotEditController.editCustomDatesApi(
+                    var result = await slotEditController.editCustomDatesApi(
                       doctorId: doctorId,
                       dateKey: editDate.toString(),
                       slotId: slotId.toString(),
                       startTime: slotEditController.selectedStart.value ?? '',
                       endTime: slotEditController.selectedEnd.value ?? '',
                     );
-                    if (result == true)
-                      print(result);
+
+                    if (result) {
+                      print("Result -----> $result");
+                      Navigator.pop(context, true);
+                    }
                     else
                       print("Result null");
                     // Navigator.pop(context, true);

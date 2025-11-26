@@ -37,6 +37,7 @@ import 'AppDrawer.dart';
 import 'AppointmentsScreen.dart';
 import 'EditProfileScreen.dart';
 import 'IndividualUpcomingScheduleScreen.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -194,7 +195,8 @@ class _MainScreenState extends State<MainScreen> {
     print('currentDate -- ${mainController.currentDate.value}');
     var token = prefs.getString("access_token");
     if (token != null && token.isNotEmpty) {
-      mainController.fetchTodayAppointmentsApi(mainController.currentDate.value, doctorId);
+      // mainController.fetchTodayAppointmentsApi(mainController.currentDate.value, doctorId);
+      mainController.fetchAllAppointmentsApi(doctorId);
       mainController.fetchPendingAppointmentsWithoutPrescriptionApi(doctorId);
       mainController.fetchAllAppointments(doctorId);
     }
@@ -458,7 +460,7 @@ class _MainScreenState extends State<MainScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Obx(() => Text("Today's Schedule (${mainController.allList.length})", style: TextStyles.textStyle3)),
+                      Obx(() => Text("Upcoming Schedules (${mainController.allList.length})", style: TextStyles.textStyle3)),
                       GestureDetector(
                         child: Container(
                           padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),

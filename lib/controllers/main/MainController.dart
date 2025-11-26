@@ -251,7 +251,7 @@ class MainController extends GetxController {
     // final doctorId = prefs.getString('doctor_id') ?? '';
     // print('doctorId -~- fetchTodayAppointmentsApi -~- MainController -~- $doctorId');
     final url = Uri.parse('${Constants.baseUrl}appointments?status=today&date=$currentDate&doctorId=$doctorId');
-    // print('fetchTodayAppointmentsApi url -- $url');
+    print('fetchTodayAppointmentsApi url -- $url');
 
     try {
       final response = await http.get(
@@ -282,7 +282,6 @@ class MainController extends GetxController {
 
         for (var appt in appointments) {
           if (appt.appointmentDate != null && appt.appointmentDate!.isNotEmpty) {
-
             // IDENTIFY UNIQUE APPOINTMENT
             String apptKey = "${appt.id}-${appt.timeSlot?.startTime}";
 
@@ -332,21 +331,278 @@ class MainController extends GetxController {
     }
   }
 
-  void sendAppointmentNotification(String formattedDate, String timeStr) async {
+  Future<void> fetchAllAppointmentsApi(String? doctorId) async {
+    // ✅ Don't call API if user is logged out
+    // if (AuthController.isLoggedIn.value) {
+    //   print("User logged out. API not called.");
+    //   return;
+    // }
+
+    if (isFirstLoadToday.value) {
+      isLoadingToday.value = true; // only first time loader
+    }
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? '';
+
+    // isLoading.value = true;
+    // final url = Uri.parse('http://192.168.1.10:5000/api/appointments?date=$currentDate');
+    // final doctorId = prefs.getString('doctor_id') ?? '';
+    // print('doctorId -~- fetchTodayAppointmentsApi -~- MainController -~- $doctorId');
+    final url = Uri.parse('${Constants.baseUrl}appointments?status=all&doctorId=$doctorId');
+    // print('fetchAllAppointmentsApi url -- $url');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json', 'accept': 'application/json', 'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        // print("All Appointments: $responseData");
+
+        todayAppointmentResponse.value = AppointmentResponse.fromJson(responseData);
+        final appointments = todayAppointmentResponse.value!.data;
+
+        /*for (var appt in appointments) {
+          if (appt.appointmentDate != null && appt.appointmentDate!.isNotEmpty) {
+            DateTime parsedDate = DateTime.parse(appt.appointmentDate!);
+            print("Parsed Appointment Date: $parsedDate");
+            formattedDate = DateFormat('EEEE, MMMM d, y').format(parsedDate);
+            print('formattedDate ------> $formattedDate');
+            sendAppointmentNotification(formattedDate, appt.timeSlot!.startTime);
+          }
+        }*/
+
+        // print("Today's ALL Appointments: $appointments");
+        allList.assignAll(appointments);
+
+        Set<String> newNotified = await getNewNotified();
+        Set<String> scheduledNotified = await getScheduledNotified();
+
+        for (var appt in appointments) {
+          if (appt.appointmentDate != null && appt.appointmentDate!.isNotEmpty) {
+            // IDENTIFY UNIQUE APPOINTMENT
+            String apptKey = "${appt.id}-${appt.timeSlot?.startTime}";
+
+            // -------------------------------
+            // 🔔 LOGIC A: NEW APPOINTMENT ADDED
+            // -------------------------------
+            // print('appt.appointmentDate! ---!!-> ${appt.appointmentDate!}');
+
+            DateTime parsedDate = DateTime.parse(appt.appointmentDate!);
+            formattedDate = DateFormat('EEEE, MMMM d, y').format(parsedDate);
+
+            if (!newNotified.contains(apptKey)) {
+              newNotified.add(apptKey);
+              await saveNewNotified(newNotified);
+
+              print('appt.appointmentDate! ----> ${appt.appointmentDate!}');
+
+              // Send immediate notification
+              sendAppointmentAssignNotification(appt.patientFullName.toString(), formattedDate, appt.timeSlot!.startTime);
+            }
+
+            // -------------------------------
+            // 🔔 LOGIC B: 5 MIN BEFORE APPOINTMENT
+            // -------------------------------
+            if (!scheduledNotified.contains(apptKey)) {
+              DateTime appointmentTime = DateTime.parse(appt.appointmentDate!).add(_parseTime(appt.timeSlot!.startTime));
+
+              DateTime fiveBefore = appointmentTime.subtract(Duration(minutes: 5));
+
+              if (fiveBefore.isAfter(DateTime.now())) {
+                scheduledNotified.add(apptKey);
+                await saveScheduledNotified(scheduledNotified);
+
+                // Schedule OneSignal notification
+                sendAppointmentNotification(formattedDate, appt.timeSlot!.startTime);
+              }
+            }
+
+            /*// SKIP IF ALREADY NOTIFIED
+            if (notifiedAppointments.contains(apptKey)) {
+              continue;
+            }
+
+            // ADD TO TRACKING
+            notifiedAppointments.add(apptKey);
+
+            DateTime parsedDate = DateTime.parse(appt.appointmentDate!);
+
+            formattedDate = DateFormat('EEEE, MMMM d, y').format(parsedDate);
+
+            sendAppointmentNotification(formattedDate, appt.timeSlot!.startTime);*/
+          }
+        }
+
+        // final message = responseData['message'] ?? 'Success';
+        // Constants.showSuccess(message);
+      } else {
+        final errorData = jsonDecode(response.body);
+        final errorMessage = errorData['message'] ?? "Login failed";
+        Constants.showError(errorMessage);
+      }
+    } catch (e) {
+      print('Error:~~ $e');
+      Constants.showError("Error -- $e");
+    } finally {
+      // isLoading.value = false;
+      if (isFirstLoadToday.value) {
+        isLoadingToday.value = false; // hide loader after first load
+      }
+      if (isFirstLoadToday.value) {
+        isLoadingToday.value = false;
+        isFirstLoadToday.value = false;
+      }
+
+      // Schedule next refresh
+      _refreshTodayTimer?.cancel();
+      _refreshTodayTimer = Timer(const Duration(seconds: 10), () async {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        var token = prefs.getString("access_token");
+        if (token != null) fetchAllAppointmentsApi(doctorId);
+      });
+    }
+  }
+
+  Duration _parseTime(String timeString) {
+    timeString = timeString.trim();
+
+    // Case 1: Time with AM/PM → 12-hour format
+    if (timeString.contains("AM") || timeString.contains("PM")) {
+      final dt = DateFormat("h:mm a").parse(timeString);
+      return Duration(hours: dt.hour, minutes: dt.minute);
+    }
+
+    // Case 2: Time WITHOUT AM/PM → treat as 24-hour "HH:mm"
+    if (RegExp(r'^\d{1,2}:\d{2}$').hasMatch(timeString)) {
+      final parts = timeString.split(":");
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      return Duration(hours: hour, minutes: minute);
+    }
+
+    throw FormatException("Invalid time format: $timeString");
+  }
+
+  Future<Set<String>> getNewNotified() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList('NEW_APPOINTMENTS_NOTIFIED')?.toSet() ?? {};
+  }
+
+  Future<Set<String>> getScheduledNotified() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList('SCHEDULED_APPOINTMENTS_NOTIFIED')?.toSet() ?? {};
+  }
+
+  Future<void> saveNewNotified(Set<String> set) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setStringList('NEW_APPOINTMENTS_NOTIFIED', set.toList());
+  }
+
+  Future<void> saveScheduledNotified(Set<String> set) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setStringList('SCHEDULED_APPOINTMENTS_NOTIFIED', set.toList());
+  }
+
+  void sendAppointmentAssignNotification(String name, String formattedDate, String timeStr) async {
     final DateTime appointmentTime = buildAppointment(formattedDate, timeStr);
-    print('FOR NOTIFICATION ----> formattedDate -- $formattedDate -- time -- $timeStr');
-    print('Appointment DateTime: $appointmentTime');
+    print('sendAppointmentAssignNotification FOR NOTIFICATION ----> formattedDate -- $formattedDate -- time -- $timeStr');
+    print('sendAppointmentAssignNotification Appointment DateTime: $appointmentTime');
 
     // final deviceState = await OneSignal.shared.getDeviceState();
     final id = OneSignal.User.pushSubscription.id;
     final playerId = id;
-    print('playerId: $playerId');
+    print('sendAppointmentAssignNotification playerId: $playerId');
+    print(OneSignal.User.pushSubscription.optedIn);
+
+    if (playerId != null) {
+      await scheduleAppointmentAssignNotification(patientName: name, appointmentTime: appointmentTime, playerId: playerId);
+    } else {
+      print("sendAppointmentAssignNotification Player ID not found. Make sure OneSignal is initialized and the user is subscribed.");
+    }
+  }
+
+  Future<void> scheduleAppointmentAssignNotification({
+    required String patientName,
+    required DateTime appointmentTime,
+    String deliveryOption = 'timezone', // 'timezone', 'last-active', or null
+    int? throttlePerMinute,
+    bool enableFrequencyCap = false,
+    required String playerId,
+  }) async {
+    // 5 minutes before appointment
+    final DateTime sendAt = appointmentTime.subtract(Duration(minutes: 5));
+    print("sendAppointmentAssignNotification sendAt ----------------> $sendAt -->>>>>>>>>>>>>>>>>>>>>>>>>>> $patientName");
+    // final sendAfterStr = DateFormat("yyyy-MM-dd HH:mm:ss 'GMT'").format(sendAt.toUtc());
+    final sendAfterStr = formatSendAfter(sendAt);
+    print("sendAppointmentAssignNotification sendAfterStr ----------------> $sendAfterStr");
+
+    final url = Uri.parse('https://api.onesignal.com/notifications?c=push');
+    // final url = Uri.parse('https://api.onesignal.com/api/v1/notifications');
+
+    final data = {
+      "app_id": "bb897bf1-fbce-419f-bb76-6e7ff37c49f9",
+      // "target_channel": "push",
+      "headings": {"en": "You’ve Got a New Appointment"},
+      "name": "Assigned Appointment Notification",
+      "contents": {"en": "Appointment is at ${fmtTime(appointmentTime)} with $patientName"},
+      // "included_segments": ["All"],
+      "include_player_ids": ["$playerId"],
+      "small_icon": "app_icon",
+      // "included_segments": [
+      //   "Subscribed Users"
+      // ],
+      // "send_after": sendAfterStr, //sendAt.toUtc().toIso8601String(), // must be UTC
+      // Optional advanced delivery options
+      // if (deliveryOption.isNotEmpty) "delayed_option": deliveryOption, // 'timezone' or 'last-active'
+      // Optional throttling
+      // if (throttlePerMinute != null) "throttle_rate_per_minute": throttlePerMinute,
+
+      // Optional frequency capping
+      // "enable_frequency_cap": enableFrequencyCap,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'accept': 'application/json',
+          // 'Authorization': 'Key os_v2_app_wdl5wg4m7jhn7hhjx5ry6fjq3hjifvrxqxyea2mqdkbcwwpwhfc62p4mor5smajqrlxr2z3bcj2vrh6y53qygk3lix4pgsds4b4s5ma',
+          'Authorization': 'Basic os_v2_app_xoexx4p3zzaz7o3wnz77g7cj7e5gjnrb7veeazuhtmrjjrnp4rxhzht7aqudye4ztofxznp3bmaiek7snumrvbencj4wvgxdpairdhi',
+        },
+        body: jsonEncode(data),
+      );
+
+      if (response.statusCode == 200) {
+        final res = jsonDecode(response.body);
+        print("sendAppointmentAssignNotification Notification scheduled: $res");
+      } else {
+        print("sendAppointmentAssignNotification Error scheduling notification: ${response.body}");
+      }
+    } catch (e) {
+      print("Exception: $e");
+    }
+  }
+
+  void sendAppointmentNotification(String formattedDate, String timeStr) async {
+    final DateTime appointmentTime = buildAppointment(formattedDate, timeStr);
+    // print('sendAppointmentNotification FOR NOTIFICATION ----> formattedDate -- $formattedDate -- time -- $timeStr');
+    // print('sendAppointmentNotification Appointment DateTime: $appointmentTime');
+
+    // final deviceState = await OneSignal.shared.getDeviceState();
+    final id = OneSignal.User.pushSubscription.id;
+    final playerId = id;
+    // print('sendAppointmentNotification playerId: $playerId');
     print(OneSignal.User.pushSubscription.optedIn);
 
     if (playerId != null) {
       await scheduleAppointmentNotification(appointmentTime: appointmentTime, playerId: playerId);
     } else {
-      print("Player ID not found. Make sure OneSignal is initialized and the user is subscribed.");
+      print("sendAppointmentNotification Player ID not found. Make sure OneSignal is initialized and the user is subscribed.");
     }
   }
 
@@ -375,15 +631,17 @@ class MainController extends GetxController {
   }) async {
     // 5 minutes before appointment
     final DateTime sendAt = appointmentTime.subtract(Duration(minutes: 5));
-    print("sendAt ----------------> $sendAt");
+    // print("sendAt ----------------> $sendAt");
     // final sendAfterStr = DateFormat("yyyy-MM-dd HH:mm:ss 'GMT'").format(sendAt.toUtc());
     final sendAfterStr = formatSendAfter(sendAt);
-    print("sendAfterStr ----------------> $sendAfterStr");
+    // print("sendAfterStr ----------------> $sendAfterStr");
 
     final url = Uri.parse('https://api.onesignal.com/notifications?c=push');
+    // final url = Uri.parse('https://api.onesignal.com/api/v1/notifications');
+
     final data = {
-      "app_id": "b0d7db1b-8cfa-4edf-9ce9-bf638f1530d9",
-      "target_channel": "push",
+      "app_id": "bb897bf1-fbce-419f-bb76-6e7ff37c49f9",
+      // "target_channel": "push",
       "headings": {"en": "Upcoming Appointment"},
       "name": "Appointment Notification",
       "contents": {"en": "Your appointment is at ${fmtTime(appointmentTime)}"},
@@ -409,14 +667,16 @@ class MainController extends GetxController {
         headers: {
           'Content-Type': 'application/json',
           'accept': 'application/json',
-          'Authorization': 'Key os_v2_app_wdl5wg4m7jhn7hhjx5ry6fjq3hjifvrxqxyea2mqdkbcwwpwhfc62p4mor5smajqrlxr2z3bcj2vrh6y53qygk3lix4pgsds4b4s5ma',
+          // 'Authorization': 'Key os_v2_app_wdl5wg4m7jhn7hhjx5ry6fjq3hjifvrxqxyea2mqdkbcwwpwhfc62p4mor5smajqrlxr2z3bcj2vrh6y53qygk3lix4pgsds4b4s5ma',
+          // 'Authorization':'Basic os_v2_app_xoexx4p3zzaz7o3wnz77g7cj7e5gjnrb7veeazuhtmrjjrnp4rxhzht7aqudye4ztofxznp3bmaiek7snumrvbencj4wvgxdpairdhi'
+          'Authorization': 'Basic os_v2_app_xoexx4p3zzaz7o3wnz77g7cj7e5gjnrb7veeazuhtmrjjrnp4rxhzht7aqudye4ztofxznp3bmaiek7snumrvbencj4wvgxdpairdhi',
         },
         body: jsonEncode(data),
       );
 
       if (response.statusCode == 200) {
         final res = jsonDecode(response.body);
-        print("Notification scheduled: $res");
+        print("Notification scheduled:-- $res");
       } else {
         print("Error scheduling notification: ${response.body}");
       }

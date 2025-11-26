@@ -483,7 +483,10 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
     }
   }
 
+  List<Map<String, dynamic>> slots = [];
+
   Future<bool> addCustomDatesApi(BuildContext context, String? doctorId, List<String> onlySelectedDates) async {
+    slots.clear();
     isLoading.value = true; // only first time loader
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -492,16 +495,36 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
 
     final url = Uri.parse('${Constants.baseUrl}doctors/date-availability');
     print('url ---- $url');
+    print('onlySelectedDates ---- ${onlySelectedDates.length}');
 
-    final Map<String, dynamic> requestBody = {
-      "dateKeys": onlySelectedDates,
-      "slots": [
-        {"start": selectedMorningStartTime.value, "end": selectedMorningEndTime.value},
-        {"start": selectedEveningStartTime.value, "end": selectedEveningEndTime.value},
-      ],
+    if (selectedMorningStartTime.value.isNotEmpty && selectedMorningEndTime.value.isNotEmpty) {
+      slots.add({"start": selectedMorningStartTime.value, "end": selectedMorningEndTime.value});
+    }
+
+    if (selectedEveningStartTime.value.isNotEmpty && selectedEveningEndTime.value.isNotEmpty) {
+      slots.add({"start": selectedEveningStartTime.value, "end": selectedEveningEndTime.value});
+    }
+
+    // Now build final request body
+    // final Map<String, dynamic> requestBody = {"dateKeys": onlySelectedDates, "slots": slots};
+
+    // final Map<String, dynamic> requestBodySingleDate = {"dateKey": onlySelectedDates, "slots": slots};
+
+    final Map<String, dynamic> requestBody =
+    onlySelectedDates.length == 1
+        ? {
+      "dateKey": onlySelectedDates.first,   // <— FIXED
+      "slots": slots,
+    }
+        : {
+      "dateKeys": onlySelectedDates,        // <— correct
+      "slots": slots,
     };
 
+    print('Slot ---- ${onlySelectedDates.length}');
+
     print('📤 Request Body: $requestBody');
+    // print('📤 Request Body Single: $requestBodySingleDate');
 
     try {
       final response = await http.post(
@@ -823,6 +846,26 @@ class TimeController extends GetxController with GetSingleTickerProviderStateMix
     if ((filteredList[i].slots ?? []).isEmpty) {
       filteredList.removeAt(i);
     }
+  }
+
+  void updateEditedSlot({
+    required String dateKey,
+    required String slotId,
+    required Slot updatedSlot,
+  }) {
+    final dateIndex = allDatesList.indexWhere((d) => d.dateKey == dateKey);
+    if (dateIndex == -1) return;
+
+    final slotIndex = allDatesList[dateIndex].slots
+        ?.indexWhere((s) => s.id == slotId) ?? -1;
+
+    if (slotIndex == -1) return;
+
+    // Replace old slot with new
+    allDatesList[dateIndex].slots![slotIndex] = updatedSlot;
+
+    // Refresh UI
+    allDatesList.refresh();
   }
 }
 

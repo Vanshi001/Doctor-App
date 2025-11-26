@@ -51,7 +51,7 @@ void main() async {
     // await CallService.initializeCallService();
   }
 
-  OneSignal.initialize("b0d7db1b-8cfa-4edf-9ce9-bf638f1530d9");
+  OneSignal.initialize("bb897bf1-fbce-419f-bb76-6e7ff37c49f9");
   OneSignal.Notifications.requestPermission(true);
 
   /// 2/5: set navigator key to ZegoUIKitPrebuiltCallInvitationService
