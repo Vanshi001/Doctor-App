@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:Doctor/model/appointment_model.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -572,7 +573,8 @@ class MainController extends GetxController {
           'Content-Type': 'application/json',
           'accept': 'application/json',
           // 'Authorization': 'Key os_v2_app_wdl5wg4m7jhn7hhjx5ry6fjq3hjifvrxqxyea2mqdkbcwwpwhfc62p4mor5smajqrlxr2z3bcj2vrh6y53qygk3lix4pgsds4b4s5ma',
-          'Authorization': 'Basic os_v2_app_xoexx4p3zzaz7o3wnz77g7cj7e5gjnrb7veeazuhtmrjjrnp4rxhzht7aqudye4ztofxznp3bmaiek7snumrvbencj4wvgxdpairdhi',
+          // 'Authorization': 'Basic os_v2_app_xoexx4p3zzaz7o3wnz77g7cj7e5gjnrb7veeazuhtmrjjrnp4rxhzht7aqudye4ztofxznp3bmaiek7snumrvbencj4wvgxdpairdhi',
+          'Authorization': '${dotenv.env['ONESIGNAL_REST_API_KEY']}'
         },
         body: jsonEncode(data),
       );

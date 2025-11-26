@@ -6,6 +6,7 @@ import 'package:Doctor/widgets/Constants.dart';
 import 'package:Doctor/zegocloud/common.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'controllers/NetworkController.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
@@ -51,7 +52,8 @@ void main() async {
     // await CallService.initializeCallService();
   }
 
-  OneSignal.initialize("bb897bf1-fbce-419f-bb76-6e7ff37c49f9");
+  await dotenv.load(fileName: ".env");
+  OneSignal.initialize('${dotenv.env['ONESIGNAL_APP_ID']}');
   OneSignal.Notifications.requestPermission(true);
 
   /// 2/5: set navigator key to ZegoUIKitPrebuiltCallInvitationService
